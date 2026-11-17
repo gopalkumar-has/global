@@ -407,33 +407,57 @@ sendEmail({
           </p>
 
           <!-- Account Details -->
-          <div style="background:#f1f6fc;border:1px solid #dce8f5;border-radius:10px;padding:22px;margin:25px 0;">
+         <!-- Account Details -->
+<div style="background:#f1f6fc;border:1px solid #dce8f5;border-radius:10px;padding:22px;margin:25px 0;">
 
-            <h3 style="color:#123b68;margin:0 0 18px;font-size:17px;">
-              Your Account Information
-            </h3>
+  <h3 style="color:#123b68;margin:0 0 18px;font-size:17px;">
+    Your Account Information
+  </h3>
 
-            <p style="margin:12px 0;color:#43546a;font-size:14px;">
-              <strong>User ID:</strong>
-              <span style="color:#0877d1;font-weight:bold;">
-                ${user.userId}
-              </span>
-            </p>
+  <p style="margin:12px 0;color:#43546a;font-size:14px;">
+    <strong>User ID:</strong>
+    <span style="color:#0877d1;font-weight:bold;">
+      ${user.userId}
+    </span>
+  </p>
 
-            <p style="margin:12px 0;color:#43546a;font-size:14px;">
-              <strong>Account Name:</strong> ${user.name}
-            </p>
+  <p style="margin:12px 0;color:#43546a;font-size:14px;">
+    <strong>Account Name:</strong> ${user.name}
+  </p>
 
-            <p style="margin:12px 0;color:#43546a;font-size:14px;">
-              <strong>Email:</strong> ${user.email}
-            </p>
+  <p style="margin:12px 0;color:#43546a;font-size:14px;">
+    <strong>Email:</strong> ${user.email}
+  </p>
 
-            <p style="margin:16px 0 0;color:#d97706;font-size:13px;line-height:1.6;">
-              🔐 Keep your login and transaction passwords confidential.
-              Never share them with anyone.
-            </p>
+  <div style="background:#ffffff;border:1px solid #dce8f5;border-radius:8px;padding:16px;margin-top:20px;">
 
-          </div>
+    <h3 style="color:#123b68;margin:0 0 15px;font-size:16px;">
+      Your Login Credentials
+    </h3>
+
+    <p style="margin:12px 0;color:#43546a;font-size:14px;">
+      <strong>Login Password:</strong>
+      <span style="color:#0877d1;font-weight:bold;">
+        ${password}
+      </span>
+    </p>
+
+    <p style="margin:12px 0;color:#43546a;font-size:14px;">
+      <strong>Transaction Password:</strong>
+      <span style="color:#0877d1;font-weight:bold;">
+        ${txPassword}
+      </span>
+    </p>
+
+  </div>
+
+  <p style="margin:18px 0 0;color:#d97706;font-size:13px;line-height:1.7;">
+    🔐 Security Notice: Keep both passwords confidential.
+    Never share them with anyone. Change your passwords after
+    your first login and never reuse them on other websites.
+  </p>
+
+</div>
 
           <!-- Login Button -->
           <div style="text-align:center;margin:30px 0;">
