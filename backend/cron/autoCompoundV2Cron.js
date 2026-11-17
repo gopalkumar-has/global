@@ -308,8 +308,8 @@ if (
 ) {
     console.log('AutoCompound V2 cron registered: Daily at 11:23 AM IST');
 
-    cron.schedule('11 21 * * *', processAutoCompoundV2, {
-        scheduled: true,
+cron.schedule('30 0 * * *', processAutoCompoundV2, {
+            scheduled: true,
         timezone: 'Asia/Kolkata'
     });
 }

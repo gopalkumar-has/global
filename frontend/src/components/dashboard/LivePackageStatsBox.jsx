@@ -333,7 +333,7 @@ const LivePackageStatsBox = ({ user }) => {
               </div>
               <div className="hidden text-right sm:block">
                 <p className="text-[9px] font-semibold uppercase tracking-[0.13em] text-slate-600">
-                  Normal + Auto Compound V2
+                  Normal + Auto Compound 
                 </p>
                 <Crown size={15} className="ml-auto mt-1 text-sky-300/70" />
               </div>

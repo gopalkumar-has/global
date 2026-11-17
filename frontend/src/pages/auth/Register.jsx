@@ -355,7 +355,7 @@ const Register = () => {
           )}
 
           <form className="gw-reg-form" onSubmit={handleSubmit}>
-            <div className="gw-reg-field full">
+            {/* <div className="gw-reg-field full">
               <label htmlFor="gw-sponsor">Sponsor ID *</label>
               <div className="gw-reg-input-wrap">
                 <UserRound className="gw-reg-field-icon" size={16}/>
@@ -364,7 +364,68 @@ const Register = () => {
               {checkingSponsor && <div className="gw-reg-sponsor-status pending"><LoaderCircle size={12} className="gw-spin"/> Checking sponsor details…</div>}
               {!checkingSponsor && sponsorIsValid && <div className="gw-reg-sponsor-status valid"><BadgeCheck size={12}/> Sponsor verified: {sponsorName}</div>}
               {!checkingSponsor && sponsorIsInvalid && <div className="gw-reg-sponsor-status invalid"><CircleAlert size={12}/> Invalid Sponsor ID</div>}
-            </div>
+            </div> */}
+
+            <div className="gw-reg-field full">
+  <label htmlFor="gw-sponsor">Sponsor ID *</label>
+
+  <div
+    className="gw-reg-input-wrap"
+    style={{
+      borderColor: sponsorIsValid && !checkingSponsor ? '#16a34a' : undefined,
+      boxShadow: sponsorIsValid && !checkingSponsor
+        ? '0 0 0 2px rgba(22, 163, 74, 0.12)'
+        : undefined
+    }}
+  >
+    <UserRound
+      className="gw-reg-field-icon"
+      size={16}
+      style={{
+        color: sponsorIsValid && !checkingSponsor ? '#16a34a' : undefined
+      }}
+    />
+
+    <input
+      id="gw-sponsor"
+      className="gw-reg-input"
+      type="text"
+      name="sponsorId"
+      value={formData.sponsorId}
+      onChange={handleChange}
+      placeholder="Enter sponsor ID"
+      autoComplete="off"
+      required
+    />
+  </div>
+
+ {checkingSponsor && (
+  <div
+    className="gw-reg-sponsor-status pending"
+    style={{ color: '#16a34a' }}
+  >
+    <LoaderCircle size={12} className="gw-spin" style={{ color: '#16a34a' }} />
+    Checking sponsor details…
+  </div>
+)}
+
+{!checkingSponsor && sponsorIsValid && (
+  <div
+    className="gw-reg-sponsor-status valid"
+    style={{ color: '#16a34a' }}
+  >
+    <BadgeCheck size={12} style={{ color: '#16a34a' }} />
+    Sponsor verified: {sponsorName}
+  </div>
+)}
+
+{!checkingSponsor && sponsorIsInvalid && (
+  <div className="gw-reg-sponsor-status invalid">
+    <CircleAlert size={12} />
+    Invalid Sponsor ID
+  </div>
+)}
+</div>
 
             <div className="gw-reg-field">
               <label htmlFor="gw-name">Full name *</label>

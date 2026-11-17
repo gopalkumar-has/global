@@ -96,9 +96,8 @@ const PackageModeModal = ({
           </button>
 
           <p className="mt-4 text-center text-[9px] leading-5 text-gray-500">
-            Select the mode you want to view. Auto Compound V2 is
-            currently a demo simulation and does not deduct wallet funds.
-          </p>
+            Select the mode you want to view. Auto Compound is
+           </p>
 
         </div>
       </div>

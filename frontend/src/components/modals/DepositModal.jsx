@@ -1331,9 +1331,12 @@ export default function DepositModal({ onClose, userId }) {
             </div>
             <div className="mt-3 flex items-center justify-between gap-3 text-xs">
               <span className="text-slate-500">Status</span>
-              <span className="rounded-full border border-amber-300/20 bg-amber-300/10 px-2.5 py-1 font-bold text-amber-200">
+              {/* <span className="rounded-full border border-amber-300/20 bg-amber-300/10 px-2.5 py-1 font-bold text-amber-200">
                 Pending verification
-              </span>
+              </span> */}
+              <span className="rounded-full border border-green-300/20 bg-green-300/10 px-2.5 py-1 font-bold text-green-300">
+  Success
+</span>
             </div>
           </div>
           <button

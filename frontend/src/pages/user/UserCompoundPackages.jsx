@@ -989,7 +989,7 @@ const UserCompoundPackages = () => {
           </span>
           <div className="min-w-0">
             <h2 className="truncate text-sm font-black uppercase tracking-[0.13em] text-white sm:text-base">
-              Auto Compound V2
+              Auto Compound 
             </h2>
             <p className="mt-1 flex items-center gap-1.5 text-[9px] font-semibold uppercase tracking-[0.13em] text-slate-500 sm:text-[10px]">
               <Zap size={11} className="text-[#e5c875]" />
@@ -1002,7 +1002,7 @@ const UserCompoundPackages = () => {
           type="button"
           onClick={refresh}
           disabled={loading || refreshing}
-          aria-label="Refresh Auto Compound V2"
+          aria-label="Refresh Auto Compound"
           className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-white/[0.04] text-slate-400 transition hover:border-[#d4af37]/40 hover:text-[#e5c875] disabled:opacity-40"
         >
           <RefreshCw size={15} className={refreshing ? "animate-spin" : ""} />
@@ -1087,7 +1087,7 @@ const UserCompoundPackages = () => {
         <div className="flex flex-col items-center justify-center py-12">
           <Loader2 className="mb-3 animate-spin text-[#d4af37]" size={28} />
           <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-slate-500">
-            Loading Auto Compound V2...
+            Loading Auto Compound ...
           </span>
         </div>
       ) : errorMessage ? (
@@ -1107,7 +1107,7 @@ const UserCompoundPackages = () => {
             <Layers size={21} />
           </span>
           <p className="mt-3 text-xs font-bold uppercase tracking-[0.13em] text-slate-300">
-            No Auto Compound V2 Packages
+            No Auto Compound  Packages
           </p>
           <p className="mt-1 text-[10px] text-slate-500">
             Your V2 packages will appear here after activation.

@@ -9,8 +9,8 @@ if (
     process.env.NODE_APP_INSTANCE === undefined
 ) {
 
-    // Runs daily at 12:30 AM IST
-    cron.schedule('10 21 * * *', async () => {
+    // Runs daily at 12:10 AM IST
+cron.schedule('10 0 * * *', async () => {
 
         console.log('Running Daily ROI Cron Job for Global Wealth...');
 

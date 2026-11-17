@@ -13,7 +13,7 @@ const MIN_WITHDRAWAL = 2;
 const WITHDRAWAL_FEE_PERCENT = 10;
 
 const WITHDRAWAL_START_HOUR = 9;
-const WITHDRAWAL_END_HOUR = 22;
+const WITHDRAWAL_END_HOUR = 12;
 
 const roundMoney = (value) =>
     Math.round((Number(value) + Number.EPSILON) * 10000) / 10000;

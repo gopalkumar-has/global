@@ -2042,7 +2042,7 @@ const TopUpModalWithInput = ({
               </div>
 
               {/* USER ID */}
-              <div>
+              {/* <div>
 
                 <label className="mb-1.5 block text-[10px] font-extrabold uppercase tracking-[0.16em] text-gray-400">
                   Your User ID
@@ -2064,13 +2064,13 @@ const TopUpModalWithInput = ({
 
                 </div>
 
-              </div>
+              </div> */}
 
               {/* MEMBER ID */}
               <div>
 
                 <label className="mb-1.5 block text-[10px] font-extrabold uppercase tracking-[0.16em] text-[#e5c875]">
-                  Receiver Member ID
+                  Enter User ID
                 </label>
 
                 <div className="relative">
@@ -2167,21 +2167,7 @@ const TopUpModalWithInput = ({
 
               </div>
 
-              {/* TERMS NOTICE */}
-              <div className="rounded-lg border border-[#d4af37]/15 bg-[#d4af37]/[0.045] px-3 py-2.5">
-
-                <div className="flex items-start gap-2">
-
-                  <ShieldCheck
-                    size={15}
-                    className="mt-0.5 shrink-0 text-[#e5c875]"
-                  />
-
-         
-
-                </div>
-
-              </div>
+               
 
               {/* BUTTONS */}
               <div className="flex gap-2 pt-1">
@@ -2242,13 +2228,14 @@ const TopUpModalWithInput = ({
 
       {/* MESSAGE MODAL */}
       <div className="relative z-[999999]">
-        <MessageModal
-          isOpen={messageModal.open}
-          onClose={handleMessageClose}
-          title={messageModal.title}
-          message={messageModal.message}
-          type={messageModal.type}
-        />
+       <MessageModal
+  isOpen={messageModal.open}
+  onClose={handleMessageClose}
+  title={messageModal.title}
+  message={messageModal.message}
+  type={messageModal.type}
+  receiverName={receiverName}
+/>
       </div>
 
     </>

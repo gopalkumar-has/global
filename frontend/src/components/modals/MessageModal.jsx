@@ -22,6 +22,7 @@ const MessageModal = ({
   message = "",
   type = "info",
   zIndex = 9998,
+  receiverName = "",
 }) => {
   useEffect(() => {
     if (!isOpen) return;
@@ -201,8 +202,25 @@ const MessageModal = ({
                   <span className="break-all text-right font-mono text-xs font-bold tracking-wide text-white">
                     {activationDetails.userId}
                   </span>
+
+                  
+
+                  
                 </div>
               )}
+
+              {receiverName && receiverName !== "Invalid User ID" && (
+  <div className="relative mt-3 flex items-center justify-between gap-3 border-t border-white/[0.08] pt-3">
+    <span className="flex items-center gap-2 text-[9px] font-bold uppercase tracking-[0.16em] text-slate-500">
+      <UserRound size={13} className="text-[#b99548]" />
+      User Name
+    </span>
+
+    <span className="break-all text-right text-xs font-bold tracking-wide text-white">
+      {receiverName}
+    </span>
+  </div>
+)}
 
               <div className="relative mt-3 flex items-center gap-2 rounded-lg border border-[#b99548]/15 bg-[#d8b765]/[0.05] px-3 py-2">
                 <PackageCheck size={15} className="shrink-0 text-[#d8b765]" />
