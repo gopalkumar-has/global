@@ -257,8 +257,8 @@ const QuickActions = ({ onDepositClick }) => {
 
   const actions = [
     {
-      id: "recharge",
-      label: "Recharge",
+      id: "Deposite",
+      label: "Deposite",
       icon: DollarSign,
       accent: "text-emerald-300",
       surface: "bg-emerald-400/[0.09]",
@@ -266,7 +266,7 @@ const QuickActions = ({ onDepositClick }) => {
       onClick: () => (onDepositClick ? onDepositClick() : navigate("/recharge")),
     },
     {
-      id: "withdrawal",
+      id: "Withdrawal",
       label: "Withdrawal",
       icon: CreditCard,
       accent: "text-[#e6c875]",
@@ -275,8 +275,8 @@ const QuickActions = ({ onDepositClick }) => {
       onClick: () => setIsWithdrawModalOpen(true),
     },
     {
-      id: "transfer",
-      label: "Fund Transfer",
+      id: "Transfer Fund",
+      label: "Transfer Fund",
       icon: ArrowLeftRight,
       accent: "text-sky-300",
       surface: "bg-sky-400/[0.09]",
@@ -284,7 +284,7 @@ const QuickActions = ({ onDepositClick }) => {
       onClick: () => setIsTransferModalOpen(true),
     },
     {
-      id: "wallet",
+      id: "Wallet to Fund",
       label: "Wallet to Fund",
       icon: Wallet,
       accent: "text-violet-300",

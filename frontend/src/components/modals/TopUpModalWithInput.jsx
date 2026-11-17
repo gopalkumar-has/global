@@ -1890,7 +1890,7 @@ const TopUpModalWithInput = ({
         <div className="relative flex max-h-[92vh] w-full max-w-[440px] flex-col overflow-hidden rounded-2xl border border-[#d4af37]/35 bg-[#080b10] shadow-[0_0_45px_rgba(212,175,55,0.13)]">
 
           {/* HEADER */}
-          <div className="relative shrink-0 overflow-hidden border-b border-[#d4af37]/20 bg-gradient-to-r from-[#17130a] via-[#29200e] to-[#100e09] px-5 py-4">
+          <div className="relative shrink-0  pt-20 overflow-hidden border-b border-[#d4af37]/20 bg-gradient-to-r from-[#17130a] via-[#29200e] to-[#100e09] px-5 py-4">
 
             <div className="pointer-events-none absolute -right-10 -top-12 h-36 w-36 rounded-full border border-[#e5c875]/10" />
 

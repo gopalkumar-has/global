@@ -135,7 +135,7 @@
 //       <div className="flex flex-col items-center gap-4">
 //         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#eab308]"></div>
 //         <p className="text-[#eab308] text-sm font-bold tracking-widest uppercase animate-pulse">
-//            World Finance 24...
+//            global wealth 24...
 //         </p>
 //       </div>
 //     </div>

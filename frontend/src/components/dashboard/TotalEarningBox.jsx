@@ -221,7 +221,7 @@ const TotalEarningBox = ({ user }) => {
 
   return (
     <>
-      <section className="relative mb-6 overflow-hidden rounded-[22px] border border-[#b99548]/25 bg-[#090d13] text-white shadow-[0_16px_45px_rgba(0,0,0,0.28)]">
+      <section className="relative mb-6 overflow-hidden rounded-[2px] border border-[#b99548]/25 bg-[#090d13] text-white shadow-[0_16px_45px_rgba(0,0,0,0.28)]">
         <div className="pointer-events-none absolute -right-16 -top-24 h-56 w-56 rounded-full bg-[#c7a451]/[0.09] blur-3xl" />
         <div className="pointer-events-none absolute bottom-0 left-1/3 h-px w-2/3 bg-gradient-to-r from-transparent via-[#d8b765]/40 to-transparent" />
 

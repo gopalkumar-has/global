@@ -773,7 +773,7 @@ const WithdrawalModal = ({ onClose }) => {
     >
       <div className="flex max-h-[95vh] w-full max-w-[460px] flex-col overflow-hidden rounded-t-[25px] border border-[#d4af37]/25 bg-black shadow-[0_0_50px_rgba(212,175,55,0.08)] sm:max-h-[92vh] sm:rounded-[25px]">
         {/* HEADER */}
-        <div className="flex shrink-0 items-center justify-between border-b border-[#d4af37]/20 bg-black px-5 py-4">
+        <div className="flex pt-20 shrink-0 items-center justify-between border-b border-[#d4af37]/20 bg-black px-5 py-4">
           <div className="flex items-center gap-3">
             <div className="flex h-11 w-11 items-center justify-center rounded-xl border border-[#d4af37]/40 bg-[#d4af37]/10 text-[#e4c568]">
               <Wallet size={21} />
@@ -1050,7 +1050,7 @@ const WithdrawalModal = ({ onClose }) => {
                 <div className="flex justify-between gap-3">
                   <span className="text-gray-500">Application Timing</span>
                   <span className="font-bold text-white">
-                    10:00 AM – 12:00 PM
+                    09:00 AM – 12:00 PM
                   </span>
                 </div>
 
@@ -1061,23 +1061,19 @@ const WithdrawalModal = ({ onClose }) => {
                   </span>
                 </div>
 
-                <div className="flex justify-between gap-3">
+                {/* <div className="flex justify-between gap-3">
                   <span className="text-gray-500">Expected Receive Time</span>
                   <span className="font-bold text-white">
                     10:00 PM – 12:00 AM
                   </span>
-                </div>
+                </div> */}
 
                 <div className="flex justify-between gap-3">
                   <span className="text-gray-500">Withdrawal Fee</span>
                   <span className="font-bold text-emerald-400">0%</span>
                 </div>
 
-                <div className="border-t border-white/10 pt-3 text-center leading-relaxed text-gray-500">
-                  You can apply for a withdrawal only once every 10 days.
-                  Withdrawal requests are subject to backend approval and
-                  processing rules.
-                </div>
+               
               </div>
             </div>
           </div>

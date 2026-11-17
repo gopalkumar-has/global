@@ -185,10 +185,10 @@
 //     // =========================================================
 //     sendEmail({
 //         email: user.email,
-//         subject: '🎉 Welcome to World Finance 24!',
+//         subject: '🎉 Welcome to global wealth 24!',
 //         html: `
 //         <div style="font-family: Arial; padding: 20px;">
-//             <h2 style="color: #03a9f4;">🚀 Welcome to World Finance 24</h2>
+//             <h2 style="color: #03a9f4;">🚀 Welcome to global wealth 24</h2>
 //             <p>Hello <strong>${user.name}</strong>,</p>
 //             <p>Your account has been successfully created.</p>
 //             <div style="background-color: #f8f9fa; padding: 20px; border-left: 4px solid #03a9f4;">
@@ -368,7 +368,7 @@ router.post('/register', checkFeature('allowRegistrations'), async (req, res) =>
         subject: '🎉 Welcome to World together 24!',
         html: `
         <div style="font-family: Arial; padding: 20px;">
-            <h2 style="color: #03a9f4;">🚀 Welcome to World Finance 24</h2>
+            <h2 style="color: #03a9f4;">🚀 Welcome to global wealth 24</h2>
             <p>Hello <strong>${user.name}</strong>,</p>
             <p>Your account has been successfully created.</p>
             <div style="background-color: #f8f9fa; padding: 20px; border-left: 4px solid #03a9f4;">

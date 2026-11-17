@@ -565,7 +565,7 @@ const WalletTransferModal = ({ onClose }) => {
         <div className="pointer-events-none absolute -right-20 -top-24 h-64 w-64 rounded-full border border-[#d7b96f]/10" />
         <div className="pointer-events-none absolute -right-10 -top-14 h-44 w-44 rounded-full border border-[#d7b96f]/10" />
 
-        <header className="relative flex items-center justify-between border-b border-white/[0.08] px-5 py-4 sm:px-6">
+        <header className="relative flex items-center pt-20 justify-between border-b border-white/[0.08] px-5 py-4 sm:px-6">
           <div className="flex items-center gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-2xl border border-[#d4b45f]/25 bg-[#d4b45f]/[0.09] text-[#e5c875]">
               <ArrowLeftRight size={19} />
@@ -680,30 +680,7 @@ const WalletTransferModal = ({ onClose }) => {
                     className="w-full bg-transparent py-3.5 text-lg font-semibold text-white outline-none placeholder:text-slate-600"
                   />
                 </div>
-                <div className="mt-2 flex flex-wrap gap-2">
-                  {quickAmounts.map((value) => (
-                    <button
-                      key={value}
-                      type="button"
-                      onClick={() => handleQuickAmount(value)}
-                      className={`rounded-lg border px-3 py-1.5 text-[10px] font-bold transition ${
-                        amount === String(value)
-                          ? "border-[#d4b45f]/50 bg-[#d4b45f]/[0.12] text-[#e5c875]"
-                          : "border-white/[0.08] bg-white/[0.025] text-slate-400 hover:border-[#d4b45f]/30 hover:text-white"
-                      }`}
-                    >
-                      ${value}
-                    </button>
-                  ))}
-                  <button
-                    type="button"
-                    onClick={() => setAmount(balance >= 1 ? formatUSD(balance).replaceAll(",", "") : "")}
-                    disabled={balance < 1 || walletLoading}
-                    className="ml-auto rounded-lg border border-[#d4b45f]/20 px-3 py-1.5 text-[10px] font-bold text-[#d9bd75] transition hover:bg-[#d4b45f]/[0.08] disabled:opacity-40"
-                  >
-                    Max
-                  </button>
-                </div>
+             
                 {hasValidAmount && numericAmount > balance && (
                   <p className="mt-2 text-[10px] font-medium text-rose-300">
                     Amount is higher than your available balance.

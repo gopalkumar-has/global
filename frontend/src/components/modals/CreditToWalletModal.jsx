@@ -449,7 +449,7 @@ const CreditToWalletModal = ({ onClose }) => {
       <div className="flex max-h-[95vh] w-full max-w-[460px] flex-col overflow-hidden rounded-t-[25px] border border-[#d4af37]/25 bg-black shadow-[0_0_50px_rgba(212,175,55,0.08)] sm:max-h-[92vh] sm:rounded-[25px]">
 
         {/* HEADER */}
-        <div className="flex shrink-0 items-center justify-between border-b border-[#d4af37]/20 bg-black px-5 py-4">
+        <div className="flex shrink-0 pt-20 items-center justify-between border-b border-[#d4af37]/20 bg-black px-5 py-4">
           <div className="flex items-center gap-3">
             <div className="flex h-11 w-11 items-center justify-center rounded-xl border border-[#d4af37]/40 bg-[#d4af37]/10 text-[#e4c568]">
               <Wallet size={21} />

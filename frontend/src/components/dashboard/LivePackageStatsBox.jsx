@@ -275,7 +275,7 @@ const LivePackageStatsBox = ({ user }) => {
           <div className="absolute bottom-0 left-0 h-32 w-1/2 bg-gradient-to-tr from-[#b99548]/[0.07] to-transparent blur-2xl" />
         </div>
 
-        <div className="relative px-4 pb-4 pt-4 sm:px-5 sm:pb-5">
+        <div className="relative  sm:px-5 sm:pb-5">
           <div className="overflow-hidden rounded-[18px] border border-white/[0.08] bg-[#111823]">
             <button
               type="button"

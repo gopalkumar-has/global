@@ -22,7 +22,7 @@ const WithdrawalPopup = () => {
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 px-4 backdrop-blur-sm transition-opacity duration-300">
       
-      {/* POPUP BOX (World Finance Theme) */}
+      {/* POPUP BOX (global wealth Theme) */}
       <div className="bg-[#1c2233] border-2 border-[#d89814] rounded-2xl p-6 max-w-sm w-full relative shadow-[0_0_20px_rgba(216,152,20,0.3)] transform transition-all duration-300 scale-100">
         
         {/* CLOSE BUTTON */}

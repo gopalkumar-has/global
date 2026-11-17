@@ -205,7 +205,7 @@
 // //           {/* Heading with Branding */}
 // //           <h3 className="text-xl sm:text-2xl font-black text-white mb-2 tracking-wide">
 // //             Join Official <br/> 
-// //             <span className="text-[#eab308]">World Finance Channel</span>
+// //             <span className="text-[#eab308]">global wealth Channel</span>
 // //           </h3>
           
           
@@ -303,7 +303,7 @@
 //           {/* Heading with Telegram Branding */}
 //           <h3 className="text-xl sm:text-2xl font-black text-white mb-3 tracking-wide">
 //             Join Official <br/> 
-//             <span className="text-[#2AABEE]">World Finance Channel</span>
+//             <span className="text-[#2AABEE]">global wealth Channel</span>
 //           </h3>
            
 
@@ -390,7 +390,7 @@ const TelegramButton = () => {
           {/* Heading with Telegram Branding */}
           <h3 className="text-xl sm:text-2xl font-black text-white mb-3 tracking-wide">
             Join Official <br/> 
-            <span className="text-[#2AABEE]">World Finance Channel</span>
+            <span className="text-[#2AABEE]">global wealth Channel</span>
           </h3>
           
           {/* Action Button - Telegram Blue Style */}

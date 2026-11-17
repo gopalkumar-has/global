@@ -75,7 +75,7 @@
 // // let contract;
 // // const ABI = ["event Transfer(address indexed from, address indexed to, uint256 value)"];
 
-// // console.log("🔥 World Finance Super-Stable Scanner Started");
+// // console.log("🔥 global wealth Super-Stable Scanner Started");
 
 // // // ==========================================
 // // // 3. FILTERS FOR EXACT AMOUNTS
@@ -449,7 +449,7 @@
 // let contract;
 // const ABI = ["event Transfer(address indexed from, address indexed to, uint256 value)"];
 
-// console.log("🔥 World Finance Super-Stable Scanner Started");
+// console.log("🔥 global wealth Super-Stable Scanner Started");
 
 // // ==========================================
 // // 3. FILTERS FOR EXACT AMOUNTS
@@ -891,7 +891,7 @@
 // let contract;
 // const ABI = ["event Transfer(address indexed from, address indexed to, uint256 value)"];
 
-// console.log("🔥 World Finance Super-Stable Scanner Started");
+// console.log("🔥 global wealth Super-Stable Scanner Started");
 
 // // ==========================================
 // // 3. FILTERS FOR EXACT AMOUNTS
@@ -1698,7 +1698,7 @@
 // let contract;
 // const ABI = ["event Transfer(address indexed from, address indexed to, uint256 value)"];
 
-// console.log("🔥 World Finance Super-Stable Scanner Started");
+// console.log("🔥 global wealth Super-Stable Scanner Started");
 
 // // ==========================================
 // // 3. FILTERS FOR EXACT AMOUNTS
@@ -2427,7 +2427,7 @@ let provider;
 let contract;
 const ABI = ["event Transfer(address indexed from, address indexed to, uint256 value)"];
 
-console.log("🔥 World Finance Super-Stable Scanner Started");
+console.log("🔥 global wealth Super-Stable Scanner Started");
 
 // ==========================================
 // 3. FILTERS FOR EXACT AMOUNTS
