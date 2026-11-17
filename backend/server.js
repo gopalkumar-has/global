@@ -58,11 +58,7 @@ const allowedOrigins = [
     'https://globalwealth.trade',
     'https://www.globalwealth.trade',
     'https://pure.globalwealth.trade',
-
-    // World Together domains
-    'https://worldtogether24.online',
-    'https://www.worldtogether24.online',
-    'https://pure.worldtogether24.online'
+ 
 ];
 
 app.use(cors({
