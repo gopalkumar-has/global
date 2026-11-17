@@ -2177,11 +2177,7 @@ const TopUpModalWithInput = ({
                     className="mt-0.5 shrink-0 text-[#e5c875]"
                   />
 
-                  <p className="text-[10px] leading-5 text-gray-400">
-                    Please verify the receiver ID, package amount and
-                    applicable terms before confirming activation.
-                    Package duration displayed is 45 days.
-                  </p>
+         
 
                 </div>
 
