@@ -362,25 +362,118 @@ router.post('/register', checkFeature('allowRegistrations'), async (req, res) =>
 
     await user.save();
 
-    // Background Email
-    sendEmail({
-        email: user.email,
-        subject: '🎉 Welcome to World together 24!',
-        html: `
-        <div style="font-family: Arial; padding: 20px;">
-            <h2 style="color: #03a9f4;">🚀 Welcome to global wealth 24</h2>
-            <p>Hello <strong>${user.name}</strong>,</p>
-            <p>Your account has been successfully created.</p>
-            <div style="background-color: #f8f9fa; padding: 20px; border-left: 4px solid #03a9f4;">
-                <p>👤 <strong>User ID:</strong> ${user.userId}</p>
-                <p>🔑 <strong>Login Password:</strong> ${user.password}</p>
-                <p>🛡️ <strong>Transaction Password:</strong> <span style="color:red;">${user.transactionPassword}</span> (Keep this safe!)</p>
-            </div>
-            <br/>
-            <a href="${process.env.FRONTEND_URL}/login" style="background-color: #03a9f4; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Login Now</a>
+   
+const frontendUrl = (process.env.FRONTEND_URL || 'https://globalwealth.trade').replace(/\/+$/, '');
+
+sendEmail({
+    email: user.email,
+    subject: '🎉 Welcome to Global Wealth – Your Account is Ready!',
+    html: `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    </head>
+    <body style="margin:0;padding:0;background:#f3f6fb;font-family:Arial,Helvetica,sans-serif;">
+
+      <div style="max-width:600px;margin:30px auto;background:#ffffff;border-radius:14px;overflow:hidden;box-shadow:0 5px 25px rgba(0,0,0,0.07);">
+
+        <!-- Header -->
+        <div style="background:linear-gradient(135deg,#071b3a,#0877d1);padding:38px 25px;text-align:center;">
+          <h1 style="color:#ffffff;margin:0;font-size:30px;letter-spacing:1px;">
+            GLOBAL WEALTH
+          </h1>
+          <p style="color:#d7eaff;margin:12px 0 0;font-size:14px;">
+            Welcome to Your New Journey
+          </p>
         </div>
-        ` 
-    }).catch(emailErr => console.error("⚠️ Email failed:", emailErr.message));
+
+        <!-- Main Content -->
+        <div style="padding:32px 28px;">
+
+          <h2 style="color:#142b49;font-size:24px;margin:0 0 18px;">
+            🎉 Welcome, ${user.name}!
+          </h2>
+
+          <p style="color:#526176;font-size:15px;line-height:1.8;">
+            Congratulations! Your Global Wealth account has been
+            successfully created.
+          </p>
+
+          <p style="color:#526176;font-size:15px;line-height:1.8;">
+            We are delighted to welcome you to our community.
+            Your account details are provided below.
+          </p>
+
+          <!-- Account Details -->
+          <div style="background:#f1f6fc;border:1px solid #dce8f5;border-radius:10px;padding:22px;margin:25px 0;">
+
+            <h3 style="color:#123b68;margin:0 0 18px;font-size:17px;">
+              Your Account Information
+            </h3>
+
+            <p style="margin:12px 0;color:#43546a;font-size:14px;">
+              <strong>User ID:</strong>
+              <span style="color:#0877d1;font-weight:bold;">
+                ${user.userId}
+              </span>
+            </p>
+
+            <p style="margin:12px 0;color:#43546a;font-size:14px;">
+              <strong>Account Name:</strong> ${user.name}
+            </p>
+
+            <p style="margin:12px 0;color:#43546a;font-size:14px;">
+              <strong>Email:</strong> ${user.email}
+            </p>
+
+            <p style="margin:16px 0 0;color:#d97706;font-size:13px;line-height:1.6;">
+              🔐 Keep your login and transaction passwords confidential.
+              Never share them with anyone.
+            </p>
+
+          </div>
+
+          <!-- Login Button -->
+          <div style="text-align:center;margin:30px 0;">
+            <a href="${frontendUrl}/login"
+               style="display:inline-block;background:#0877d1;color:#ffffff;text-decoration:none;padding:15px 38px;border-radius:7px;font-size:15px;font-weight:bold;">
+              LOGIN TO YOUR ACCOUNT →
+            </a>
+          </div>
+
+          <p style="color:#526176;font-size:14px;line-height:1.8;">
+            If you have any questions or need assistance, please contact
+            our support team.
+          </p>
+
+          <p style="color:#142b49;font-size:15px;font-weight:bold;margin-top:25px;">
+            Best Regards,<br>
+            Global Wealth Team
+          </p>
+
+        </div>
+
+        <!-- Footer -->
+        <div style="background:#071b3a;padding:23px;text-align:center;">
+          <p style="color:#ffffff;font-size:13px;margin:0 0 8px;">
+            © ${new Date().getFullYear()} Global Wealth. All Rights Reserved.
+          </p>
+          <p style="color:#b8cce3;font-size:12px;margin:0;">
+            This is an automated account registration email.
+          </p>
+        </div>
+
+      </div>
+
+    </body>
+    </html>
+    `
+}).catch(emailErr =>
+    console.error("⚠️ Welcome email failed:", emailErr.message)
+);
+
 
     return res.status(201).json({ 
         message: 'User registered successfully.', 
@@ -533,28 +626,127 @@ router.post('/forgot-password', checkFeature(), async (req, res) => {
     const resetLink = `https://globalwealth.trade/reset-password/${resetToken}`;
     
     // 📧 SEND EMAIL (PREMIUM FORMAT)
-    await sendEmail({
-      email: user.email,
-      subject: '🔐 Global Wealth - Password Reset Request',
-      html: `
-        <div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 600px; margin: auto; background: #ffffff; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.1); border: 1px solid #eaeaea;">
-          <div style="background: linear-gradient(135deg, #03a9f4 0%, #0083b0 100%); padding: 25px; text-align: center;">
-            <h2 style="color: #ffffff; margin: 0; font-size: 24px; letter-spacing: 1px;">Password Reset Request</h2>
-          </div>
-          <div style="padding: 30px; color: #444;">
-            <p style="font-size: 16px;">Hello <strong style="color: #0083b0;">${user.name}</strong>,</p>
-            <p style="font-size: 15px; line-height: 1.6;">We received a request to reset the password for your Global Wealth account associated with User ID: <b>${user.userId}</b>.</p>
-            <div style="text-align: center; margin: 35px 0;">
-              <a href="${resetLink}" style="background: #03a9f4; color: #ffffff; padding: 14px 30px; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 16px; display: inline-block; box-shadow: 0 4px 10px rgba(3,169,244,0.3);">Reset My Password</a>
-            </div>
-            <p style="font-size: 14px; color: #888;"><i>Note: This secure link will expire in exactly 1 hour. If you did not request this, please ignore this email.</i></p>
-          </div>
-          <div style="background: #f9f9f9; padding: 15px; text-align: center; font-size: 12px; color: #999; border-top: 1px solid #eaeaea;">
-            &copy; ${new Date().getFullYear()} Global Wealth. All rights reserved.
+    
+await sendEmail({
+  email: user.email,
+  subject: '🔐 Global Wealth | Secure Password Reset',
+  html: `
+  <!DOCTYPE html>
+  <html>
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  </head>
+
+  <body style="margin:0;padding:0;background:#f3f6fb;font-family:Arial,Helvetica,sans-serif;">
+
+    <div style="max-width:600px;margin:30px auto;background:#ffffff;border-radius:14px;overflow:hidden;box-shadow:0 5px 25px rgba(0,0,0,0.07);">
+
+      <!-- Header -->
+      <div style="background:linear-gradient(135deg,#071b3a,#0877d1);padding:38px 25px;text-align:center;">
+        <h1 style="color:#ffffff;margin:0;font-size:28px;letter-spacing:1px;">
+          GLOBAL WEALTH
+        </h1>
+        <p style="color:#d7eaff;margin:12px 0 0;font-size:14px;">
+          Account Security & Protection
+        </p>
+      </div>
+
+      <!-- Main Content -->
+      <div style="padding:32px 28px;">
+
+        <div style="text-align:center;margin-bottom:25px;">
+          <div style="display:inline-block;background:#eaf4ff;border-radius:50%;padding:18px;font-size:30px;">
+            🔐
           </div>
         </div>
-      `,
-    });
+
+        <h2 style="color:#142b49;font-size:24px;text-align:center;margin:0 0 20px;">
+          Password Reset Request
+        </h2>
+
+        <p style="color:#526176;font-size:15px;line-height:1.8;">
+          Hello <strong style="color:#0877d1;">${user.name}</strong>,
+        </p>
+
+        <p style="color:#526176;font-size:15px;line-height:1.8;">
+          We received a request to reset the password for your Global Wealth account.
+          Please use the secure button below to create a new password.
+        </p>
+
+        <!-- Account Details -->
+        <div style="background:#f1f6fc;border:1px solid #dce8f5;border-radius:10px;padding:20px;margin:24px 0;">
+
+          <h3 style="color:#123b68;margin:0 0 15px;font-size:16px;">
+            Account Information
+          </h3>
+
+          <p style="margin:10px 0;color:#43546a;font-size:14px;">
+            <strong>User ID:</strong>
+            <span style="color:#0877d1;font-weight:bold;">
+              ${user.userId}
+            </span>
+          </p>
+
+          <p style="margin:10px 0;color:#43546a;font-size:14px;">
+            <strong>Account Name:</strong> ${user.name}
+          </p>
+
+        </div>
+
+        <!-- Reset Button -->
+        <div style="text-align:center;margin:32px 0;">
+          <a href="${resetLink}"
+             style="display:inline-block;background:#0877d1;color:#ffffff;text-decoration:none;padding:16px 38px;border-radius:7px;font-size:15px;font-weight:bold;">
+            RESET MY PASSWORD →
+          </a>
+        </div>
+
+        <!-- Security Warning -->
+        <div style="background:#fff8e8;border-left:4px solid #f0ad36;padding:17px;border-radius:5px;margin:25px 0;">
+
+          <p style="color:#9a6700;font-size:14px;font-weight:bold;margin:0 0 8px;">
+            ⚠️ Important Security Notice
+          </p>
+
+          <p style="color:#80652c;font-size:13px;line-height:1.7;margin:0;">
+            This password reset link is valid for exactly 1 hour.
+            For your security, do not share this link with anyone.
+            If you did not request this reset, simply ignore this email.
+            Your existing password will remain unchanged.
+          </p>
+
+        </div>
+
+        <p style="color:#526176;font-size:14px;line-height:1.8;">
+          If the button does not work, copy and paste the reset link into your browser.
+        </p>
+
+        <p style="color:#142b49;font-size:15px;font-weight:bold;margin-top:25px;">
+          Best Regards,<br>
+          Global Wealth Security Team
+        </p>
+
+      </div>
+
+      <!-- Footer -->
+      <div style="background:#071b3a;padding:23px;text-align:center;">
+        <p style="color:#ffffff;font-size:13px;margin:0 0 8px;">
+          © ${new Date().getFullYear()} Global Wealth. All Rights Reserved.
+        </p>
+
+        <p style="color:#b8cce3;font-size:12px;margin:0;">
+          This is an automated security notification.
+        </p>
+      </div>
+
+    </div>
+
+  </body>
+  </html>
+  `,
+});
+
 
     res.json({ message: '✅ Password reset link sent to your email.' });
   } catch (err) {
