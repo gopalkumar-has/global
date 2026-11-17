@@ -1,572 +1,425 @@
-// // // import React, { useState } from 'react';
-// // // import { useAuth } from "../context/AuthContext";
-// // // // 🔥 Naya Premium Modal Import Kar Liya
-// // // import TopUpModalWithInput from "./modals/TopUpModalWithInput"; 
 
-// // // const Packages = () => {
-// // //   const { user } = useAuth();
-  
-// // //   const [isModalOpen, setIsModalOpen] = useState(false);
-// // //   const [selectedPackage, setSelectedPackage] = useState({ amount: 0, name: '' });
-
-// // //   // USD Packages List (Data same as before)
-// // // const packagesList = [
-// // //     { id: 1, name: 'SAVING 1', price: 2, roi: 0.10, days: 25, profit: 2.50 },
-// // //     { id: 2, name: 'SAVING 2', price: 5, roi: 0.25, days: 25, profit: 6.25 },
-// // //     { id: 3, name: 'SAVING 3', price: 10, roi: 0.50, days: 25, profit: 12.50 },
-// // //     { id: 4, name: 'SAVING 4', price: 20, roi: 1, days: 25, profit: 25 },
-// // //     { id: 5, name: 'SAVING 5', price: 50, roi: 2.50, days: 25, profit: 62.50 },
-// // //     { id: 6, name: 'SAVING 6', price: 100, roi: 5, days: 25, profit: 125 },
-// // //     { id: 7, name: 'SAVING 7', price: 200, roi: 10, days: 25, profit: 250 },
-// // //     { id: 8, name: 'SAVING 8', price: 500, roi: 25, days: 25, profit: 625 },
-// // //     { id: 9, name: 'SAVING 9', price: 1000, roi: 50, days: 25, profit: 1250 },
-// // // ];
-
-// // //   const handleBuyClick = (pkg) => {
-// // //     setSelectedPackage({ amount: pkg.price, name: pkg.name });
-// // //     setIsModalOpen(true);
-// // //   };
-
-// // //   if (!user) return null;
-
-// // //   return (
-// // //     <div className="w-full pb-2 md:pb-8 pt-4">
-// // //       {/* --- USD PACKAGE GRID --- */}
-// // //       {/* 🔥 UPDATE: Mobile ke liye grid-cols-2 set kiya hai aur baaki screens ke liye 3 aur 4 */}
-// // //       <div className="max-w-6xl mx-auto px-2 sm:px-4 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-5">
-// // //         {packagesList.map((pkg) => (
-// // //           // 🔥 UPDATE: Dark Theme, Gold Borders & Responsive Padding
-// // //           <div key={pkg.id} className="bg-[#111827] border border-[#d4af37]/40 p-4 md:p-6 flex flex-col justify-between shadow-lg shadow-black/50 rounded-xl hover:border-[#d4af37] transition-all">
-// // //             <div>
-// // //               <h3 className="text-sm md:text-xl font-black text-[#d4af37] mb-3 md:mb-4 tracking-wide">{pkg.name}</h3>
-              
-// // //               {/* Data list with Flexbox for clean alignment */}
-// // //               <div className="space-y-1.5 md:space-y-2">
-// // //                 <p className="text-gray-400 text-xs md:text-sm font-semibold flex justify-between">
-// // //                   <span>Price:</span> <span className="text-[#22c55e]">${pkg.price}</span>
-// // //                 </p>
-// // //                 <p className="text-gray-400 text-xs md:text-sm font-semibold flex justify-between">
-// // //                   <span>Daily ROI:</span> <span className="text-[#22c55e]">${pkg.roi.toFixed(2)}</span>
-// // //                 </p>
-// // //                 <p className="text-gray-400 text-xs md:text-sm font-semibold flex justify-between">
-// // //                   <span>Days:</span> <span className="text-white">{pkg.days}</span>
-// // //                 </p>
-// // //                 <p className="text-gray-400 text-xs md:text-sm font-semibold flex justify-between border-t border-gray-700 pt-1.5 md:pt-2 mt-1.5 md:mt-2">
-// // //                   <span>Total Profit:</span> <span className="text-[#d4af37]">${pkg.profit.toFixed(2)}</span>
-// // //                 </p>
-// // //               </div>
-// // //             </div>
-
-// // //             {/* Premium Gold Button */}
-// // //             <button 
-// // //               onClick={() => handleBuyClick(pkg)}
-// // //               className="mt-4 md:mt-6 w-full bg-gradient-to-r from-[#d4af37] to-[#f3e5ab] text-black font-extrabold py-1.5 md:py-2 px-4 rounded-lg shadow-[0_0_10px_rgba(212,175,55,0.4)] hover:shadow-[0_0_15px_rgba(212,175,55,0.6)] hover:scale-[1.02] transition-all text-xs md:text-sm"
-// // //             >
-// // //               BUY NOW
-// // //             </button>
-// // //           </div>
-// // //         ))}
-// // //       </div>
-
-// // //       {/* --- PREMIUM ACTIVATION MODAL --- */}
-// // //       {isModalOpen && (
-// // //         <TopUpModalWithInput 
-// // //            onClose={() => setIsModalOpen(false)}
-// // //            onSuccess={() => console.log("Package Activated!")}
-// // //            packageAmount={selectedPackage.amount}
-// // //            packageName={selectedPackage.name}
-// // //         />
-// // //       )}
-// // //     </div>
-// // //   );
-// // // };
-
-// // // export default Packages;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// // import React, { useState } from 'react';
-// // import { useAuth } from "../context/AuthContext";
-// // import { X, TrendingUp, Layers } from 'lucide-react'; // Icons import kiye achhe UI ke liye
-// // import TopUpModalWithInput from "./modals/TopUpModalWithInput"; 
-// // import AutoCompoundModal from "./modals/AutoCompoundModal"; // 🔥 Naya Auto Compound Modal Import Kiya
-
-// // const Packages = () => {
-// //   const { user } = useAuth();
-  
-// //   // Modals handle karne ke liye naye states
-// //   const [isSelectionModalOpen, setIsSelectionModalOpen] = useState(false);
-// //   const [isNormalModalOpen, setIsNormalModalOpen] = useState(false);
-// //   const [isCompoundModalOpen, setIsCompoundModalOpen] = useState(false);
-// //   const [selectedPackage, setSelectedPackage] = useState({ amount: 0, name: '' });
-
-// //   // USD Packages List
-// //   const packagesList = [
-// //     { id: 1, name: 'SAVING 1', price: 2, roi: 0.10, days: 25, profit: 2.50 },
-// //     { id: 2, name: 'SAVING 2daf', price: 5, roi: 0.25, days: 25, profit: 6.25 },
-// //     { id: 3, name: 'SAVING 3', price: 10, roi: 0.50, days: 25, profit: 12.50 },
-// //     { id: 4, name: 'SAVING 4', price: 20, roi: 1, days: 25, profit: 25 },
-// //     { id: 5, name: 'SAVING 5', price: 50, roi: 2.50, days: 25, profit: 62.50 },
-// //     { id: 6, name: 'SAVING 6', price: 100, roi: 5, days: 25, profit: 125 },
-// //     { id: 7, name: 'SAVING 7', price: 200, roi: 10, days: 25, profit: 250 },
-// //     { id: 8, name: 'SAVING 8', price: 500, roi: 25, days: 25, profit: 625 },
-// //     { id: 9, name: 'SAVING 9', price: 1000, roi: 50, days: 25, profit: 1250 },
-// //   ];
-
-// //   // Buy Now click karne par ab Selection Modal khulega
-// //   const handleBuyClick = (pkg) => {
-// //     setSelectedPackage({ amount: pkg.price, name: pkg.name });
-// //     setIsSelectionModalOpen(true);
-// //   };
-
-// //   // Option 1: Normal Select kiya
-// //   const handleSelectNormal = () => {
-// //     setIsSelectionModalOpen(false);
-// //     setIsNormalModalOpen(true);
-// //   };
-
-// //   // Option 2: Compound Select kiya
-// //   const handleSelectCompound = () => {
-// //     setIsSelectionModalOpen(false);
-// //     setIsCompoundModalOpen(true);
-// //   };
-
-// //   if (!user) return null;
-
-// //   return (
-// //     <div className="w-full pb-2 md:pb-8 pt-4 relative">
-// //       {/* --- USD PACKAGE GRID --- */}
-// //       <div className="max-w-6xl mx-auto px-2 sm:px-4 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-5">
-// //         {packagesList.map((pkg) => (
-// //           <div key={pkg.id} className="bg-[#111827] border border-[#d4af37]/40 p-4 md:p-6 flex flex-col justify-between shadow-lg shadow-black/50 rounded-xl hover:border-[#d4af37] transition-all">
-// //             <div>
-// //               <h3 className="text-sm md:text-xl font-black text-[#d4af37] mb-3 md:mb-4 tracking-wide">{pkg.name}</h3>
-              
-// //               <div className="space-y-1.5 md:space-y-2">
-// //                 <p className="text-gray-400 text-xs md:text-sm font-semibold flex justify-between">
-// //                   <span>Price:</span> <span className="text-[#22c55e]">${pkg.price}</span>
-// //                 </p>
-// //                 <p className="text-gray-400 text-xs md:text-sm font-semibold flex justify-between">
-// //                   <span>Daily ROI:</span> <span className="text-[#22c55e]">${pkg.roi.toFixed(2)}</span>
-// //                 </p>
-// //                 <p className="text-gray-400 text-xs md:text-sm font-semibold flex justify-between">
-// //                   <span>Days:</span> <span className="text-white">{pkg.days}</span>
-// //                 </p>
-// //                 <p className="text-gray-400 text-xs md:text-sm font-semibold flex justify-between border-t border-gray-700 pt-1.5 md:pt-2 mt-1.5 md:mt-2">
-// //                   <span>Total Profit:</span> <span className="text-[#d4af37]">${pkg.profit.toFixed(2)}</span>
-// //                 </p>
-// //               </div>
-// //             </div>
-
-// //             <button 
-// //               onClick={() => handleBuyClick(pkg)}
-// //               className="mt-4 md:mt-6 w-full bg-gradient-to-r from-[#d4af37] to-[#f3e5ab] text-black font-extrabold py-1.5 md:py-2 px-4 rounded-lg shadow-[0_0_10px_rgba(212,175,55,0.4)] hover:shadow-[0_0_15px_rgba(212,175,55,0.6)] hover:scale-[1.02] transition-all text-xs md:text-sm"
-// //             >
-// //               BUY NOW
-// //             </button>
-// //           </div>
-// //         ))}
-// //       </div>
-
-// //       {/* ========================================================= */}
-// //       {/* 🚀 STEP 1: PACKAGE SELECTION MODAL (Normal vs Compound) */}
-// //       {/* ========================================================= */}
-// //       {isSelectionModalOpen && (
-// //         <div className="fixed inset-0 bg-black/85 backdrop-blur-sm z-[9990] flex justify-center items-center p-4">
-// //           <div className="bg-[#0b101e] border border-[#d4af37]/40 w-full max-w-md rounded-2xl p-6 shadow-[0_0_30px_rgba(212,175,55,0.2)] relative animate-in fade-in zoom-in duration-200">
-            
-// //             <button 
-// //               onClick={() => setIsSelectionModalOpen(false)} 
-// //               className="absolute top-4 right-4 text-gray-400 hover:text-white bg-white/5 hover:bg-red-500/20 p-1.5 rounded-full transition-all"
-// //             >
-// //               <X size={20} />
-// //             </button>
-
-// //             <h2 className="text-2xl font-black text-center text-white mb-2">Select Package Type</h2>
-// //             <p className="text-center text-gray-400 text-sm mb-6">Choose how you want to invest your <span className="text-[#00ff88] font-bold">${selectedPackage.amount}</span></p>
-
-// //             <div className="flex flex-col gap-4">
-              
-// //               {/* Option 1: NORMAL PACKAGE */}
-// //               <div 
-// //                 onClick={handleSelectNormal}
-// //                 className="group cursor-pointer border border-[#2d3748] hover:border-[#22c55e] bg-[#131927] hover:bg-[#131927]/80 rounded-xl p-4 transition-all"
-// //               >
-// //                 <div className="flex items-center gap-4">
-// //                   <div className="bg-[#22c55e]/10 p-3 rounded-lg text-[#22c55e] group-hover:scale-110 transition-transform">
-// //                     <TrendingUp size={24} />
-// //                   </div>
-// //                   <div>
-// //                     <h3 className="text-white font-bold text-lg">Normal Active Package</h3>
-// //                     <p className="text-gray-400 text-xs mt-1 leading-relaxed">
-// //                       <strong className="text-[#22c55e]">5% Daily ROI.
-// //                         </strong> 
-// //                      </p>
-// //                   </div>
-// //                 </div>
-// //               </div>
-
-// //               {/* Option 2: AUTO COMPOUND PACKAGE */}
-// //               <div 
-// //                 onClick={handleSelectCompound}
-// //                 className="group cursor-pointer border border-[#2d3748] hover:border-[#d4af37] bg-gradient-to-r hover:from-[#131927] hover:to-[#d4af37]/10 bg-[#131927] rounded-xl p-4 transition-all shadow-lg"
-// //               >
-// //                 <div className="flex items-center gap-4">
-// //                   <div className="bg-[#d4af37]/10 p-3 rounded-lg text-[#d4af37] group-hover:scale-110 transition-transform">
-// //                     <Layers size={24} />
-// //                   </div>
-// //                   <div>
-// //                     <h3 className="text-[#e4c568] font-black text-lg">Auto Compound (6%)</h3>
-// //                     <p className="text-gray-400 text-xs mt-1 leading-relaxed">
-// //                       <strong className="text-[#e4c568]">6% Daily ROI.</strong> 
-// //                      </p>
-// //                   </div>
-// //                 </div>
-// //               </div>
-
-// //             </div>
-// //           </div>
-// //         </div>
-// //       )}
-
-// //       {/* ========================================================= */}
-// //       {/* 🚀 STEP 2A: NORMAL TOPUP MODAL */}
-// //       {/* ========================================================= */}
-// //       {isNormalModalOpen && (
-// //         <TopUpModalWithInput 
-// //            onClose={() => setIsNormalModalOpen(false)}
-// //            onSuccess={() => { setIsNormalModalOpen(false); console.log("Normal Package Activated!"); }}
-// //            packageAmount={selectedPackage.amount}
-// //            packageName={selectedPackage.name}
-// //         />
-// //       )}
-
-// //       {/* ========================================================= */}
-// //       {/* 🚀 STEP 2B: AUTO COMPOUND MODAL */}
-// //       {/* ========================================================= */}
-// //       {isCompoundModalOpen && (
-// //         <AutoCompoundModal 
-// //            onClose={() => setIsCompoundModalOpen(false)}
-// //            onSuccess={() => { setIsCompoundModalOpen(false); console.log("Compound Package Activated!"); }}
-// //            packageAmount={selectedPackage.amount}
-// //            packageName={selectedPackage.name}
-// //         />
-// //       )}
-
-// //     </div>
-// //   );
-// // };
-
-// // export default Packages;
-
-
-// import React, { useState } from 'react';
+// import React, { useState } from "react";
 // import { useAuth } from "../context/AuthContext";
-// import { X, TrendingUp, Layers, Zap } from 'lucide-react'; 
-// import TopUpModalWithInput from "./modals/TopUpModalWithInput"; 
-// import AutoCompoundModal from "./modals/AutoCompoundModal"; 
+// import {
+//   ArrowUpRight,
+//   Clock3,
+//   Gem,
+//   ShieldCheck
+// } from "lucide-react";
+
+// import TopUpModalWithInput from "./modals/TopUpModalWithInput";
+// import PackageModeModal from "./modals/PackageModeModal";
+// import AutoCompoundV2Modal from "./modals/AutoCompoundV2Modal";
+
+// const PACKAGE_DURATION_DAYS = 45;
+
+// const packagesList = [
+//   { id: 1, price: 2 },
+//   { id: 2, price: 5 },
+//   { id: 3, price: 10 },
+//   { id: 4, price: 20 },
+//   { id: 5, price: 50 },
+//   { id: 6, price: 100 },
+//   { id: 7, price: 200 },
+//   { id: 8, price: 500 },
+//   { id: 9, price: 1000 }
+// ];
+
+// const formatUSD = (amount) =>
+//   `$${Number(amount).toLocaleString("en-US", {
+//     minimumFractionDigits: 2,
+//     maximumFractionDigits: 2
+//   })}`;
 
 // const Packages = () => {
 //   const { user } = useAuth();
-  
-//   const [isSelectionModalOpen, setIsSelectionModalOpen] = useState(false);
-//   const [isNormalModalOpen, setIsNormalModalOpen] = useState(false);
-//   const [isCompoundModalOpen, setIsCompoundModalOpen] = useState(false);
-//   const [selectedPackage, setSelectedPackage] = useState({ amount: 0, name: '' });
 
-//   // 🔥 UPDATED LIST: 1% Daily ROI | 70 Days | 2X Return (Based on new poster)
-//   const packagesList = [
-//     { id: 1, name: ' STARTER', price: 2, roi: 0.02, days: 70, profit: 4 },
-//     { id: 2, name: ' BASIC', price: 5, roi: 0.05, days: 70, profit: 10 },
-//     { id: 3, name: ' BRONZE', price: 10, roi: 0.10, days: 70, profit: 20 },
-//     { id: 4, name: ' SILVER', price: 20, roi: 0.20, days: 70, profit: 40 },
-//     { id: 5, name: ' GOLD', price: 50, roi: 0.50, days: 70, profit: 100 },
-//     { id: 6, name: ' PLATINUM', price: 100, roi: 1.00, days: 70, profit: 200 },
-//     { id: 7, name: ' DIAMOND', price: 500, roi: 5.00, days: 70, profit: 1000 },
-//     { id: 8, name: ' CROWN', price: 1000, roi: 10.00, days: 70, profit: 2000 },
-//     { id: 9, name: ' MASTER', price: 2000, roi: 20.00, days: 70, profit: 4000 },
-//     { id: 10, name: ' GRAND', price: 5000, roi: 50.00, days: 70, profit: 10000 },
-//     { id: 11, name: ' ELITE', price: 10000, roi: 100.00, days: 70, profit: 20000 },
-//     { id: 12, name: ' SUPREME', price: 20000, roi: 200.00, days: 70, profit: 40000 },
-//   ];
+//   // Selected package
+//   const [selectedPackage, setSelectedPackage] = useState({
+//     amount: 0
+//   });
 
+//   // Modal states
+//   const [showModeModal, setShowModeModal] = useState(false);
+//   const [showNormalModal, setShowNormalModal] = useState(false);
+//   const [showAutoCompoundModal, setShowAutoCompoundModal] =
+//     useState(false);
+
+//   // User selects package amount
 //   const handleBuyClick = (pkg) => {
-//     setSelectedPackage({ amount: pkg.price, name: pkg.name });
-//     setIsSelectionModalOpen(true);
+//     setSelectedPackage({
+//       amount: pkg.price
+//     });
+
+//     setShowModeModal(true);
 //   };
 
-//   const handleSelectNormal = () => {
-//     setIsSelectionModalOpen(false);
-//     setIsNormalModalOpen(true);
+//   // Open normal package
+//   const handleNormalPackage = () => {
+//     setShowModeModal(false);
+//     setShowNormalModal(true);
 //   };
 
-//   const handleSelectCompound = () => {
-//     setIsSelectionModalOpen(false);
-//     setIsCompoundModalOpen(true);
+//   // Open Auto Compound V2
+//   const handleAutoCompound = () => {
+//     setShowModeModal(false);
+//     setShowAutoCompoundModal(true);
+//   };
+
+//   // Close all modals
+//   const closeAllModals = () => {
+//     setShowModeModal(false);
+//     setShowNormalModal(false);
+//     setShowAutoCompoundModal(false);
 //   };
 
 //   if (!user) return null;
 
 //   return (
-//     <div className="w-full pb-2 md:pb-8 pt-4 relative">
-      
-//       {/* --- HEADER BANNER HINT --- */}
-//       <div className="max-w-6xl mx-auto px-4 mb-6 text-center">
-//         <h2 className="text-xl md:text-3xl font-black text-black uppercase tracking-wider mb-2">
-//           Double Your Amount in <span className="text-[#eab308]">70 Days</span>
-//         </h2>
-//         <p className="text-gray-400 text-sm md:text-base font-semibold">1% Daily ROI • Auto Compounding Available</p>
-//       </div>
+//     <section className="min-h-screen w-full bg-[#050608] px-3 pb-10 pt-4 text-white sm:px-5">
 
-//       {/* --- USD PACKAGE GRID --- */}
-//       <div className="max-w-6xl mx-auto px-2 sm:px-4 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-5">
-//         {packagesList.map((pkg) => (
-//           <div key={pkg.id} className="bg-[#111827] border border-[#1e3a8a]/50 p-4 md:p-6 flex flex-col justify-between shadow-lg shadow-black/50 rounded-xl hover:border-[#dc2626] transition-all relative overflow-hidden group">
-            
-//             {/* 2X Badge */}
-//             <div className="absolute top-0 right-0 bg-gradient-to-l from-[#dc2626] to-[#ef4444] text-white text-[10px] md:text-xs font-black px-3 py-1 rounded-bl-lg shadow-md">
-//               2X RETURN
-//             </div>
+//       <div className="mx-auto max-w-6xl">
 
-//             <div className="relative z-10 mt-2">
-//               <h3 className="text-sm md:text-xl font-black text-[#d4af37] mb-3 md:mb-4 tracking-wide group-hover:text-white transition-colors">{pkg.name}</h3>
-              
-//               <div className="space-y-1.5 md:space-y-2">
-//                 <p className="text-gray-400 text-xs md:text-sm font-semibold flex justify-between items-center">
-//                   <span>Investment:</span> 
-//                   <span className="text-white text-sm md:text-base font-black">${pkg.price.toLocaleString()}</span>
-//                 </p>
-//                 <p className="text-gray-400 text-xs md:text-sm font-semibold flex justify-between items-center bg-[#1e293b] px-2 py-1 rounded">
-//                   <span>Daily (1%):</span> 
-//                   <span className="text-[#22c55e] font-bold">${pkg.roi.toFixed(2)}</span>
-//                 </p>
-//                 <p className="text-gray-400 text-xs md:text-sm font-semibold flex justify-between items-center px-1">
-//                   <span>Duration:</span> 
-//                   <span className="text-blue-400 font-bold">{pkg.days} Days</span>
-//                 </p>
-//                 <p className="text-gray-400 text-xs md:text-sm font-semibold flex justify-between items-center border-t border-gray-700 pt-2 mt-2">
-//                   <span>Amount at 2X:</span> 
-//                   <span className="text-[#d4af37] font-black text-sm md:text-base">${pkg.profit.toLocaleString()}</span>
-//                 </p>
-//               </div>
-//             </div>
+//         {/* GLOBAL WEALTH HEADER */}
+//         <header className="relative mb-6 overflow-hidden rounded-2xl border border-[#d4af37]/25 bg-black shadow-[0_12px_45px_rgba(0,0,0,0.5)]">
 
-//             <button 
-//               onClick={() => handleBuyClick(pkg)}
-//               className="relative z-10 mt-4 md:mt-6 w-full bg-gradient-to-r from-[#d4af37] to-[#f3e5ab] text-black font-extrabold py-1.5 md:py-2 px-4 rounded-lg shadow-[0_0_10px_rgba(212,175,55,0.4)] hover:shadow-[0_0_15px_rgba(212,175,55,0.6)] hover:scale-[1.02] transition-all text-xs md:text-sm tracking-wide"
-//             >
-//               INVEST NOW
-//             </button>
+//           <div className="absolute inset-0 bg-gradient-to-br from-[#d4af37]/10 via-transparent to-transparent" />
+
+//           <div className="relative flex flex-col items-center px-4 py-5 sm:px-8 sm:py-7">
+
+//             <img
+//               src="/global-wealth-logo.png"
+//               alt="Global Wealth"
+//               className="h-auto max-h-[145px] w-full max-w-[650px] object-contain"
+//             />
+
+//             <div className="mt-4 h-px w-full max-w-md bg-gradient-to-r from-transparent via-[#d4af37]/70 to-transparent" />
+
+//             <p className="mt-4 text-center text-[10px] font-bold uppercase tracking-[0.28em] text-[#d8bd70] sm:text-xs">
+//               Global Wealth · Package Collection
+//             </p>
+
+//             <h1 className="mt-2 text-center text-xl font-black tracking-wide text-white sm:text-3xl">
+//               Choose Your{" "}
+//               <span className="text-[#e5c875]">Package</span>
+//             </h1>
+
+//             <p className="mt-2 max-w-lg text-center text-xs leading-5 text-gray-400 sm:text-sm">
+//               Select your preferred package amount and choose
+//               your activation mode.
+//             </p>
+
 //           </div>
-//         ))}
-//       </div>
+//         </header>
 
-//       {/* ========================================================= */}
-//       {/* 🚀 STEP 1: PACKAGE SELECTION MODAL (Normal vs Compound) */}
-//       {/* ========================================================= */}
-//       {isSelectionModalOpen && (
-//         <div className="fixed inset-0 bg-black/85 backdrop-blur-sm z-[9990] flex justify-center items-center p-4">
-//           <div className="bg-[#0b101e] border border-[#d4af37]/40 w-full max-w-md rounded-2xl p-6 shadow-[0_0_30px_rgba(212,175,55,0.2)] relative animate-in fade-in zoom-in duration-200">
-            
-//             <button 
-//               onClick={() => setIsSelectionModalOpen(false)} 
-//               className="absolute top-4 right-4 text-gray-400 hover:text-white bg-white/5 hover:bg-red-500/20 p-1.5 rounded-full transition-all"
-//             >
-//               <X size={20} />
-//             </button>
+//         {/* PACKAGE OVERVIEW */}
+//         <div className="mb-6 grid grid-cols-2 overflow-hidden rounded-xl border border-[#d4af37]/20 bg-[#0c1017]">
 
-//             <h2 className="text-2xl font-black text-center text-white mb-2"> Plan Type</h2>
-//             {/* <p className="text-center text-gray-400 text-sm mb-6">Choose how you want to grow your <span className="text-[#00ff88] font-bold">${selectedPackage.amount}</span></p> */}
+//           <div className="border-r border-[#d4af37]/15 px-3 py-4 text-center">
+//             <Gem
+//               className="mx-auto mb-2 text-[#e5c875]"
+//               size={20}
+//             />
 
-//             <div className="flex flex-col gap-4">
-              
-//               {/* Option 1: NORMAL PACKAGE */}
-//               {/* <div 
-//                 onClick={handleSelectNormal}
-//                 className="group cursor-pointer border border-[#2d3748] hover:border-[#22c55e] bg-[#131927] hover:bg-[#131927]/80 rounded-xl p-4 transition-all"
-//               >
-//                 <div className="flex items-center gap-4">
-//                   <div className="bg-[#22c55e]/10 p-3 rounded-lg text-[#22c55e] group-hover:scale-110 transition-transform">
-//                     <TrendingUp size={24} />
-//                   </div>
-//                   <div>
-//                     <h3 className="text-white font-bold text-lg">Daily Fixed Returns</h3>
-//                     <p className="text-gray-400 text-xs mt-1 leading-relaxed">
-//                       <strong className="text-[#22c55e]">1% Daily ROI</strong> for 70 Days. Withdraw anytime.
-//                     </p>
-//                   </div>
-//                 </div>
-//               </div> */}
+//             <p className="text-xl font-black text-white">
+//               {packagesList.length}
+//             </p>
 
-//               {/* Option 2: AUTO COMPOUND PACKAGE */}
-//               <div 
-//                 onClick={handleSelectCompound}
-//                 className="group cursor-pointer border border-[#2d3748] hover:border-[#dc2626] bg-gradient-to-r hover:from-[#131927] hover:to-[#dc2626]/10 bg-[#131927] rounded-xl p-4 transition-all shadow-lg"
-//               >
-//                 <div className="flex items-center gap-4">
-//                   <div className="bg-[#dc2626]/10 p-3 rounded-lg text-[#dc2626] group-hover:scale-110 transition-transform">
-//                     <Zap size={24} />
-//                   </div>
-//                   <div>
-//                     <h3 className="text-[#e4c568] font-black text-lg">Auto Compounding</h3>
-//                     <p className="text-gray-400 text-xs mt-1 leading-relaxed">
-//                       Automatically reinvest to hit <strong className="text-[#e4c568]">2X Returns</strong> faster.
-//                     </p>
-//                   </div>
-//                 </div>
-//               </div>
-
-//             </div>
+//             <p className="mt-1 text-[9px] font-bold uppercase tracking-wider text-gray-500">
+//               Available Packages
+//             </p>
 //           </div>
+
+//           <div className="px-3 py-4 text-center">
+//             <Clock3
+//               className="mx-auto mb-2 text-[#e5c875]"
+//               size={20}
+//             />
+
+//             <p className="text-xl font-black text-white">
+//               {PACKAGE_DURATION_DAYS}
+//             </p>
+
+//             <p className="mt-1 text-[9px] font-bold uppercase tracking-wider text-gray-500">
+//               Normal Package Days
+//             </p>
+//           </div>
+
 //         </div>
-//       )}
 
-//       {/* ========================================================= */}
-//       {/* 🚀 STEP 2A: NORMAL TOPUP MODAL */}
-//       {/* ========================================================= */}
-//       {isNormalModalOpen && (
-//         <TopUpModalWithInput 
-//            onClose={() => setIsNormalModalOpen(false)}
-//            onSuccess={() => { setIsNormalModalOpen(false); console.log("Normal Package Activated!"); }}
-//            packageAmount={selectedPackage.amount}
-//            packageName={selectedPackage.name}
+//         {/* SECTION HEADING */}
+//         <div className="mb-4 px-1">
+//           <p className="text-[9px] font-extrabold uppercase tracking-[0.25em] text-[#d4af37]">
+//             Select Your Amount
+//           </p>
+
+//           <h2 className="mt-1 text-lg font-bold text-white sm:text-xl">
+//             Available Packages
+//           </h2>
+//         </div>
+
+//         {/* PACKAGE AMOUNTS */}
+//         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+
+//           {packagesList.map((pkg) => (
+
+//             <article
+//               key={pkg.id}
+//               className="group relative overflow-hidden rounded-xl border border-[#d4af37]/20 bg-gradient-to-br from-[#131923] to-[#090c11] transition-all duration-200 hover:border-[#d4af37]/60 hover:shadow-[0_5px_25px_rgba(212,175,55,0.10)]"
+//             >
+
+//               <div className="flex items-center justify-between gap-3 p-4">
+
+//                 {/* AMOUNT */}
+//                 <div className="flex items-center gap-3">
+
+//                   <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-[#d4af37]/25 bg-[#d4af37]/10 text-[#e5c875]">
+//                     <Gem size={20} />
+//                   </div>
+
+//                   <div>
+//                     <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-gray-500">
+//                       Package Amount
+//                     </p>
+
+//                     <h3 className="mt-1 text-xl font-black text-[#e5c875]">
+//                       {formatUSD(pkg.price)}
+//                     </h3>
+//                   </div>
+
+//                 </div>
+
+//                 {/* SELECT BUTTON */}
+//                 <button
+//                   type="button"
+//                   onClick={() => handleBuyClick(pkg)}
+//                   className="flex min-h-10 items-center justify-center gap-1.5 rounded-lg bg-gradient-to-r from-[#c5a04c] via-[#f0d98e] to-[#c5a04c] px-3 text-[10px] font-black tracking-wide text-black shadow-[0_4px_15px_rgba(212,175,55,0.15)] transition-all hover:brightness-110 active:scale-[0.97]"
+//                 >
+//                   SELECT
+//                   <ArrowUpRight size={14} />
+//                 </button>
+
+//               </div>
+
+//               <div className="absolute bottom-0 left-0 h-px w-0 bg-gradient-to-r from-[#d4af37] to-transparent transition-all duration-300 group-hover:w-full" />
+
+//             </article>
+
+//           ))}
+
+//         </div>
+
+//         {/* PACKAGE MODE INFORMATION */}
+//         <div className="mt-6 rounded-xl border border-[#d4af37]/15 bg-[#0c1017] p-4">
+
+//           <div className="flex items-start gap-3">
+
+//             <ShieldCheck
+//               size={20}
+//               className="mt-0.5 shrink-0 text-[#e5c875]"
+//             />
+
+//             <div>
+//               <h3 className="text-xs font-bold text-[#e5c875]">
+//                 Choose Your Activation Mode
+//               </h3>
+
+//               <p className="mt-1 text-[10px] leading-5 text-gray-400">
+//                 After selecting an amount, choose Normal Package
+//                 or Auto Compound V2. Review the applicable terms
+//                 and activation details before proceeding.
+//               </p>
+//             </div>
+
+//           </div>
+
+//         </div>
+
+//       </div>
+
+//       {/* STEP 1: PACKAGE MODE SELECTION */}
+//       {showModeModal && (
+//         <PackageModeModal
+//           packageName="Selected Package"
+//           packageAmount={selectedPackage.amount}
+//           onClose={closeAllModals}
+//           onNormal={handleNormalPackage}
+//           onAutoCompound={handleAutoCompound}
 //         />
 //       )}
 
-//       {/* ========================================================= */}
-//       {/* 🚀 STEP 2B: AUTO COMPOUND MODAL */}
-//       {/* ========================================================= */}
-//       {isCompoundModalOpen && (
-//         <AutoCompoundModal 
-//            onClose={() => setIsCompoundModalOpen(false)}
-//            onSuccess={() => { setIsCompoundModalOpen(false); console.log("Compound Package Activated!"); }}
-//            packageAmount={selectedPackage.amount}
-//            packageName={selectedPackage.name}
+//       {/* STEP 2A: NORMAL PACKAGE */}
+//       {showNormalModal && (
+//         <TopUpModalWithInput
+//           packageAmount={selectedPackage.amount}
+//           packageName="Selected Package"
+//           onClose={() => setShowNormalModal(false)}
+//           onSuccess={() => {
+//             setShowNormalModal(false);
+//           }}
 //         />
 //       )}
 
-//     </div>
+//       {/* STEP 2B: AUTO COMPOUND V2 */}
+//       {showAutoCompoundModal && (
+//         <AutoCompoundV2Modal
+//           packageAmount={selectedPackage.amount}
+//           onClose={() => setShowAutoCompoundModal(false)}
+//           onSuccess={() => {
+//             setShowAutoCompoundModal(false);
+//           }}
+//         />
+//       )}
+
+//     </section>
 //   );
 // };
 
 // export default Packages;
 
-import React, { useState } from 'react';
+
+import React, { useState } from "react";
 import { useAuth } from "../context/AuthContext";
-import { X, TrendingUp, Layers, Zap } from 'lucide-react'; 
-import AutoCompoundModal from "./modals/AutoCompoundModal"; 
+import { ArrowUpRight, Gem } from "lucide-react";
+
+import TopUpModalWithInput from "./modals/TopUpModalWithInput";
+import PackageModeModal from "./modals/PackageModeModal";
+import AutoCompoundV2Modal from "./modals/AutoCompoundV2Modal";
+
+const packagesList = [
+  { id: 1, price: 2 },
+  { id: 2, price: 5 },
+  { id: 3, price: 10 },
+  { id: 4, price: 20 },
+  { id: 5, price: 50 },
+  { id: 6, price: 100 },
+  { id: 7, price: 200 },
+  { id: 8, price: 500 },
+  { id: 9, price: 1000 },
+];
+
+const formatUSD = (amount) =>
+  `$${Number(amount).toLocaleString("en-US", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })}`;
 
 const Packages = () => {
   const { user } = useAuth();
-  
-  // 🔥 Sirf Compound Modal ka state rakha hai
-  const [isCompoundModalOpen, setIsCompoundModalOpen] = useState(false);
-  const [selectedPackage, setSelectedPackage] = useState({ amount: 0, name: '' });
 
-  // 1% Daily ROI | 70 Days | 2X Return
-  const packagesList = [
-    { id: 1, name: ' STARTER', price: 2, roi: 0.02, days: 70, profit: 4 },
-    { id: 2, name: ' BASIC', price: 5, roi: 0.05, days: 70, profit: 10 },
-    { id: 3, name: ' BRONZE', price: 10, roi: 0.10, days: 70, profit: 20 },
-    { id: 4, name: ' SILVER', price: 20, roi: 0.20, days: 70, profit: 40 },
-    { id: 5, name: ' GOLD', price: 50, roi: 0.50, days: 70, profit: 100 },
-    { id: 6, name: ' PLATINUM', price: 100, roi: 1.00, days: 70, profit: 200 },
-    { id: 7, name: ' ACE', price: 200, roi: 2.00, days: 70, profit: 400 },
-    { id: 8, name: ' DIAMOND', price: 500, roi: 5.00, days: 70, profit: 1000 },
-    { id: 9, name: ' CROWN', price: 1000, roi: 10.00, days: 70, profit: 2000 },
-    // { id: 10, name: ' MASTER', price: 2000, roi: 20.00, days: 70, profit: 4000 },
-    // { id: 11, name: ' GRAND', price: 5000, roi: 50.00, days: 70, profit: 10000 },
-    // { id: 11, name: 'WF ELITE', price: 10000, roi: 100.00, days: 70, profit: 20000 },
-    // { id: 12, name: 'WF SUPREME', price: 20000, roi: 200.00, days: 70, profit: 40000 },
-  ];
+  const [selectedPackage, setSelectedPackage] = useState({ amount: 0 });
+  const [showModeModal, setShowModeModal] = useState(false);
+  const [showNormalModal, setShowNormalModal] = useState(false);
+  const [showAutoCompoundModal, setShowAutoCompoundModal] = useState(false);
 
-  // 🔥 NAYA LOGIC: Click karte hi seedha Compound Modal khulega
   const handleBuyClick = (pkg) => {
-    setSelectedPackage({ amount: pkg.price, name: pkg.name });
-    setIsCompoundModalOpen(true); 
+    setSelectedPackage({ amount: pkg.price });
+    setShowModeModal(true);
+  };
+
+  const handleNormalPackage = () => {
+    setShowModeModal(false);
+    setShowNormalModal(true);
+  };
+
+  const handleAutoCompound = () => {
+    setShowModeModal(false);
+    setShowAutoCompoundModal(true);
+  };
+
+  const closeAllModals = () => {
+    setShowModeModal(false);
+    setShowNormalModal(false);
+    setShowAutoCompoundModal(false);
   };
 
   if (!user) return null;
 
   return (
-    <div className="w-full pb-2 md:pb-8 pt-4 relative">
-      
-      {/* --- HEADER BANNER HINT --- */}
-      <div className="max-w-6xl mx-auto px-4 mb-6 text-center">
-        <h2 className="text-xl md:text-3xl font-black text-black uppercase tracking-wider mb-2">
-          Double Your Amount in <span className="text-[#eab308]">70 Days</span>
-        </h2>
-        <p className="text-gray-400 text-sm md:text-base font-semibold">1% Daily ROI • Auto Compounding System</p>
-      </div>
+    <section className="min-h-screen w-full bg-[#050608] px-3 pb-10 pt-4 text-white sm:px-5">
+      <div className="mx-auto max-w-6xl">
+        {/* Package selection heading */}
+        <div className="mb-5 px-1 sm:mb-6">
+          <p className="text-[9px] font-extrabold uppercase tracking-[0.25em] text-[#d4af37]">
+            Select Your Amount
+          </p>
+          <h2 className="mt-1 text-lg font-bold text-white sm:text-xl">
+            Available Packages
+          </h2>
+          <p className="mt-1 text-xs text-gray-500">
+            Choose a package amount to continue.
+          </p>
+        </div>
 
-      {/* --- USD PACKAGE GRID --- */}
-      <div className="max-w-6xl mx-auto px-2 sm:px-4 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-5">
-        {packagesList.map((pkg) => (
-          <div key={pkg.id} className="bg-[#111827] border border-[#1e3a8a]/50 p-4 md:p-6 flex flex-col justify-between shadow-lg shadow-black/50 rounded-xl hover:border-[#dc2626] transition-all relative overflow-hidden group">
-            
-            {/* 2X Badge */}
-            <div className="absolute top-0 right-0 bg-gradient-to-l from-[#dc2626] to-[#ef4444] text-white text-[10px] md:text-xs font-black px-3 py-1 rounded-bl-lg shadow-md">
-              2X RETURN
-            </div>
-
-            <div className="relative z-10 mt-2">
-              <h3 className="text-sm md:text-xl font-black text-[#d4af37] mb-3 md:mb-4 tracking-wide group-hover:text-white transition-colors">{pkg.name}</h3>
-              
-              <div className="space-y-1.5 md:space-y-2">
-                <p className="text-gray-400 text-xs md:text-sm font-semibold flex justify-between items-center">
-                  <span>Investment:</span> 
-                  <span className="text-white text-sm md:text-base font-black">${pkg.price.toLocaleString()}</span>
-                </p>
-                <p className="text-gray-400 text-xs md:text-sm font-semibold flex justify-between items-center bg-[#1e293b] px-2 py-1 rounded">
-                  <span>Daily (1%):</span> 
-                  <span className="text-[#22c55e] font-bold">${pkg.roi.toFixed(2)}</span>
-                </p>
-                <p className="text-gray-400 text-xs md:text-sm font-semibold flex justify-between items-center px-1">
-                  <span>Duration:</span> 
-                  <span className="text-blue-400 font-bold">{pkg.days} Days</span>
-                </p>
-                <p className="text-gray-400 text-xs md:text-sm font-semibold flex justify-between items-center border-t border-gray-700 pt-2 mt-2">
-                  <span>Amount at 2X:</span> 
-                  <span className="text-[#d4af37] font-black text-sm md:text-base">${pkg.profit.toLocaleString()}</span>
-                </p>
-              </div>
-            </div>
-
-            <button 
-              onClick={() => handleBuyClick(pkg)}
-              className="relative z-10 mt-4 md:mt-6 w-full bg-gradient-to-r from-[#d4af37] to-[#f3e5ab] text-black font-extrabold py-1.5 md:py-2 px-4 rounded-lg shadow-[0_0_10px_rgba(212,175,55,0.4)] hover:shadow-[0_0_15px_rgba(212,175,55,0.6)] hover:scale-[1.02] transition-all text-xs md:text-sm tracking-wide"
+        {/* Package amounts */}
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {packagesList.map((pkg) => (
+            <article
+              key={pkg.id}
+              className="group relative overflow-hidden rounded-xl border border-[#d4af37]/20 bg-gradient-to-br from-[#131923] to-[#090c11] transition-all duration-200 hover:border-[#d4af37]/60 hover:shadow-[0_5px_25px_rgba(212,175,55,0.10)]"
             >
-              INVEST NOW
-            </button>
-          </div>
-        ))}
+              <div className="flex items-center justify-between gap-3 p-4">
+                <div className="flex min-w-0 items-center gap-3">
+                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-[#d4af37]/25 bg-[#d4af37]/10 text-[#e5c875]">
+                    <Gem size={20} />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-gray-500">
+                      Package Amount
+                    </p>
+                    <h3 className="mt-1 text-xl font-black text-[#e5c875]">
+                      {formatUSD(pkg.price)}
+                    </h3>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => handleBuyClick(pkg)}
+                  className="flex min-h-10 shrink-0 items-center justify-center gap-1.5 rounded-lg bg-gradient-to-r from-[#c5a04c] via-[#f0d98e] to-[#c5a04c] px-3 text-[10px] font-black tracking-wide text-black shadow-[0_4px_15px_rgba(212,175,55,0.15)] transition-all hover:brightness-110 active:scale-[0.97]"
+                >
+                  SELECT
+                  <ArrowUpRight size={14} />
+                </button>
+              </div>
+
+              <div className="absolute bottom-0 left-0 h-px w-0 bg-gradient-to-r from-[#d4af37] to-transparent transition-all duration-300 group-hover:w-full" />
+            </article>
+          ))}
+        </div>
       </div>
 
-      {/* ========================================================= */}
-      {/* 🚀 AUTO COMPOUND MODAL (Ab direct khulega) */}
-      {/* ========================================================= */}
-      {isCompoundModalOpen && (
-        <AutoCompoundModal 
-           onClose={() => setIsCompoundModalOpen(false)}
-           onSuccess={() => { setIsCompoundModalOpen(false); console.log("Compound Package Activated!"); }}
-           packageAmount={selectedPackage.amount}
-           packageName={selectedPackage.name}
+      {/* Step 1: package mode selection */}
+      {showModeModal && (
+        <PackageModeModal
+          packageName="Selected Package"
+          packageAmount={selectedPackage.amount}
+          onClose={closeAllModals}
+          onNormal={handleNormalPackage}
+          onAutoCompound={handleAutoCompound}
         />
       )}
 
-    </div>
+      {/* Step 2A: normal package */}
+      {showNormalModal && (
+        <TopUpModalWithInput
+          packageAmount={selectedPackage.amount}
+          packageName="Selected Package"
+          onClose={() => setShowNormalModal(false)}
+          onSuccess={() => setShowNormalModal(false)}
+        />
+      )}
+
+      {/* Step 2B: Auto Compound V2 */}
+      {showAutoCompoundModal && (
+        <AutoCompoundV2Modal
+          packageAmount={selectedPackage.amount}
+          onClose={() => setShowAutoCompoundModal(false)}
+          onSuccess={() => setShowAutoCompoundModal(false)}
+        />
+      )}
+    </section>
   );
 };
 

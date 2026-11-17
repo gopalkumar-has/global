@@ -1,680 +1,441 @@
- 
-
-
-
-// import React, { useEffect, useState } from "react";
-// import api from "../../api/axios";
-// import { getUserId } from "../../utils/authUtils"; 
-// import { Search, DollarSign, TrendingUp, Wallet, Network, Calendar, Layers } from "lucide-react";
-
-// const RoiIncome = () => {
-//   const userId = getUserId(); 
-//   const [transactions, setTransactions] = useState([]);
-//   const [filtered, setFiltered] = useState([]);
-//   const [search, setSearch] = useState("");
-//   const [currentPage, setCurrentPage] = useState(1);
-//   const [entriesPerPage, setEntriesPerPage] = useState(10);
-//   const [loading, setLoading] = useState(true);
-  
-//   // 🔥 Date Filter States
-//   const [startDate, setStartDate] = useState("");
-//   const [endDate, setEndDate] = useState("");
-
-//   // 🔥 5 Stats States
-//   const [totalCombined, setTotalCombined] = useState(0);
-//   const [totalSelfRoi, setTotalSelfRoi] = useState(0);
-//   const [todaySelfRoi, setTodaySelfRoi] = useState(0);
-//   const [totalLevelRoi, setTotalLevelRoi] = useState(0);
-//   const [todayLevelRoi, setTodayLevelRoi] = useState(0);
-
-//   useEffect(() => {
-//     if (!userId) {
-//       setLoading(false);
-//       return;
-//     }
-
-//     setLoading(true);
-    
-//     Promise.all([
-//       api.get(`/transaction/transactions/${userId}?type=daily_roi&t=${new Date().getTime()}`),
-//       api.get(`/transaction/transactions/${userId}?type=daily_level_income&t=${new Date().getTime()}`)
-//     ])
-//     .then(([roiRes, levelRes]) => {
-//       // ==========================================
-//       // 🚀 THE ULTIMATE FIX: RECEIVER FILTER
-//       // Sirf wahi data lo jisme user khud RECEIVER hai (txn.userId === userId). 
-//       // ==========================================
-//       const selfRoiData = (roiRes.data || []).filter(txn => String(txn.userId) === String(userId));
-//       const levelRoiData = (levelRes.data || []).filter(txn => String(txn.userId) === String(userId));
-
-//       const levelRoiByDate = {};
-      
-//       levelRoiData.forEach(txn => {
-//         const dateObj = new Date(txn.createdAt || txn.date);
-//         const dateKey = dateObj.toISOString().split('T')[0]; 
-
-//         if (!levelRoiByDate[dateKey]) {
-//           levelRoiByDate[dateKey] = {
-//             _id: `level_combined_${dateKey}`, 
-//             type: "daily_level_income",
-//             description: `Total Team Level ROI for the Day`,
-//             amount: 0,
-//             date: dateKey,
-//             createdAt: dateObj 
-//           };
-//         }
-//         levelRoiByDate[dateKey].amount += (Number(txn.amount) || 0);
-//       });
-
-//       const combinedLevelRoiArray = Object.values(levelRoiByDate);
-//       const finalCombinedData = [...selfRoiData, ...combinedLevelRoiArray];
-      
-//       const sorted = finalCombinedData.sort(
-//         (a, b) => new Date(b.createdAt || b.date) - new Date(a.createdAt || a.date)
-//       );
-      
-//       setTransactions(sorted);
-//       setFiltered(sorted); 
-
-//       // ==========================================
-//       // 🔥 5 STATS CALCULATION
-//       // ==========================================
-//       let selfTotal = 0;
-//       let levelTotal = 0;
-//       let todaySelf = 0;
-//       let todayLevel = 0;
-//       const todayStr = new Date().toLocaleDateString("en-GB"); 
-
-//       sorted.forEach(txn => {
-//         const amt = Number(txn.amount) || 0;
-//         const isSelf = txn.type === "daily_roi";
-//         const isLevel = txn.type === "daily_level_income";
-        
-//         if (isSelf) selfTotal += amt;
-//         if (isLevel) levelTotal += amt;
-        
-//         const txnDateStr = new Date(txn.createdAt || txn.date).toLocaleDateString("en-GB");
-//         if (txnDateStr === todayStr) {
-//           if (isSelf) todaySelf += amt;
-//           if (isLevel) todayLevel += amt;
-//         }
-//       });
-
-//       setTotalSelfRoi(selfTotal);
-//       setTotalLevelRoi(levelTotal);
-//       setTodaySelfRoi(todaySelf);
-//       setTodayLevelRoi(todayLevel);
-//       setTotalCombined(selfTotal + levelTotal);
-//     })
-//     .catch((err) => {
-//       console.error("Failed to fetch Combined ROI income", err);
-//     })
-//     .finally(() => {
-//       setLoading(false);
-//     });
-//   }, [userId]);
-
-//   // ==========================================
-//   // 🔥 FILTER BY DATE & SEARCH
-//   // ==========================================
-//   useEffect(() => {
-//     let result = transactions;
-
-//     if (startDate || endDate) {
-//       result = result.filter(txn => {
-//         const txnDate = new Date(txn.createdAt || txn.date);
-//         txnDate.setHours(0, 0, 0, 0); 
-
-//         const sDate = startDate ? new Date(startDate) : null;
-//         if (sDate) sDate.setHours(0, 0, 0, 0);
-
-//         const eDate = endDate ? new Date(endDate) : null;
-//         if (eDate) eDate.setHours(23, 59, 59, 999);
-
-//         if (sDate && eDate) return txnDate >= sDate && txnDate <= eDate;
-//         if (sDate) return txnDate >= sDate;
-//         if (eDate) return txnDate <= eDate;
-//         return true;
-//       });
-//     }
-
-//     if (search) {
-//       const value = search.toLowerCase();
-//       result = result.filter(
-//         (txn) =>
-//           txn.description?.toLowerCase().includes(value) ||
-//           String(txn.amount).toLowerCase().includes(value) ||
-//           txn.type?.toLowerCase().includes(value)
-//       );
-//     }
-
-//     setFiltered(result);
-//     setCurrentPage(1); 
-//   }, [startDate, endDate, search, transactions]);
-
-//   const handleEntriesChange = (e) => {
-//     setEntriesPerPage(Number(e.target.value));
-//     setCurrentPage(1);
-//   };
-
-//   const totalPages = Math.ceil(filtered.length / entriesPerPage) || 1;
-//   const indexOfLast = currentPage * entriesPerPage;
-//   const indexOfFirst = indexOfLast - entriesPerPage;
-//   const paginated = filtered.slice(indexOfFirst, indexOfLast);
-
-//   const handlePrev = () => currentPage > 1 && setCurrentPage((p) => p - 1);
-//   const handleNext = () => currentPage < totalPages && setCurrentPage((p) => p + 1);
-
-//   return (
-//     <div className="w-full min-h-screen bg-[#0b1221] p-4 md:p-8 font-sans">
-      
-//       <div className="max-w-7xl mx-auto bg-[#131c31] rounded-xl border-t-[3px] border-[#eab308] shadow-2xl p-4 sm:p-6">
-        
-//         {/* Header Title */}
-//         <div className="mb-6">
-//           <h2 className="text-2xl sm:text-3xl text-[#eab308] font-bold tracking-wide flex items-center gap-3">
-//              Total ROI Dashboard
-//           </h2>
-//           <p className="text-gray-500 text-sm mt-1">Track your Complete Daily Returns and Team Bonuses here</p>
-//         </div>
-
-//         {/* ========================================== */}
-//         {/* 🔥 NEW STATS CARDS LAYOUT (Mobile Optimized) 🔥 */}
-//         {/* ========================================== */}
-//         <div className="flex flex-col gap-4 mb-8">
-          
-//           {/* 1. TOP BOX: Total Combined Income (Full Width) */}
-//           <div className="bg-gradient-to-r from-[#eab308]/20 via-[#131c31] to-[#0b1221] border border-[#eab308]/40 p-6 rounded-xl flex items-center gap-5 shadow-lg w-full">
-//             <div className="p-4 bg-[#eab308]/20 rounded-xl text-[#eab308]">
-//               <Layers size={32} />
-//             </div>
-//             <div>
-//               <p className="text-[#eab308] text-sm font-bold uppercase tracking-widest">Total Combined Income</p>
-//               <h3 className="text-3xl sm:text-4xl text-white font-black flex items-center mt-1">
-//                 <DollarSign size={28} className="text-[#eab308] mr-0.5" />
-//                 {totalCombined.toFixed(2)}
-//               </h3>
-//             </div>
-//           </div>
-
-//           {/* 4 BOXES GRID (2x2 on Tablet, 4x1 on Desktop, Stacked on Mobile) */}
-//           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            
-//             {/* 2. Total Self ROI */}
-//             <div className="bg-[#0b1221] border border-gray-700/50 p-5 rounded-xl flex items-center gap-4 hover:border-blue-500/50 transition-colors">
-//               <div className="p-3 bg-blue-500/10 rounded-lg text-blue-400"><Wallet size={24} /></div>
-//               <div>
-//                 <p className="text-gray-400 text-xs font-bold uppercase tracking-wider">Total Self ROI</p>
-//                 <h3 className="text-2xl text-white font-black flex items-center mt-1">
-//                   <DollarSign size={20} className="text-[#eab308] mr-0.5" />{totalSelfRoi.toFixed(2)}
-//                 </h3>
-//               </div>
-//             </div>
-
-//             {/* 3. Today's Self ROI */}
-//             <div className="bg-[#0b1221] border border-gray-700/50 p-5 rounded-xl flex items-center gap-4 hover:border-blue-500/50 transition-colors">
-//               <div className="p-3 bg-blue-500/10 rounded-lg text-blue-400"><TrendingUp size={24} /></div>
-//               <div>
-//                 <p className="text-gray-400 text-xs font-bold uppercase tracking-wider">Today's Self ROI</p>
-//                 <h3 className="text-2xl text-white font-black flex items-center mt-1">
-//                   <DollarSign size={20} className="text-[#eab308] mr-0.5" />{todaySelfRoi.toFixed(2)}
-//                 </h3>
-//               </div>
-//             </div>
-
-//             {/* 4. Total Level ROI */}
-//             <div className="bg-[#0b1221] border border-gray-700/50 p-5 rounded-xl flex items-center gap-4 hover:border-purple-500/50 transition-colors">
-//               <div className="p-3 bg-purple-500/10 rounded-lg text-purple-400"><Network size={24} /></div>
-//               <div>
-//                 <p className="text-gray-400 text-xs font-bold uppercase tracking-wider">Total Level ROI</p>
-//                 <h3 className="text-2xl text-white font-black flex items-center mt-1">
-//                   <DollarSign size={20} className="text-[#eab308] mr-0.5" />{totalLevelRoi.toFixed(2)}
-//                 </h3>
-//               </div>
-//             </div>
-
-//             {/* 5. Today's Level ROI */}
-//             <div className="bg-[#0b1221] border border-gray-700/50 p-5 rounded-xl flex items-center gap-4 hover:border-purple-500/50 transition-colors">
-//               <div className="p-3 bg-purple-500/10 rounded-lg text-purple-400"><TrendingUp size={24} /></div>
-//               <div>
-//                 <p className="text-gray-400 text-xs font-bold uppercase tracking-wider">Today's Level ROI</p>
-//                 <h3 className="text-2xl text-white font-black flex items-center mt-1">
-//                   <DollarSign size={20} className="text-[#eab308] mr-0.5" />{todayLevelRoi.toFixed(2)}
-//                 </h3>
-//               </div>
-//             </div>
-
-//           </div>
-//         </div>
-
-//         {/* 🔥 FILTER SECTION (Date & Search) 🔥 */}
-//         <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-6 gap-4 text-gray-300 text-sm border-t border-gray-800 pt-6">
-          
-//           <div className="flex items-center gap-2">
-//             <span>Show</span>
-//             <select value={entriesPerPage} onChange={handleEntriesChange} className="bg-[#0b1221] border border-gray-700 text-[#eab308] rounded px-3 py-1.5 focus:outline-none">
-//               <option value={10}>10</option><option value={25}>25</option><option value={50}>50</option>
-//             </select>
-//             <span>entries</span>
-//           </div>
-
-//           <div className="flex flex-col sm:flex-row items-center gap-4 w-full lg:w-auto">
-//             {/* Date Filters */}
-//             <div className="flex items-center gap-2 bg-[#0b1221] border border-gray-700 rounded-lg px-3 py-1.5 w-full sm:w-auto">
-//               <Calendar size={16} className="text-[#eab308]" />
-//               <input 
-//                 type="date" 
-//                 value={startDate} 
-//                 onChange={(e) => setStartDate(e.target.value)}
-//                 className="bg-transparent text-gray-200 outline-none text-xs sm:text-sm w-full"
-//               />
-//               <span className="text-gray-500 px-1">to</span>
-//               <input 
-//                 type="date" 
-//                 value={endDate} 
-//                 onChange={(e) => setEndDate(e.target.value)}
-//                 className="bg-transparent text-gray-200 outline-none text-xs sm:text-sm w-full"
-//               />
-//             </div>
-
-//             {/* Search Box */}
-//             <div className="relative w-full sm:w-64">
-//                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-//                  <Search size={16} className="text-gray-500" />
-//                </div>
-//                <input 
-//                  type="text" 
-//                  placeholder="Search details..." 
-//                  value={search} 
-//                  onChange={(e) => setSearch(e.target.value)} 
-//                  className="bg-[#0b1221] border border-gray-700 text-gray-200 rounded px-3 py-1.5 pl-9 w-full focus:outline-none focus:border-[#eab308]" 
-//                />
-//             </div>
-//           </div>
-//         </div>
-
-//         {/* Table Container */}
-//         <div className="overflow-x-auto border border-gray-700 rounded-lg">
-//           <table className="w-full text-left whitespace-nowrap border-collapse">
-//             <thead className="text-[#eab308] bg-[#1a253e] text-sm border-b border-gray-700">
-//               <tr>
-//                 <th className="p-4 border-r border-gray-700/50 font-bold text-center w-16">Sr. <span className="text-[10px] text-gray-500 ml-1">♦</span></th>
-//                 <th className="p-4 border-r border-gray-700/50 font-bold text-center">Date <span className="text-[10px] text-gray-500 ml-1">♦</span></th>
-//                 <th className="p-4 border-r border-gray-700/50 font-bold text-center">Income Type <span className="text-[10px] text-gray-500 ml-1">♦</span></th>
-//                 <th className="p-4 border-r border-gray-700/50 font-bold">Description <span className="text-[10px] text-gray-500 ml-1">♦</span></th>
-//                 <th className="p-4 font-bold text-center">Amount</th>
-//               </tr>
-//             </thead>
-            
-//             <tbody className="text-gray-300 text-sm">
-//               {loading ? (
-//                 <tr>
-//                   <td colSpan="5" className="text-center py-12 text-[#eab308]">
-//                     <div className="animate-spin h-8 w-8 mx-auto mb-3 border-4 border-t-transparent border-[#eab308] rounded-full"></div>
-//                     Loading Records...
-//                   </td>
-//                 </tr>
-//               ) : paginated.length === 0 ? (
-//                 <tr>
-//                   <td colSpan="5" className="text-center py-12 text-gray-500">
-//                     No records found for selected filters.
-//                   </td>
-//                 </tr>
-//               ) : (
-//                 paginated.map((txn, idx) => {
-//                   const date = new Date(txn.createdAt || txn.date);
-//                   const isLevel = txn.type === "daily_level_income";
-                  
-//                   return (
-//                     <tr key={txn._id || idx} className="border-b border-gray-700 hover:bg-[#1a253e] transition-colors">
-//                       <td className="p-4 border-r border-gray-700/50 text-center font-medium">
-//                         {indexOfFirst + idx + 1}
-//                       </td>
-//                       <td className="p-4 border-r border-gray-700/50 text-center font-medium">
-//                         {date.toLocaleDateString("en-GB", { day: '2-digit', month: 'short', year: 'numeric' })}
-//                       </td>
-//                       <td className="p-4 border-r border-gray-700/50 text-center">
-//                         {isLevel ? (
-//                            <span className="bg-purple-500/10 text-purple-400 border border-purple-500/20 px-2 py-1 rounded text-xs font-bold tracking-wider">Level ROI</span>
-//                         ) : (
-//                            <span className="bg-blue-500/10 text-blue-400 border border-blue-500/20 px-2 py-1 rounded text-xs font-bold tracking-wider">Self ROI</span>
-//                         )}
-//                       </td>
-//                       <td className="p-4 border-r border-gray-700/50 font-medium text-white max-w-[300px] truncate" title={txn.description}>
-//                         {txn.description}
-//                       </td>
-//                       <td className="p-4 font-bold text-center text-green-400">
-//                         + ${Number(txn.amount).toFixed(2)}
-//                       </td>
-//                     </tr>
-//                   );
-//                 })
-//               )}
-//             </tbody>
-//           </table>
-//         </div>
-
-//         {/* Pagination */}
-//         {!loading && filtered.length > 0 && (
-//           <div className="flex flex-col sm:flex-row justify-between items-center mt-6 text-gray-400 text-sm gap-4">
-//             <div>
-//               Showing <span className="text-white font-medium">{indexOfFirst + 1}</span> to <span className="text-white font-medium">{Math.min(indexOfLast, filtered.length)}</span> of <span className="text-white font-medium">{filtered.length}</span> entries
-//             </div>
-            
-//             <div className="flex items-center bg-[#0b1221] rounded border border-gray-700 overflow-hidden">
-//               <button onClick={handlePrev} disabled={currentPage === 1} className={`px-4 py-2 transition-colors ${currentPage === 1 ? 'text-gray-600 bg-transparent cursor-not-allowed' : 'text-[#eab308] hover:bg-[#1a253e]'}`}>Previous</button>
-//               <div className="px-4 py-2 border-l border-r border-gray-700 bg-[#1a253e] text-[#eab308] font-bold">{currentPage}</div>
-//               <button onClick={handleNext} disabled={currentPage === totalPages || totalPages === 0} className={`px-4 py-2 transition-colors ${currentPage === totalPages || totalPages === 0 ? 'text-gray-600 bg-transparent cursor-not-allowed' : 'text-[#eab308] hover:bg-[#1a253e]'}`}>Next</button>
-//             </div>
-//           </div>
-//         )}
-
-//       </div>
-//     </div>
-//   );
-// };
-
-// export default RoiIncome;
-
-
-
- 
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import api from "../../api/axios";
-import { getUserId } from "../../utils/authUtils"; 
-import { Search, DollarSign, TrendingUp, Wallet, Network, Calendar, Layers } from "lucide-react";
-import SpinnerOverlay from "../../components/common/SpinnerOverlay";
+import { getUserId } from "../../utils/authUtils";
+import {
+  Activity,
+  ArrowDownRight,
+  ArrowUpRight,
+  CalendarDays,
+  ChevronLeft,
+  ChevronRight,
+  CircleDollarSign,
+  Coins,
+  Layers3,
+  RefreshCw,
+  Search,
+  Sparkles,
+  Wallet,
+  X,
+} from "lucide-react";
+
+const toAmount = (value) => {
+  const raw = value?.$numberDecimal ?? value ?? 0;
+  const number = Number(raw);
+  return Number.isFinite(number) ? number : 0;
+};
+
+const money = (value) =>
+  toAmount(value).toLocaleString("en-IN", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+
+const validDate = (value) => {
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? null : date;
+};
+
+const dateLabel = (value) => {
+  const date = validDate(value);
+  if (!date) return "Date unavailable";
+  return date.toLocaleDateString("en-IN", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
+};
+
+const timeLabel = (value) => {
+  const date = validDate(value);
+  return date
+    ? date.toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" })
+    : "";
+};
 
 const RoiIncome = () => {
-  const userId = getUserId(); 
+  const userId = getUserId();
   const [transactions, setTransactions] = useState([]);
-  const [filtered, setFiltered] = useState([]);
   const [search, setSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [entriesPerPage, setEntriesPerPage] = useState(10);
   const [loading, setLoading] = useState(true);
-  
-  // Date Filter States
+  const [error, setError] = useState("");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
-
-  // Stats States (Ab backend se direct aayenge)
   const [stats, setStats] = useState({
     totalCombined: 0,
     totalSelfRoi: 0,
     todaySelfRoi: 0,
     totalLevelRoi: 0,
-    todayLevelRoi: 0
+    todayLevelRoi: 0,
   });
 
-  useEffect(() => {
+  const fetchRoiIncome = useCallback(async () => {
     if (!userId) {
       setLoading(false);
+      setError("Login session not found. Please sign in again.");
       return;
     }
 
     setLoading(true);
-    
-    // 🚀 SINGLE FAST API CALL (Backend saara calculation karke dega)
-    api.get(`/user/roi-income?t=${new Date().getTime()}`)
-      .then((res) => {
-        if(res.data.success) {
-           const newData = res.data.data || [];
-           setTransactions(newData);
-           setFiltered(newData);
-           
-           setStats({
-             totalCombined: res.data.totalCombined || 0,
-             totalSelfRoi: res.data.totalSelfRoi || 0,
-             todaySelfRoi: res.data.todaySelfRoi || 0,
-             totalLevelRoi: res.data.totalLevelRoi || 0,
-             todayLevelRoi: res.data.todayLevelRoi || 0
-           });
-        }
-      })
-      .catch((err) => {
-        console.error("Failed to fetch ROI income", err);
-      })
-      .finally(() => {
-        setLoading(false);
-      });
+    setError("");
+    try {
+      const response = await api.get(`/user/roi-income?t=${Date.now()}`);
+      if (response?.data?.success) {
+        setTransactions(Array.isArray(response.data.data) ? response.data.data : []);
+        setStats({
+          totalCombined: toAmount(response.data.totalCombined),
+          totalSelfRoi: toAmount(response.data.totalSelfRoi),
+          todaySelfRoi: toAmount(response.data.todaySelfRoi),
+          totalLevelRoi: toAmount(response.data.totalLevelRoi),
+          todayLevelRoi: toAmount(response.data.todayLevelRoi),
+        });
+      } else {
+        setTransactions([]);
+        setStats({
+          totalCombined: 0,
+          totalSelfRoi: 0,
+          todaySelfRoi: 0,
+          totalLevelRoi: 0,
+          todayLevelRoi: 0,
+        });
+        setError(response?.data?.message || "ROI income data could not be loaded.");
+      }
+    } catch (err) {
+      console.error("Failed to fetch ROI income", err);
+      setError(err?.response?.data?.message || "Unable to load ROI income right now. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   }, [userId]);
 
-  // ==========================================
-  // 🔥 FILTER BY DATE & SEARCH
-  // ==========================================
   useEffect(() => {
-    let result = transactions;
+    fetchRoiIncome();
+  }, [fetchRoiIncome]);
 
-    if (startDate || endDate) {
-      result = result.filter(txn => {
-        const txnDate = new Date(txn.createdAt || txn.date);
-        txnDate.setHours(0, 0, 0, 0); 
+  const filtered = useMemo(() => {
+    const query = search.trim().toLowerCase();
 
-        const sDate = startDate ? new Date(startDate) : null;
-        if (sDate) sDate.setHours(0, 0, 0, 0);
+    return transactions.filter((txn) => {
+      const rawDate = txn.createdAt || txn.date;
+      const date = validDate(rawDate);
 
-        const eDate = endDate ? new Date(endDate) : null;
-        if (eDate) eDate.setHours(23, 59, 59, 999);
+      if ((startDate || endDate) && !date) return false;
+      if (startDate && date < new Date(`${startDate}T00:00:00`)) return false;
+      if (endDate && date > new Date(`${endDate}T23:59:59.999`)) return false;
 
-        if (sDate && eDate) return txnDate >= sDate && txnDate <= eDate;
-        if (sDate) return txnDate >= sDate;
-        if (eDate) return txnDate <= eDate;
-        return true;
-      });
-    }
+      if (query) {
+        const description = String(txn.description || "").toLowerCase();
+        const type = String(txn.type || "").toLowerCase();
+        const amount = String(toAmount(txn.amount));
+        if (!description.includes(query) && !type.includes(query) && !amount.includes(query)) return false;
+      }
+      return true;
+    });
+  }, [transactions, search, startDate, endDate]);
 
-    if (search) {
-      const value = search.toLowerCase();
-      result = result.filter(
-        (txn) =>
-          txn.description?.toLowerCase().includes(value) ||
-          String(txn.amount).toLowerCase().includes(value) ||
-          txn.type?.toLowerCase().includes(value)
-      );
-    }
-
-    setFiltered(result);
-    setCurrentPage(1); 
-  }, [startDate, endDate, search, transactions]);
-
-  const handleEntriesChange = (e) => {
-    setEntriesPerPage(Number(e.target.value));
+  useEffect(() => {
     setCurrentPage(1);
+  }, [search, startDate, endDate, entriesPerPage]);
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / entriesPerPage));
+  const page = Math.min(currentPage, totalPages);
+  const firstIndex = (page - 1) * entriesPerPage;
+  const pageRows = filtered.slice(firstIndex, firstIndex + entriesPerPage);
+
+  const selfShare =
+    toAmount(stats.totalCombined) > 0
+      ? (toAmount(stats.totalSelfRoi) / toAmount(stats.totalCombined)) * 100
+      : 0;
+  const levelShare =
+    toAmount(stats.totalCombined) > 0
+      ? (toAmount(stats.totalLevelRoi) / toAmount(stats.totalCombined)) * 100
+      : 0;
+
+  const clearFilters = () => {
+    setSearch("");
+    setStartDate("");
+    setEndDate("");
   };
 
-  const totalPages = Math.ceil(filtered.length / entriesPerPage) || 1;
-  const indexOfLast = currentPage * entriesPerPage;
-  const indexOfFirst = indexOfLast - entriesPerPage;
-  const paginated = filtered.slice(indexOfFirst, indexOfLast);
-
-  const handlePrev = () => currentPage > 1 && setCurrentPage((p) => p - 1);
-  const handleNext = () => currentPage < totalPages && setCurrentPage((p) => p + 1);
-
-  if (loading) return <SpinnerOverlay />;
+  const hasFilters = Boolean(search || startDate || endDate);
 
   return (
-    <div className="w-full min-h-screen bg-[#0b1221] p-4 md:p-8 font-sans pb-24">
-      
-      <div className="max-w-7xl mx-auto bg-[#131c31] rounded-xl border-t-[3px] border-[#eab308] shadow-2xl p-4 sm:p-6">
-        
-        {/* Header Title */}
-        <div className="mb-6">
-          <h2 className="text-2xl sm:text-3xl text-[#eab308] font-bold tracking-wide flex items-center gap-3">
-             Total ROI Dashboard
-          </h2>
-          <p className="text-gray-500 text-sm mt-1">Track your Complete Daily Returns and Team Bonuses here</p>
-        </div>
-
-        {/* STATS CARDS LAYOUT */}
-        <div className="flex flex-col gap-4 mb-8">
-          
-          <div className="bg-gradient-to-r from-[#eab308]/20 via-[#131c31] to-[#0b1221] border border-[#eab308]/40 p-6 rounded-xl flex items-center gap-5 shadow-lg w-full">
-            <div className="p-4 bg-[#eab308]/20 rounded-xl text-[#eab308]">
-              <Layers size={32} />
-            </div>
-            <div>
-              <p className="text-[#eab308] text-sm font-bold uppercase tracking-widest">Total Combined Income</p>
-              <h3 className="text-3xl sm:text-4xl text-white font-black flex items-center mt-1">
-                <DollarSign size={28} className="text-[#eab308] mr-0.5" />
-                {stats.totalCombined.toFixed(2)}
-              </h3>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="bg-[#0b1221] border border-gray-700/50 p-5 rounded-xl flex items-center gap-4 hover:border-blue-500/50 transition-colors">
-              <div className="p-3 bg-blue-500/10 rounded-lg text-blue-400"><Wallet size={24} /></div>
-              <div>
-                <p className="text-gray-400 text-xs font-bold uppercase tracking-wider">Total Self ROI</p>
-                <h3 className="text-2xl text-white font-black flex items-center mt-1">
-                  <DollarSign size={20} className="text-[#eab308] mr-0.5" />{stats.totalSelfRoi.toFixed(2)}
-                </h3>
-              </div>
-            </div>
-
-            <div className="bg-[#0b1221] border border-gray-700/50 p-5 rounded-xl flex items-center gap-4 hover:border-blue-500/50 transition-colors">
-              <div className="p-3 bg-blue-500/10 rounded-lg text-blue-400"><TrendingUp size={24} /></div>
-              <div>
-                <p className="text-gray-400 text-xs font-bold uppercase tracking-wider">Today's Self ROI</p>
-                <h3 className="text-2xl text-white font-black flex items-center mt-1">
-                  <DollarSign size={20} className="text-[#eab308] mr-0.5" />{stats.todaySelfRoi.toFixed(2)}
-                </h3>
-              </div>
-            </div>
-
-            <div className="bg-[#0b1221] border border-gray-700/50 p-5 rounded-xl flex items-center gap-4 hover:border-purple-500/50 transition-colors">
-              <div className="p-3 bg-purple-500/10 rounded-lg text-purple-400"><Network size={24} /></div>
-              <div>
-                <p className="text-gray-400 text-xs font-bold uppercase tracking-wider">Total Level ROI</p>
-                <h3 className="text-2xl text-white font-black flex items-center mt-1">
-                  <DollarSign size={20} className="text-[#eab308] mr-0.5" />{stats.totalLevelRoi.toFixed(2)}
-                </h3>
-              </div>
-            </div>
-
-            <div className="bg-[#0b1221] border border-gray-700/50 p-5 rounded-xl flex items-center gap-4 hover:border-purple-500/50 transition-colors">
-              <div className="p-3 bg-purple-500/10 rounded-lg text-purple-400"><TrendingUp size={24} /></div>
-              <div>
-                <p className="text-gray-400 text-xs font-bold uppercase tracking-wider">Today's Level ROI</p>
-                <h3 className="text-2xl text-white font-black flex items-center mt-1">
-                  <DollarSign size={20} className="text-[#eab308] mr-0.5" />{stats.todayLevelRoi.toFixed(2)}
-                </h3>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Filter Section */}
-        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-6 gap-4 text-gray-300 text-sm border-t border-gray-800 pt-6">
-          <div className="flex items-center gap-2">
-            <span>Show</span>
-            <select value={entriesPerPage} onChange={handleEntriesChange} className="bg-[#0b1221] border border-gray-700 text-[#eab308] rounded px-3 py-1.5 focus:outline-none">
-              <option value={10}>10</option><option value={25}>25</option><option value={50}>50</option>
-            </select>
-            <span>entries</span>
-          </div>
-
-          <div className="flex flex-col sm:flex-row items-center gap-4 w-full lg:w-auto">
-            <div className="flex items-center gap-2 bg-[#0b1221] border border-gray-700 rounded-lg px-3 py-1.5 w-full sm:w-auto">
-              <Calendar size={16} className="text-[#eab308]" />
-              <input 
-                type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)}
-                className="bg-transparent text-gray-200 outline-none text-xs sm:text-sm w-full"
-              />
-              <span className="text-gray-500 px-1">to</span>
-              <input 
-                type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)}
-                className="bg-transparent text-gray-200 outline-none text-xs sm:text-sm w-full"
-              />
-            </div>
-
-            <div className="relative w-full sm:w-64">
-               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                 <Search size={16} className="text-gray-500" />
-               </div>
-               <input 
-                 type="text" placeholder="Search details..." value={search} onChange={(e) => setSearch(e.target.value)} 
-                 className="bg-[#0b1221] border border-gray-700 text-gray-200 rounded px-3 py-1.5 pl-9 w-full focus:outline-none focus:border-[#eab308]" 
-               />
-            </div>
-          </div>
-        </div>
-
-        {/* Table Container */}
-        <div className="overflow-x-auto border border-gray-700 rounded-lg">
-          <table className="w-full text-left whitespace-nowrap border-collapse">
-            <thead className="text-[#eab308] bg-[#1a253e] text-sm border-b border-gray-700">
-              <tr>
-                <th className="p-4 border-r border-gray-700/50 font-bold text-center w-16">Sr. <span className="text-[10px] text-gray-500 ml-1">♦</span></th>
-                <th className="p-4 border-r border-gray-700/50 font-bold text-center">Date <span className="text-[10px] text-gray-500 ml-1">♦</span></th>
-                <th className="p-4 border-r border-gray-700/50 font-bold text-center">Income Type <span className="text-[10px] text-gray-500 ml-1">♦</span></th>
-                <th className="p-4 border-r border-gray-700/50 font-bold">Description <span className="text-[10px] text-gray-500 ml-1">♦</span></th>
-                <th className="p-4 font-bold text-center">Amount</th>
-              </tr>
-            </thead>
-            
-            <tbody className="text-gray-300 text-sm">
-              {paginated.length === 0 ? (
-                <tr>
-                  <td colSpan="5" className="text-center py-12 text-gray-500">
-                    No records found for selected filters.
-                  </td>
-                </tr>
-              ) : (
-                paginated.map((txn, idx) => {
-                  const date = new Date(txn.createdAt || txn.date);
-                  const isLevel = txn.type === "daily_level_income";
-                  
-                  // 🔥 NaN Fix: Direct amount conversion
-                  const rawAmount = txn.amount?.$numberDecimal || txn.amount || 0;
-                  const displayAmount = Number(rawAmount) || 0;
-                  
-                  return (
-                    <tr key={txn._id || idx} className="border-b border-gray-700 hover:bg-[#1a253e] transition-colors">
-                      <td className="p-4 border-r border-gray-700/50 text-center font-medium">
-                        {indexOfFirst + idx + 1}
-                      </td>
-                      <td className="p-4 border-r border-gray-700/50 text-center font-medium">
-                        {date.toLocaleDateString("en-GB", { day: '2-digit', month: 'short', year: 'numeric' })}
-                      </td>
-                      <td className="p-4 border-r border-gray-700/50 text-center">
-                        {isLevel ? (
-                           <span className="bg-purple-500/10 text-purple-400 border border-purple-500/20 px-2 py-1 rounded text-xs font-bold tracking-wider">Level ROI</span>
-                        ) : (
-                           <span className="bg-blue-500/10 text-blue-400 border border-blue-500/20 px-2 py-1 rounded text-xs font-bold tracking-wider">Self ROI</span>
-                        )}
-                      </td>
-                      <td className="p-4 border-r border-gray-700/50 font-medium text-white max-w-[300px] truncate" title={txn.description}>
-                        {txn.description}
-                      </td>
-                      <td className="p-4 font-bold text-center text-green-400">
-                        + ${displayAmount.toFixed(2)}
-                      </td>
-                    </tr>
-                  );
-                })
-              )}
-            </tbody>
-          </table>
-        </div>
-
-        {/* Pagination */}
-        {filtered.length > 0 && (
-          <div className="flex flex-col sm:flex-row justify-between items-center mt-6 text-gray-400 text-sm gap-4">
-            <div>
-              Showing <span className="text-white font-medium">{indexOfFirst + 1}</span> to <span className="text-white font-medium">{Math.min(indexOfLast, filtered.length)}</span> of <span className="text-white font-medium">{filtered.length}</span> entries
-            </div>
-            
-            <div className="flex items-center bg-[#0b1221] rounded border border-gray-700 overflow-hidden">
-              <button onClick={handlePrev} disabled={currentPage === 1} className={`px-4 py-2 transition-colors ${currentPage === 1 ? 'text-gray-600 bg-transparent cursor-not-allowed' : 'text-[#eab308] hover:bg-[#1a253e]'}`}>Previous</button>
-              <div className="px-4 py-2 border-l border-r border-gray-700 bg-[#1a253e] text-[#eab308] font-bold">{currentPage}</div>
-              <button onClick={handleNext} disabled={currentPage === totalPages || totalPages === 0} className={`px-4 py-2 transition-colors ${currentPage === totalPages || totalPages === 0 ? 'text-gray-600 bg-transparent cursor-not-allowed' : 'text-[#eab308] hover:bg-[#1a253e]'}`}>Next</button>
-            </div>
-          </div>
-        )}
-
+    <div className="min-h-screen overflow-hidden bg-[#090a0d] text-white">
+      <div className="pointer-events-none fixed inset-0" aria-hidden="true">
+        <div className="absolute -left-48 top-24 h-[28rem] w-[28rem] rounded-full bg-amber-500/[0.07] blur-[140px]" />
+        <div className="absolute -right-40 top-[35rem] h-[28rem] w-[28rem] rounded-full bg-indigo-500/[0.06] blur-[140px]" />
       </div>
+
+      <main className="relative mx-auto max-w-[1440px] px-4 py-6 sm:px-7 lg:px-10 lg:py-9">
+        {/* Distinct hero: editorial heading + large income figure */}
+        <header className="relative overflow-hidden border-b border-white/10 pb-8 sm:pb-10">
+          <div className="absolute right-0 top-0 hidden select-none text-[11rem] font-black leading-none tracking-[-0.1em] text-white/[0.025] lg:block">ROI</div>
+          <div className="relative grid gap-8 lg:grid-cols-[1fr_auto] lg:items-end">
+            <div>
+              <div className="mb-5 flex items-center gap-3">
+                <span className="h-px w-8 bg-amber-300" />
+                <span className="text-[10px] font-semibold uppercase tracking-[0.3em] text-amber-200">Earnings / Return on investment</span>
+              </div>
+              <h1 className="text-4xl font-semibold leading-none tracking-[-0.055em] sm:text-5xl lg:text-6xl">
+                ROI <span className="font-light text-slate-500">income</span><span className="text-amber-300">.</span>
+              </h1>
+              <p className="mt-4 max-w-xl text-sm leading-6 text-slate-400">
+                Your personal daily returns and team-level ROI, brought together in one earnings view.
+              </p>
+            </div>
+            <div className="flex flex-col items-start gap-3 lg:items-end lg:text-right">
+              <span className="inline-flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-500">
+                <Sparkles size={13} className="text-amber-300" /> Combined ROI income
+              </span>
+              <div className="text-4xl font-semibold tracking-[-0.045em] sm:text-5xl">
+                <span className="mr-1 text-2xl font-normal text-amber-300">$</span>{money(stats.totalCombined)}
+              </div>
+              <button
+                type="button"
+                onClick={fetchRoiIncome}
+                disabled={loading}
+                className="inline-flex items-center gap-2 border-b border-amber-300/40 pb-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-amber-200 transition hover:border-amber-200 hover:text-white disabled:opacity-40"
+              >
+                <RefreshCw size={13} className={loading ? "animate-spin" : ""} /> Refresh earnings
+              </button>
+            </div>
+          </div>
+        </header>
+
+        {/* ROI mix - horizontal analytical panel, not repeated cards */}
+        <section className="grid gap-8 border-b border-white/10 py-8 lg:grid-cols-[1.15fr_0.85fr] lg:gap-14 lg:py-10">
+          <div>
+            <div className="mb-6 flex items-center justify-between">
+              <div>
+                <p className="text-[10px] font-semibold uppercase tracking-[0.23em] text-slate-500">Income breakdown</p>
+                <h2 className="mt-2 text-xl font-medium text-white">Personal vs. team ROI</h2>
+              </div>
+              <Activity size={20} className="text-amber-300" strokeWidth={1.5} />
+            </div>
+
+            <div className="space-y-7">
+              <div>
+                <div className="mb-3 flex flex-wrap items-end justify-between gap-3">
+                  <div className="flex items-center gap-3">
+                    <span className="flex h-9 w-9 items-center justify-center border border-sky-300/25 text-sky-200"><Wallet size={17} /></span>
+                    <div>
+                      <p className="text-sm font-medium text-slate-200">Self ROI</p>
+                      <p className="mt-0.5 text-[10px] uppercase tracking-[0.15em] text-slate-500">Returns from your own activity</p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-lg font-semibold tabular-nums text-sky-200">${money(stats.totalSelfRoi)}</p>
+                    <p className="text-[10px] text-slate-500">{selfShare.toFixed(1)}% of combined</p>
+                  </div>
+                </div>
+                <div className="h-1.5 w-full overflow-hidden bg-white/[0.07]">
+                  <div className="h-full bg-gradient-to-r from-sky-700 to-sky-300 transition-all duration-700" style={{ width: `${Math.min(100, selfShare)}%` }} />
+                </div>
+              </div>
+
+              <div>
+                <div className="mb-3 flex flex-wrap items-end justify-between gap-3">
+                  <div className="flex items-center gap-3">
+                    <span className="flex h-9 w-9 items-center justify-center border border-violet-300/25 text-violet-200"><Layers3 size={17} /></span>
+                    <div>
+                      <p className="text-sm font-medium text-slate-200">Level ROI</p>
+                      <p className="mt-0.5 text-[10px] uppercase tracking-[0.15em] text-slate-500">Returns from your team levels</p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-lg font-semibold tabular-nums text-violet-200">${money(stats.totalLevelRoi)}</p>
+                    <p className="text-[10px] text-slate-500">{levelShare.toFixed(1)}% of combined</p>
+                  </div>
+                </div>
+                <div className="h-1.5 w-full overflow-hidden bg-white/[0.07]">
+                  <div className="h-full bg-gradient-to-r from-violet-800 to-violet-300 transition-all duration-700" style={{ width: `${Math.min(100, levelShare)}%` }} />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-x-6 gap-y-7 border-t border-white/10 pt-6 lg:border-l lg:border-t-0 lg:pl-10 lg:pt-0">
+            <div>
+              <p className="text-[10px] uppercase tracking-[0.18em] text-slate-500">Self ROI today</p>
+              <p className="mt-2 text-2xl font-semibold tabular-nums text-white">${money(stats.todaySelfRoi)}</p>
+              <p className="mt-2 flex items-center gap-1 text-[10px] text-sky-300"><ArrowUpRight size={12} /> Today's return</p>
+            </div>
+            <div>
+              <p className="text-[10px] uppercase tracking-[0.18em] text-slate-500">Level ROI today</p>
+              <p className="mt-2 text-2xl font-semibold tabular-nums text-white">${money(stats.todayLevelRoi)}</p>
+              <p className="mt-2 flex items-center gap-1 text-[10px] text-violet-300"><ArrowUpRight size={12} /> Today's return</p>
+            </div>
+            <div className="col-span-2 flex items-center justify-between border-t border-white/10 pt-5">
+              <div>
+                <p className="text-[10px] uppercase tracking-[0.18em] text-slate-500">Income transactions</p>
+                <p className="mt-1 text-2xl font-semibold tabular-nums text-white">{transactions.length.toLocaleString("en-IN")}</p>
+              </div>
+              <div className="flex h-11 w-11 items-center justify-center border border-white/10 text-amber-300"><Coins size={19} /></div>
+            </div>
+          </div>
+        </section>
+
+        {/* Ledger */}
+        <section className="pt-8 lg:pt-10">
+          <div className="mb-6 flex flex-col justify-between gap-4 xl:flex-row xl:items-end">
+            <div>
+              <div className="mb-2 flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.22em] text-amber-200">
+                <span className="h-px w-6 bg-amber-300" /> Transaction history
+              </div>
+              <h2 className="text-2xl font-semibold tracking-tight">ROI activity ledger</h2>
+              <p className="mt-1 text-xs text-slate-500">Search and review each recorded ROI transaction.</p>
+            </div>
+            <div className="relative w-full sm:w-72">
+              <Search size={15} className="absolute left-0 top-1/2 -translate-y-1/2 text-slate-500" />
+              <input
+                type="text"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Search description, type or amount"
+                className="w-full border-b border-white/15 bg-transparent py-2 pl-6 pr-2 text-sm text-white outline-none placeholder:text-slate-600 focus:border-amber-300"
+              />
+            </div>
+          </div>
+
+          <div className="mb-5 flex flex-wrap items-center gap-3 border-y border-white/10 py-3">
+            <CalendarDays size={15} className="text-amber-300" />
+            <span className="text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-500">Date range</span>
+            <input
+              aria-label="Start date"
+              type="date"
+              value={startDate}
+              max={endDate || undefined}
+              onChange={(e) => setStartDate(e.target.value)}
+              className="min-w-0 border-b border-white/10 bg-transparent px-1 py-1.5 text-xs text-slate-300 outline-none [color-scheme:dark] focus:border-amber-300"
+            />
+            <span className="text-xs text-slate-600">—</span>
+            <input
+              aria-label="End date"
+              type="date"
+              value={endDate}
+              min={startDate || undefined}
+              onChange={(e) => setEndDate(e.target.value)}
+              className="min-w-0 border-b border-white/10 bg-transparent px-1 py-1.5 text-xs text-slate-300 outline-none [color-scheme:dark] focus:border-amber-300"
+            />
+            {hasFilters && (
+              <button type="button" onClick={clearFilters} className="ml-auto inline-flex items-center gap-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-amber-200 hover:text-white">
+                <X size={12} /> Clear filters
+              </button>
+            )}
+          </div>
+
+          {error && (
+            <div className="mb-5 flex flex-col gap-3 border-l-2 border-rose-400 bg-rose-400/[0.06] px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+              <p className="text-sm text-rose-200">{error}</p>
+              <button type="button" onClick={fetchRoiIncome} className="text-left text-xs font-semibold text-rose-100 underline underline-offset-4">Try again</button>
+            </div>
+          )}
+
+          <div className="grid grid-cols-[42px_minmax(0,1fr)] gap-3 border-b border-white/10 pb-3 text-[9px] font-semibold uppercase tracking-[0.18em] text-slate-600 sm:grid-cols-[55px_minmax(0,1fr)_150px_180px] sm:gap-5">
+            <span className="text-center">No.</span>
+            <span>Income details</span>
+            <span className="hidden sm:block">Date / Time</span>
+            <span className="text-right">Credit amount</span>
+          </div>
+
+          {loading ? (
+            <div className="flex min-h-64 flex-col items-center justify-center gap-4">
+              <div className="h-8 w-8 animate-spin rounded-full border border-amber-300/20 border-t-amber-300" />
+              <p className="text-xs uppercase tracking-[0.18em] text-slate-500">Loading ROI records</p>
+            </div>
+          ) : pageRows.length === 0 ? (
+            <div className="flex min-h-64 flex-col items-center justify-center text-center">
+              <div className="mb-4 flex h-14 w-14 items-center justify-center border border-white/10 text-slate-500"><Search size={21} /></div>
+              <p className="text-sm font-medium text-slate-300">No ROI transactions found</p>
+              <p className="mt-1 text-xs text-slate-600">Try another search term or date range.</p>
+              {hasFilters && <button type="button" onClick={clearFilters} className="mt-4 text-xs font-semibold text-amber-200 underline underline-offset-4">Reset filters</button>}
+            </div>
+          ) : (
+            <div>
+              {pageRows.map((txn, index) => {
+                const isLevel = txn.type === "daily_level_income";
+                const rawDate = txn.createdAt || txn.date;
+                return (
+                  <article
+                    key={txn._id || `${rawDate}-${firstIndex + index}`}
+                    className="group grid grid-cols-[42px_minmax(0,1fr)] items-center gap-3 border-b border-white/[0.07] py-4 transition hover:bg-white/[0.018] sm:grid-cols-[55px_minmax(0,1fr)_150px_180px] sm:gap-5 sm:py-5"
+                  >
+                    <span className="text-center font-mono text-[11px] text-slate-600">{String(firstIndex + index + 1).padStart(2, "0")}</span>
+                    <div className="flex min-w-0 items-center gap-3">
+                      <span className={`flex h-9 w-9 shrink-0 items-center justify-center border ${isLevel ? "border-violet-300/25 bg-violet-300/[0.05] text-violet-200" : "border-sky-300/25 bg-sky-300/[0.05] text-sky-200"}`}>
+                        {isLevel ? <Layers3 size={16} /> : <Wallet size={16} />}
+                      </span>
+                      <div className="min-w-0">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <p className="truncate text-sm font-medium text-slate-200">{txn.description || (isLevel ? "Level ROI income" : "Self ROI income")}</p>
+                          <span className={`border px-2 py-0.5 text-[8px] font-semibold uppercase tracking-[0.13em] ${isLevel ? "border-violet-300/20 text-violet-200" : "border-sky-300/20 text-sky-200"}`}>
+                            {isLevel ? "Level ROI" : "Self ROI"}
+                          </span>
+                        </div>
+                        <p className="mt-1 text-[10px] text-slate-600 sm:hidden">{dateLabel(rawDate)}{timeLabel(rawDate) ? ` · ${timeLabel(rawDate)}` : ""}</p>
+                        <p className="mt-1 hidden text-[10px] text-slate-500 sm:block">ROI credit recorded to account</p>
+                      </div>
+                    </div>
+                    <div className="hidden sm:block">
+                      <p className="text-xs text-slate-300">{dateLabel(rawDate)}</p>
+                      <p className="mt-1 text-[10px] text-slate-600">{timeLabel(rawDate)}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-sm font-semibold tabular-nums text-emerald-300 sm:text-base">
+                        <span className="mr-1 text-xs font-normal text-amber-300">+$</span>{money(txn.amount)}
+                      </p>
+                      <p className="mt-1 inline-flex items-center gap-1 text-[9px] font-semibold uppercase tracking-[0.13em] text-emerald-400/70"><ArrowDownRight size={11} /> Credited</p>
+                    </div>
+                  </article>
+                );
+              })}
+            </div>
+          )}
+
+          {!loading && filtered.length > 0 && (
+            <div className="flex flex-col gap-4 border-t border-white/10 pt-5 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-center gap-3 text-xs text-slate-500">
+                <span>Rows</span>
+                <select
+                  value={entriesPerPage}
+                  onChange={(e) => setEntriesPerPage(Number(e.target.value))}
+                  className="border border-white/10 bg-[#101319] px-2 py-1.5 text-xs text-slate-200 outline-none focus:border-amber-300"
+                >
+                  <option value={10}>10</option>
+                  <option value={25}>25</option>
+                  <option value={50}>50</option>
+                </select>
+                <span>{firstIndex + 1}–{Math.min(firstIndex + pageRows.length, filtered.length)} of {filtered.length}</span>
+              </div>
+              <div className="flex items-center justify-between gap-4 sm:justify-end">
+                <button
+                  type="button"
+                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                  disabled={page === 1}
+                  className="inline-flex items-center gap-1 text-xs font-medium text-slate-400 transition hover:text-amber-200 disabled:cursor-not-allowed disabled:opacity-30"
+                >
+                  <ChevronLeft size={15} /> Previous
+                </button>
+                <span className="min-w-16 text-center font-mono text-xs text-amber-200">{page} / {totalPages}</span>
+                <button
+                  type="button"
+                  onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                  disabled={page === totalPages}
+                  className="inline-flex items-center gap-1 text-xs font-medium text-slate-400 transition hover:text-amber-200 disabled:cursor-not-allowed disabled:opacity-30"
+                >
+                  Next <ChevronRight size={15} />
+                </button>
+              </div>
+            </div>
+          )}
+        </section>
+
+        <footer className="mt-10 flex flex-col gap-2 border-t border-white/[0.07] pt-4 text-[9px] uppercase tracking-[0.16em] text-slate-700 sm:flex-row sm:items-center sm:justify-between">
+          <span>Global Wealth · ROI report</span>
+          <span>Figures are supplied by your account ROI endpoint</span>
+        </footer>
+      </main>
     </div>
   );
 };

@@ -1,2431 +1,845 @@
- 
-
-// // // // // // // // import React, { useEffect, useState } from "react";
-// // // // // // // // import api from "../../api/axios"; 
-// // // // // // // // import { useAuth } from "../../context/AuthContext";
-
-// // // // // // // // // Components Imports
-// // // // // // // // import ReferralLink from "../../components/dashboard/ReferralLink"; 
-// // // // // // // // import QuickActions from "../../components/dashboard/QuickActions"; 
-// // // // // // // // import SpinnerOverlay from "../../components/common/SpinnerOverlay";
-
-// // // // // // // // // 🔥 Packages component ko yahan import kar liya hai
-// // // // // // // // import Packages from "../../components/Packages"; 
-// // // // // // // // import UserPackages from "../../pages/user/UserPackages";
-// // // // // // // // // 🔥 props me { modalState, setModalState } add kar diya hai
-// // // // // // // // const Dashboard = ({ modalState, setModalState }) => {
-// // // // // // // //   const { user, token, setUser, logout } = useAuth();
-// // // // // // // //   const [loading, setLoading] = useState(false);
-
-// // // // // // // //   const fetchUserData = async () => {
-// // // // // // // //     if (!token || !user?.userId) return;
-// // // // // // // //     try {
-// // // // // // // //       const userRes = await api.get(`/user/${user.userId}`, { 
-// // // // // // // //         headers: { Authorization: `Bearer ${token}` } 
-// // // // // // // //       });
-// // // // // // // //       setUser(userRes.data.user); 
-// // // // // // // //     } catch (err) {
-// // // // // // // //       console.error("Failed to fetch user data:", err);
-// // // // // // // //       if (err?.response?.status === 401) logout();
-// // // // // // // //     }
-// // // // // // // //   };
-
-// // // // // // // //   useEffect(() => {
-// // // // // // // //     if (token && user?.userId) {
-// // // // // // // //       fetchUserData();
-// // // // // // // //     }
-// // // // // // // //     // eslint-disable-next-line react-hooks/exhaustive-deps
-// // // // // // // //   }, [user?.userId, token]); 
-
-// // // // // // // //   if (!user || !token) return <SpinnerOverlay />;
-
-// // // // // // // //   const referralLink = `${window.location.origin}/register?ref=${user.userId}`;
-
-// // // // // // // //   return (
-// // // // // // // //     <div className="w-full relative animate-fadeIn pb-28 md:pb-8 pt-4">
-// // // // // // // //       {loading && <SpinnerOverlay />}
-
-// // // // // // // //       <div className="space-y-6 max-w-4xl mx-auto px-2 sm:px-0">
-        
-// // // // // // // //         {/* 1. REFERRAL LINK BOX */}
-// // // // // // // //         <ReferralLink link={referralLink} />
-
-// // // // // // // //         {/* 2. QUICK ACTIONS MENU */}
-// // // // // // // //         <QuickActions 
-// // // // // // // //           onDepositClick={() => {
-// // // // // // // //             if (setModalState) {
-// // // // // // // //               setModalState(prev => ({ ...prev, showDeposit: true }));
-// // // // // // // //             }
-// // // // // // // //           }} 
-// // // // // // // //         />
-       
-
-// // // // // // // //         {/* 3. PACKAGES SECTION 🔥 Yahan dashboard me packages render honge */}
-// // // // // // // //         <div className="mt-8">
-// // // // // // // //             <h2 className="text-2xl font-bold text-gray-800 mb-4 px-2">Investment Packages</h2>
-// // // // // // // //             <Packages />
-// // // // // // // //         </div>
-
-
-
-// // // // // // // //          <div className="mt-8 bg-[#070b14] rounded-2xl overflow-hidden">
-// // // // // // // //             {/* Naya component yahan call hoga */}
-// // // // // // // //             <UserPackages />
-// // // // // // // //         </div>
-
-// // // // // // // //       </div>
-// // // // // // // //     </div>
-// // // // // // // //   );
-// // // // // // // // };
-
-// // // // // // // // export default Dashboard;
-
-
-// // // // // // // import React, { useEffect, useState } from "react";
-// // // // // // // import api from "../../api/axios"; 
-// // // // // // // import { useAuth } from "../../context/AuthContext";
-
-// // // // // // // // Components Imports
-// // // // // // // import ReferralLink from "../../components/dashboard/ReferralLink"; 
-// // // // // // // import QuickActions from "../../components/dashboard/QuickActions"; 
-// // // // // // // import SpinnerOverlay from "../../components/common/SpinnerOverlay";
-
-// // // // // // // // 🔥 Packages component ko yahan import kar liya hai
-// // // // // // // import Packages from "../../components/Packages"; 
-// // // // // // // import UserPackages from "../../pages/user/UserPackages";
-
-// // // // // // // // 🚀 Naya Import: TradingStatusPanel ko yahan add kiya
-// // // // // // // import TradingStatusPanel from "../../pages/user/TradingStatusPanel"; 
-
-// // // // // // // // 🔥 props me { modalState, setModalState } add kar diya hai
-// // // // // // // const Dashboard = ({ modalState, setModalState }) => {
-// // // // // // //   const { user, token, setUser, logout } = useAuth();
-// // // // // // //   const [loading, setLoading] = useState(false);
-
-// // // // // // //   const fetchUserData = async () => {
-// // // // // // //     if (!token || !user?.userId) return;
-// // // // // // //     try {
-// // // // // // //       const userRes = await api.get(`/user/${user.userId}`, { 
-// // // // // // //         headers: { Authorization: `Bearer ${token}` } 
-// // // // // // //       });
-// // // // // // //       setUser(userRes.data.user); 
-// // // // // // //     } catch (err) {
-// // // // // // //       console.error("Failed to fetch user data:", err);
-// // // // // // //       if (err?.response?.status === 401) logout();
-// // // // // // //     }
-// // // // // // //   };
-
-// // // // // // //   useEffect(() => {
-// // // // // // //     if (token && user?.userId) {
-// // // // // // //       fetchUserData();
-// // // // // // //     }
-// // // // // // //     // eslint-disable-next-line react-hooks/exhaustive-deps
-// // // // // // //   }, [user?.userId, token]); 
-
-// // // // // // //   if (!user || !token) return <SpinnerOverlay />;
-
-// // // // // // //   const referralLink = `${window.location.origin}/register?ref=${user.userId}`;
-
-// // // // // // //   return (
-// // // // // // //     <div className="w-full relative animate-fadeIn pb-28 md:pb-8 pt-4">
-// // // // // // //       {loading && <SpinnerOverlay />}
-
-// // // // // // //       <div className="space-y-6 max-w-4xl mx-auto px-2 sm:px-0">
-        
-// // // // // // //         {/* 1. REFERRAL LINK BOX */}
-// // // // // // //         <ReferralLink link={referralLink} />
-
-// // // // // // //         {/* 2. QUICK ACTIONS MENU */}
-// // // // // // //         <QuickActions 
-// // // // // // //           onDepositClick={() => {
-// // // // // // //             if (setModalState) {
-// // // // // // //               setModalState(prev => ({ ...prev, showDeposit: true }));
-// // // // // // //             }
-// // // // // // //           }} 
-// // // // // // //         />
-       
-// // // // // // //         {/* 3. PACKAGES SECTION */}
-// // // // // // //         <div className="mt-8">
-// // // // // // //             <h2 className="text-2xl font-bold text-gray-800 mb-4 px-2">Investment Packages</h2>
-// // // // // // //             <Packages />
-// // // // // // //         </div>
-
-// // // // // // //         {/* 4. USER PACKAGES SECTION */}
-// // // // // // //          <div className="mt-8 bg-[#070b14] rounded-2xl overflow-hidden">
-// // // // // // //             <UserPackages />
-// // // // // // //         </div>
-
-// // // // // // //         {/* 5. LIVE TRADING FEED (SABSE NEECHE) 🚀 */}
-// // // // // // //         <div className="mt-8 rounded-2xl overflow-hidden">
-// // // // // // //             <TradingStatusPanel />
-// // // // // // //         </div>
-
-// // // // // // //       </div>
-// // // // // // //     </div>
-// // // // // // //   );
-// // // // // // // };
-
-// // // // // // // export default Dashboard;
-
-
-// // // // // // // import React, { useEffect, useState } from "react";
-// // // // // // // import api from "../../api/axios"; 
-// // // // // // // import { useAuth } from "../../context/AuthContext";
-// // // // // // // import { useNavigate } from "react-router-dom"; // 🚀 Naya Import click redirect ke liye
-
-// // // // // // // // Components Imports
-// // // // // // // import ReferralLink from "../../components/dashboard/ReferralLink"; 
-// // // // // // // import QuickActions from "../../components/dashboard/QuickActions"; 
-// // // // // // // import SpinnerOverlay from "../../components/common/SpinnerOverlay";
-
-// // // // // // // // Packages component
-// // // // // // // import Packages from "../../components/Packages"; 
-// // // // // // // import UserPackages from "../../pages/user/UserPackages";
-
-// // // // // // // // Live Trading Feed
-// // // // // // // import TradingStatusPanel from "../../pages/user/TradingStatusPanel"; 
-
-// // // // // // // const Dashboard = ({ modalState, setModalState }) => {
-// // // // // // //   const { user, token, setUser, logout } = useAuth();
-// // // // // // //   const [loading, setLoading] = useState(false);
-// // // // // // //   const navigate = useNavigate(); // 🚀 Navigation ke liye
-  
-// // // // // // //   // 🚀 Naya State Stats store karne ke liye
-// // // // // // //   const [stats, setStats] = useState({
-// // // // // // //     totalGrandInvestment: 0,
-// // // // // // //     todayTotalInvestment: 0,
-// // // // // // //   });
-
-// // // // // // //   const fetchUserData = async () => {
-// // // // // // //     if (!token || !user?.userId) return;
-// // // // // // //     try {
-// // // // // // //       const userRes = await api.get(`/user/${user.userId}`, { 
-// // // // // // //         headers: { Authorization: `Bearer ${token}` } 
-// // // // // // //       });
-// // // // // // //       setUser(userRes.data.user); 
-// // // // // // //     } catch (err) {
-// // // // // // //       console.error("Failed to fetch user data:", err);
-// // // // // // //       if (err?.response?.status === 401) logout();
-// // // // // // //     }
-// // // // // // //   };
-
-// // // // // // //   // 🚀 Naya Function Stats fetch karne ke liye (Live feed api se)
-// // // // // // //   const fetchStats = async () => {
-// // // // // // //     if (!token) return;
-// // // // // // //     try {
-// // // // // // //       const res = await api.get("/transactions/deposits/live-feed", {
-// // // // // // //         headers: { Authorization: `Bearer ${token}` }
-// // // // // // //       });
-// // // // // // //       if (res.data.stats) {
-// // // // // // //         setStats({
-// // // // // // //           totalGrandInvestment: res.data.stats.totalGrandInvestment || 0,
-// // // // // // //           todayTotalInvestment: res.data.stats.todayTotalInvestment || 0
-// // // // // // //         });
-// // // // // // //       }
-// // // // // // //     } catch (err) {
-// // // // // // //       console.error("Error fetching live stats for dashboard", err);
-// // // // // // //     }
-// // // // // // //   };
-
-// // // // // // //   useEffect(() => {
-// // // // // // //     if (token && user?.userId) {
-// // // // // // //       fetchUserData();
-// // // // // // //       fetchStats(); // 🚀 Stats bhi load karo dashboard open hote hi
-// // // // // // //     }
-// // // // // // //     // eslint-disable-next-line react-hooks/exhaustive-deps
-// // // // // // //   }, [user?.userId, token]); 
-
-// // // // // // //   if (!user || !token) return <SpinnerOverlay />;
-
-// // // // // // //   const referralLink = `${window.location.origin}/register?ref=${user.userId}`;
-
-// // // // // // //   return (
-// // // // // // //     <div className="w-full relative animate-fadeIn pb-28 md:pb-8 pt-4">
-// // // // // // //       {loading && <SpinnerOverlay />}
-
-// // // // // // //       <div className="space-y-6 max-w-4xl mx-auto px-2 sm:px-0">
-        
-// // // // // // //         {/* 🚀 NEW: TOP STATS BOXES (Clickable) */}
-// // // // // // //         {/* Note: "/system-deposit-history" ko apne actual route name se match kar lena agar alag ho */}
-// // // // // // //        {/* 🚀 NEW: TOP STATS BOXES (Clickable) */}
-// // // // // // //      <div 
-// // // // // // //           className="grid grid-cols-2 gap-3 cursor-pointer hover:scale-[1.01] transition-transform duration-200"
-// // // // // // //           onClick={() => navigate("/system-live-feed")} 
-// // // // // // //         >
-// // // // // // //           {/* Yellow Box - Grand Total */}
-// // // // // // //           <div className="bg-[#d89814] p-4 rounded-xl border border-yellow-600 shadow-lg flex flex-col justify-center">
-// // // // // // //             <h3 className="text-black font-bold text-[10px] sm:text-xs uppercase tracking-wide">
-// // // // // // //               Grand Total Investment
-// // // // // // //             </h3>
-// // // // // // //             <p className="text-lg sm:text-2xl font-extrabold text-black mt-1">
-// // // // // // //               ${stats.totalGrandInvestment.toFixed(2)}
-// // // // // // //             </p>
-// // // // // // //           </div>
-
-// // // // // // //           {/* Dark Box - Today's Total */}
-// // // // // // //           <div className="bg-[#1c2233] p-4 rounded-xl border border-slate-700 shadow-lg flex flex-col justify-center">
-// // // // // // //             <h3 className="text-slate-400 font-bold text-[10px] sm:text-xs uppercase tracking-wide">
-// // // // // // //               Today's Total Investment
-// // // // // // //             </h3>
-// // // // // // //             <p className="text-lg sm:text-2xl font-bold text-white mt-1">
-// // // // // // //               ${stats.todayTotalInvestment.toFixed(2)}
-// // // // // // //             </p>
-// // // // // // //           </div>
-// // // // // // //         </div>
-
-// // // // // // //         {/* 1. REFERRAL LINK BOX */}
-// // // // // // //         <ReferralLink link={referralLink} />
-
-// // // // // // //         {/* 2. QUICK ACTIONS MENU */}
-// // // // // // //         <QuickActions 
-// // // // // // //           onDepositClick={() => {
-// // // // // // //             if (setModalState) {
-// // // // // // //               setModalState(prev => ({ ...prev, showDeposit: true }));
-// // // // // // //             }
-// // // // // // //           }} 
-// // // // // // //         />
-       
-// // // // // // //         {/* 3. PACKAGES SECTION */}
-// // // // // // //         <div className="mt-8">
-// // // // // // //             <h2 className="text-2xl font-bold text-gray-800 mb-4 px-2">Investment Packages</h2>
-// // // // // // //             <Packages />
-// // // // // // //         </div>
-
-// // // // // // //         {/* 4. USER PACKAGES SECTION */}
-// // // // // // //          <div className="mt-8 bg-[#070b14] rounded-2xl overflow-hidden">
-// // // // // // //             <UserPackages />
-// // // // // // //         </div>
-
-// // // // // // //         {/* 5. LIVE TRADING FEED (SABSE NEECHE) 🚀 */}
-// // // // // // //         <div className="mt-8 rounded-2xl overflow-hidden">
-// // // // // // //             <TradingStatusPanel />
-// // // // // // //         </div>
-
-// // // // // // //       </div>
-// // // // // // //     </div>
-// // // // // // //   );
-// // // // // // // };
-
-// // // // // // // export default Dashboard;
-
-
-// // // // // // // import React, { useEffect, useState } from "react";
-// // // // // // // import api from "../../api/axios"; 
-// // // // // // // import { useAuth } from "../../context/AuthContext";
-// // // // // // // import { useNavigate } from "react-router-dom"; 
-
-// // // // // // // // Components Imports
-// // // // // // // import ReferralLink from "../../components/dashboard/ReferralLink"; 
-// // // // // // // import QuickActions from "../../components/dashboard/QuickActions"; 
-// // // // // // // import SpinnerOverlay from "../../components/common/SpinnerOverlay";
-
-// // // // // // // // Packages component
-// // // // // // // import Packages from "../../components/Packages"; 
-// // // // // // // import UserPackages from "../../pages/user/UserPackages";
-
-// // // // // // // // Live Trading Feed
-// // // // // // // import TradingStatusPanel from "../../pages/user/TradingStatusPanel"; 
-
-// // // // // // // // 🚀 NAYA IMPORT: System Deposit History
-// // // // // // // import SystemDepositHistory from "../../pages/user/SystemDepositHistory";
-
-// // // // // // // const Dashboard = ({ modalState, setModalState }) => {
-// // // // // // //   const { user, token, setUser, logout } = useAuth();
-// // // // // // //   const [loading, setLoading] = useState(false);
-// // // // // // //   const navigate = useNavigate(); 
-  
-// // // // // // //   // 🚀 Naya State Stats store karne ke liye
-// // // // // // //   const [stats, setStats] = useState({
-// // // // // // //     totalGrandInvestment: 0,
-// // // // // // //     todayTotalInvestment: 0,
-// // // // // // //   });
-
-// // // // // // //   const fetchUserData = async () => {
-// // // // // // //     if (!token || !user?.userId) return;
-// // // // // // //     try {
-// // // // // // //       const userRes = await api.get(`/user/${user.userId}`, { 
-// // // // // // //         headers: { Authorization: `Bearer ${token}` } 
-// // // // // // //       });
-// // // // // // //       setUser(userRes.data.user); 
-// // // // // // //     } catch (err) {
-// // // // // // //       console.error("Failed to fetch user data:", err);
-// // // // // // //       if (err?.response?.status === 401) logout();
-// // // // // // //     }
-// // // // // // //   };
-
-// // // // // // //   // 🚀 Naya Function Stats fetch karne ke liye (Live feed api se)
-// // // // // // //   const fetchStats = async () => {
-// // // // // // //     if (!token) return;
-// // // // // // //     try {
-// // // // // // //       const res = await api.get("/transactions/deposits/live-feed", {
-// // // // // // //         headers: { Authorization: `Bearer ${token}` }
-// // // // // // //       });
-// // // // // // //       if (res.data.stats) {
-// // // // // // //         setStats({
-// // // // // // //           totalGrandInvestment: res.data.stats.totalGrandInvestment || 0,
-// // // // // // //           todayTotalInvestment: res.data.stats.todayTotalInvestment || 0
-// // // // // // //         });
-// // // // // // //       }
-// // // // // // //     } catch (err) {
-// // // // // // //       console.error("Error fetching live stats for dashboard", err);
-// // // // // // //     }
-// // // // // // //   };
-
-// // // // // // //   useEffect(() => {
-// // // // // // //     if (token && user?.userId) {
-// // // // // // //       fetchUserData();
-// // // // // // //       fetchStats(); 
-// // // // // // //     }
-// // // // // // //     // eslint-disable-next-line react-hooks/exhaustive-deps
-// // // // // // //   }, [user?.userId, token]); 
-
-// // // // // // //   if (!user || !token) return <SpinnerOverlay />;
-
-// // // // // // //   const referralLink = `${window.location.origin}/register?ref=${user.userId}`;
-
-// // // // // // //   return (
-// // // // // // //     <div className="w-full relative animate-fadeIn pb-28 md:pb-8 pt-4">
-// // // // // // //       {loading && <SpinnerOverlay />}
-
-// // // // // // //       <div className="space-y-6 max-w-4xl mx-auto px-2 sm:px-0">
-        
-// // // // // // //         {/* 🚀 NEW: TOP STATS BOXES (Clickable) */}
-// // // // // // //         <div 
-// // // // // // //           className="grid grid-cols-2 gap-3 cursor-pointer hover:scale-[1.01] transition-transform duration-200"
-// // // // // // //           onClick={() => navigate("/system-live-feed")} 
-// // // // // // //         >
-// // // // // // //           {/* Yellow Box - Grand Total */}
-// // // // // // //           {/* <div className="bg-[#d89814] p-4 rounded-xl border border-yellow-600 shadow-lg flex flex-col justify-center">
-// // // // // // //             <h3 className="text-black font-bold text-[10px] sm:text-xs uppercase tracking-wide">
-// // // // // // //               Total Investment
-// // // // // // //             </h3>
-// // // // // // //             <p className="text-lg sm:text-2xl font-extrabold text-black mt-1">
-// // // // // // //               ${stats.totalGrandInvestment.toFixed(2)}
-// // // // // // //             </p>
-// // // // // // //           </div> */}
-
-// // // // // // //           <div className="bg-[#d89814] p-4 rounded-xl border border-yellow-600 shadow-lg flex flex-col justify-center">
-// // // // // // //     <h3 className="text-black font-bold text-[10px] sm:text-xs uppercase tracking-wide">
-// // // // // // //         Total Investment
-// // // // // // //     </h3>
-// // // // // // //     <p className="text-lg sm:text-2xl font-extrabold text-black mt-1">
-// // // // // // //         ${(2000 + (Number(stats.totalGrandInvestment) || 0)).toFixed(2)}
-// // // // // // //     </p>
-// // // // // // // </div>
-
-// // // // // // //           {/* Dark Box - Today's Total */}
-// // // // // // //           <div className="bg-[#1c2233] p-4 rounded-xl border border-slate-700 shadow-lg flex flex-col justify-center">
-// // // // // // //             <h3 className="text-slate-400 font-bold text-[10px] sm:text-xs uppercase tracking-wide">
-// // // // // // //               Today's Total Investment
-// // // // // // //             </h3>
-// // // // // // //             <p className="text-lg sm:text-2xl font-bold text-white mt-1">
-// // // // // // //               ${stats.todayTotalInvestment.toFixed(2)}
-// // // // // // //             </p>
-// // // // // // //           </div>
-// // // // // // //         </div>
-
-// // // // // // //         {/* 1. REFERRAL LINK BOX */}
-// // // // // // //         <ReferralLink link={referralLink} />
-
-// // // // // // //         {/* 2. QUICK ACTIONS MENU */}
-// // // // // // //         <QuickActions 
-// // // // // // //           onDepositClick={() => {
-// // // // // // //             if (setModalState) {
-// // // // // // //               setModalState(prev => ({ ...prev, showDeposit: true }));
-// // // // // // //             }
-// // // // // // //           }} 
-// // // // // // //         />
-       
-// // // // // // //         {/* 3. PACKAGES SECTION */}
-// // // // // // //         <div className="mt-8">
-// // // // // // //             <h2 className="text-2xl font-bold text-gray-800 mb-4 px-2">Investment Packages</h2>
-// // // // // // //             <Packages />
-// // // // // // //         </div>
-
-// // // // // // //         {/* 4. USER PACKAGES SECTION */}
-// // // // // // //          <div className="mt-8 bg-[#070b14] rounded-2xl overflow-hidden">
-// // // // // // //             <UserPackages />
-// // // // // // //         </div>
-
-// // // // // // //         {/* 5. LIVE TRADING FEED */}
-// // // // // // //         <div className="mt-8 rounded-2xl overflow-hidden">
-// // // // // // //             <TradingStatusPanel />
-// // // // // // //         </div>
-
-// // // // // // //         {/* 6. SYSTEM DEPOSIT HISTORY (SABSE NEECHE ADD KIYA) 🚀 */}
-// // // // // // //         <div className="mt-8 rounded-2xl overflow-hidden">
-// // // // // // //             <SystemDepositHistory />
-// // // // // // //         </div>
-
-// // // // // // //       </div>
-// // // // // // //     </div>
-// // // // // // //   );
-// // // // // // // };
-
-// // // // // // // export default Dashboard;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// // // // // // // import React, { useEffect, useState } from "react";
-// // // // // // // import api from "../../api/axios"; 
-// // // // // // // import { useAuth } from "../../context/AuthContext";
-// // // // // // // import { useNavigate } from "react-router-dom"; 
-
-// // // // // // // // Components Imports
-// // // // // // // import ReferralLink from "../../components/dashboard/ReferralLink"; 
-// // // // // // // import QuickActions from "../../components/dashboard/QuickActions"; 
-// // // // // // // import SpinnerOverlay from "../../components/common/SpinnerOverlay";
-// // // // // // // // 🚀 NAYA IMPORT: Total Earning Box
-// // // // // // // import TotalEarningBox from "../../components/dashboard/TotalEarningBox"; 
-
-// // // // // // // // Packages component
-// // // // // // // import Packages from "../../components/Packages"; 
-// // // // // // // import UserPackages from "../../pages/user/UserPackages";
-
-// // // // // // // // Live Trading Feed
-// // // // // // // import TradingStatusPanel from "../../pages/user/TradingStatusPanel"; 
-
-// // // // // // // // System Deposit History
-// // // // // // // import SystemDepositHistory from "../../pages/user/SystemDepositHistory";
-
-// // // // // // // const Dashboard = ({ modalState, setModalState }) => {
-// // // // // // //   const { user, token, setUser, logout } = useAuth();
-// // // // // // //   const [loading, setLoading] = useState(false);
-// // // // // // //   const navigate = useNavigate(); 
-  
-// // // // // // //   // 🚀 Naya State Stats store karne ke liye
-// // // // // // //   const [stats, setStats] = useState({
-// // // // // // //     totalGrandInvestment: 0,
-// // // // // // //     todayTotalInvestment: 0,
-// // // // // // //   });
-
-// // // // // // //   const fetchUserData = async () => {
-// // // // // // //     if (!token || !user?.userId) return;
-// // // // // // //     try {
-// // // // // // //       const userRes = await api.get(`/user/${user.userId}`, { 
-// // // // // // //         headers: { Authorization: `Bearer ${token}` } 
-// // // // // // //       });
-// // // // // // //       setUser(userRes.data.user); 
-// // // // // // //     } catch (err) {
-// // // // // // //       console.error("Failed to fetch user data:", err);
-// // // // // // //       if (err?.response?.status === 401) logout();
-// // // // // // //     }
-// // // // // // //   };
-
-// // // // // // //   // 🚀 Naya Function Stats fetch karne ke liye (Live feed api se)
-// // // // // // //   const fetchStats = async () => {
-// // // // // // //     if (!token) return;
-// // // // // // //     try {
-// // // // // // //       const res = await api.get("/transactions/deposits/live-feed", {
-// // // // // // //         headers: { Authorization: `Bearer ${token}` }
-// // // // // // //       });
-// // // // // // //       if (res.data.stats) {
-// // // // // // //         setStats({
-// // // // // // //           totalGrandInvestment: res.data.stats.totalGrandInvestment || 0,
-// // // // // // //           todayTotalInvestment: res.data.stats.todayTotalInvestment || 0
-// // // // // // //         });
-// // // // // // //       }
-// // // // // // //     } catch (err) {
-// // // // // // //       console.error("Error fetching live stats for dashboard", err);
-// // // // // // //     }
-// // // // // // //   };
-
-// // // // // // //   useEffect(() => {
-// // // // // // //     if (token && user?.userId) {
-// // // // // // //       fetchUserData();
-// // // // // // //       fetchStats(); 
-// // // // // // //     }
-// // // // // // //     // eslint-disable-next-line react-hooks/exhaustive-deps
-// // // // // // //   }, [user?.userId, token]); 
-
-// // // // // // //   if (!user || !token) return <SpinnerOverlay />;
-
-// // // // // // //   const referralLink = `${window.location.origin}/register?ref=${user.userId}`;
-
-// // // // // // //   return (
-// // // // // // //     <div className="w-full relative animate-fadeIn pb-28 md:pb-8 pt-4">
-// // // // // // //       {loading && <SpinnerOverlay />}
-
-// // // // // // //       <div className="space-y-6 max-w-4xl mx-auto px-2 sm:px-0">
-        
-// // // // // // //         {/* 🚀 TOP STATS BOXES (Clickable) */}
-// // // // // // //         <div 
-// // // // // // //           className="grid grid-cols-2 gap-3 cursor-pointer hover:scale-[1.01] transition-transform duration-200"
-// // // // // // //           onClick={() => navigate("/system-live-feed")} 
-// // // // // // //         >
-// // // // // // //           {/* Yellow Box - Grand Total */}
-// // // // // // //           <div className="bg-[#d89814] p-4 rounded-xl border border-yellow-600 shadow-lg flex flex-col justify-center">
-// // // // // // //             <h3 className="text-black font-bold text-[10px] sm:text-xs uppercase tracking-wide">
-// // // // // // //                 Total Investment
-// // // // // // //             </h3>
-// // // // // // //             <p className="text-lg sm:text-2xl font-extrabold text-black mt-1">
-// // // // // // //                 ${(2000 + (Number(stats.totalGrandInvestment) || 0)).toFixed(2)}
-// // // // // // //             </p>
-// // // // // // //           </div>
-
-// // // // // // //           {/* Dark Box - Today's Total */}
-// // // // // // //           <div className="bg-[#1c2233] p-4 rounded-xl border border-slate-700 shadow-lg flex flex-col justify-center">
-// // // // // // //             <h3 className="text-slate-400 font-bold text-[10px] sm:text-xs uppercase tracking-wide">
-// // // // // // //               Today's Total Investment
-// // // // // // //             </h3>
-// // // // // // //             <p className="text-lg sm:text-2xl font-bold text-white mt-1">
-// // // // // // //               ${stats.todayTotalInvestment.toFixed(2)}
-// // // // // // //             </p>
-// // // // // // //           </div>
-// // // // // // //         </div>
-
-// // // // // // //         {/* 🚀 TOTAL EARNING & WALLET BALANCE BOX */}
-// // // // // // //         <TotalEarningBox user={user} />
-
-// // // // // // //         {/* 1. REFERRAL LINK BOX */}
-// // // // // // //         <ReferralLink link={referralLink} />
-
-// // // // // // //         {/* 2. QUICK ACTIONS MENU */}
-// // // // // // //         <QuickActions 
-// // // // // // //           onDepositClick={() => {
-// // // // // // //             if (setModalState) {
-// // // // // // //               setModalState(prev => ({ ...prev, showDeposit: true }));
-// // // // // // //             }
-// // // // // // //           }} 
-// // // // // // //         />
-       
-// // // // // // //         {/* 3. PACKAGES SECTION */}
-// // // // // // //         <div className="mt-8">
-// // // // // // //             <h2 className="text-2xl font-bold text-gray-800 mb-4 px-2">Investment Packages</h2>
-// // // // // // //             <Packages />
-// // // // // // //         </div>
-
-// // // // // // //         {/* 4. USER PACKAGES SECTION */}
-// // // // // // //          <div className="mt-8 bg-[#070b14] rounded-2xl overflow-hidden">
-// // // // // // //             <UserPackages />
-// // // // // // //         </div>
-
-// // // // // // //         {/* 5. LIVE TRADING FEED */}
-// // // // // // //         <div className="mt-8 rounded-2xl overflow-hidden">
-// // // // // // //             <TradingStatusPanel />
-// // // // // // //         </div>
-
-// // // // // // //         {/* 6. SYSTEM DEPOSIT HISTORY (SABSE NEECHE ADD KIYA) */}
-// // // // // // //         <div className="mt-8 rounded-2xl overflow-hidden">
-// // // // // // //             <SystemDepositHistory />
-// // // // // // //         </div>
-
-// // // // // // //       </div>
-// // // // // // //     </div>
-// // // // // // //   );
-// // // // // // // };
-
-// // // // // // // export default Dashboard;
-
-// // // // // // // import React, { useEffect, useState } from "react";
-// // // // // // // import api from "../../api/axios"; 
-// // // // // // // import { useAuth } from "../../context/AuthContext";
-// // // // // // // import { useNavigate } from "react-router-dom"; 
-
-// // // // // // // // Components Imports
-// // // // // // // import ReferralLink from "../../components/dashboard/ReferralLink"; 
-// // // // // // // import QuickActions from "../../components/dashboard/QuickActions"; 
-// // // // // // // import SpinnerOverlay from "../../components/common/SpinnerOverlay";
-// // // // // // // // 🚀 NAYA IMPORT: Total Earning Box
-// // // // // // // import TotalEarningBox from "../../components/dashboard/TotalEarningBox"; 
-// // // // // // // // 🚀 NAYA IMPORT: Monthly Salary Card (Yahan import kiya hai)
-// // // // // // // import MonthlySalaryCard from "../../components/MonthlySalaryCard"; 
-
-// // // // // // // // Packages component
-// // // // // // // import Packages from "../../components/Packages"; 
-// // // // // // // import UserPackages from "../../pages/user/UserPackages";
-
-// // // // // // // // Live Trading Feed
-// // // // // // // import TradingStatusPanel from "../../pages/user/TradingStatusPanel"; 
-
-// // // // // // // // System Deposit History
-// // // // // // // import SystemDepositHistory from "../../pages/user/SystemDepositHistory";
-
-// // // // // // // const Dashboard = ({ modalState, setModalState }) => {
-// // // // // // //   const { user, token, setUser, logout } = useAuth();
-// // // // // // //   const [loading, setLoading] = useState(false);
-// // // // // // //   const navigate = useNavigate(); 
-  
-// // // // // // //   // 🚀 Naya State Stats store karne ke liye
-// // // // // // //   const [stats, setStats] = useState({
-// // // // // // //     totalGrandInvestment: 0,
-// // // // // // //     todayTotalInvestment: 0,
-// // // // // // //   });
-
-// // // // // // //   const fetchUserData = async () => {
-// // // // // // //     if (!token || !user?.userId) return;
-// // // // // // //     try {
-// // // // // // //       const userRes = await api.get(`/user/${user.userId}`, { 
-// // // // // // //         headers: { Authorization: `Bearer ${token}` } 
-// // // // // // //       });
-// // // // // // //       setUser(userRes.data.user); 
-// // // // // // //     } catch (err) {
-// // // // // // //       console.error("Failed to fetch user data:", err);
-// // // // // // //       if (err?.response?.status === 401) logout();
-// // // // // // //     }
-// // // // // // //   };
-
-// // // // // // //   // 🚀 Naya Function Stats fetch karne ke liye (Live feed api se)
-// // // // // // //   const fetchStats = async () => {
-// // // // // // //     if (!token) return;
-// // // // // // //     try {
-// // // // // // //       const res = await api.get("/transactions/deposits/live-feed", {
-// // // // // // //         headers: { Authorization: `Bearer ${token}` }
-// // // // // // //       });
-// // // // // // //       if (res.data.stats) {
-// // // // // // //         setStats({
-// // // // // // //           totalGrandInvestment: res.data.stats.totalGrandInvestment || 0,
-// // // // // // //           todayTotalInvestment: res.data.stats.todayTotalInvestment || 0
-// // // // // // //         });
-// // // // // // //       }
-// // // // // // //     } catch (err) {
-// // // // // // //       console.error("Error fetching live stats for dashboard", err);
-// // // // // // //     }
-// // // // // // //   };
-
-// // // // // // //   useEffect(() => {
-// // // // // // //     if (token && user?.userId) {
-// // // // // // //       fetchUserData();
-// // // // // // //       fetchStats(); 
-// // // // // // //     }
-// // // // // // //     // eslint-disable-next-line react-hooks/exhaustive-deps
-// // // // // // //   }, [user?.userId, token]); 
-
-// // // // // // //   if (!user || !token) return <SpinnerOverlay />;
-
-// // // // // // //   const referralLink = `${window.location.origin}/register?ref=${user.userId}`;
-
-// // // // // // //   return (
-// // // // // // //     <div className="w-full relative animate-fadeIn pb-28 md:pb-8 pt-4">
-// // // // // // //       {loading && <SpinnerOverlay />}
-
-// // // // // // //       <div className="space-y-6 max-w-4xl mx-auto px-2 sm:px-0">
-        
-// // // // // // //         {/* 🚀 TOP STATS BOXES (Clickable) */}
-// // // // // // //         <div 
-// // // // // // //           className="grid grid-cols-2 gap-3 cursor-pointer hover:scale-[1.01] transition-transform duration-200"
-// // // // // // //           onClick={() => navigate("/system-live-feed")} 
-// // // // // // //         >
-// // // // // // //           {/* Yellow Box - Grand Total */}
-// // // // // // //           <div className="bg-[#d89814] p-4 rounded-xl border border-yellow-600 shadow-lg flex flex-col justify-center">
-// // // // // // //             <h3 className="text-black font-bold text-[10px] sm:text-xs uppercase tracking-wide">
-// // // // // // //                 Total Investment
-// // // // // // //             </h3>
-// // // // // // //             <p className="text-lg sm:text-2xl font-extrabold text-black mt-1">
-// // // // // // //                 ${(2000 + (Number(stats.totalGrandInvestment) || 0)).toFixed(2)}
-// // // // // // //             </p>
-// // // // // // //           </div>
-
-// // // // // // //           {/* Dark Box - Today's Total */}
-// // // // // // //           <div className="bg-[#1c2233] p-4 rounded-xl border border-slate-700 shadow-lg flex flex-col justify-center">
-// // // // // // //             <h3 className="text-slate-400 font-bold text-[10px] sm:text-xs uppercase tracking-wide">
-// // // // // // //               Today's Total Investment
-// // // // // // //             </h3>
-// // // // // // //             <p className="text-lg sm:text-2xl font-bold text-white mt-1">
-// // // // // // //               ${stats.todayTotalInvestment.toFixed(2)}
-// // // // // // //             </p>
-// // // // // // //           </div>
-// // // // // // //         </div>
-
-// // // // // // //         {/* 🚀 TOTAL EARNING & WALLET BALANCE BOX */}
-// // // // // // //         <TotalEarningBox user={user} />
-
-// // // // // // //         {/* 🚀 NAYA: MONTHLY SALARY TRACKER BOX (High Visibility) */}
-// // // // // // //         {/* Ise upar rakha hai taaki user sabse pehle apna time left aur target dekhe */}
-// // // // // // //         <div className="mt-2 mb-4">
-// // // // // // //            <MonthlySalaryCard userId={user.userId} />
-// // // // // // //         </div>
-
-// // // // // // //         {/* 1. REFERRAL LINK BOX */}
-// // // // // // //         <ReferralLink link={referralLink} />
-
-// // // // // // //         {/* 2. QUICK ACTIONS MENU */}
-// // // // // // //         <QuickActions 
-// // // // // // //           onDepositClick={() => {
-// // // // // // //             if (setModalState) {
-// // // // // // //               setModalState(prev => ({ ...prev, showDeposit: true }));
-// // // // // // //             }
-// // // // // // //           }} 
-// // // // // // //         />
-       
-// // // // // // //         {/* 3. PACKAGES SECTION */}
-// // // // // // //         <div className="mt-8">
-// // // // // // //             <h2 className="text-2xl font-bold text-gray-800 mb-4 px-2">Investment Packages</h2>
-// // // // // // //             <Packages />
-// // // // // // //         </div>
-
-// // // // // // //         {/* 4. USER PACKAGES SECTION */}
-// // // // // // //          <div className="mt-8 bg-[#070b14] rounded-2xl overflow-hidden">
-// // // // // // //             <UserPackages />
-// // // // // // //         </div>
-
-// // // // // // //         {/* 5. LIVE TRADING FEED */}
-// // // // // // //         <div className="mt-8 rounded-2xl overflow-hidden">
-// // // // // // //             <TradingStatusPanel />
-// // // // // // //         </div>
-
-// // // // // // //         {/* 6. SYSTEM DEPOSIT HISTORY */}
-// // // // // // //         <div className="mt-8 rounded-2xl overflow-hidden">
-// // // // // // //             <SystemDepositHistory />
-// // // // // // //         </div>
-
-// // // // // // //       </div>
-// // // // // // //     </div>
-// // // // // // //   );
-// // // // // // // };
-
-// // // // // // // export default Dashboard;
-
-
-
-// // // // // // // import React, { useEffect, useState } from "react";
-// // // // // // // import api from "../../api/axios"; 
-// // // // // // // import { useAuth } from "../../context/AuthContext";
-// // // // // // // import { useNavigate } from "react-router-dom"; 
-
-// // // // // // // // Components Imports
-// // // // // // // import ReferralLink from "../../components/dashboard/ReferralLink"; 
-// // // // // // // import QuickActions from "../../components/dashboard/QuickActions"; 
-// // // // // // // import SpinnerOverlay from "../../components/common/SpinnerOverlay";
-// // // // // // // // 🚀 NAYA IMPORT: Total Earning Box
-// // // // // // // import TotalEarningBox from "../../components/dashboard/TotalEarningBox"; 
-// // // // // // // // 🚀 NAYA IMPORT: Monthly Salary Card (Yahan import kiya hai)
-// // // // // // // import MonthlySalaryCard from "../../components/MonthlySalaryCard"; 
-// // // // // // // import UserInfoBoxes from "../../components/dashboard/UserInfoBoxes";
-// // // // // // // // Packages component
-// // // // // // // import Packages from "../../components/Packages"; 
-// // // // // // // import UserPackages from "../../pages/user/UserPackages";
-
-// // // // // // // // Live Trading Feed
-// // // // // // // import TradingStatusPanel from "../../pages/user/TradingStatusPanel"; 
-
-// // // // // // // // System Deposit History
-// // // // // // // import SystemDepositHistory from "../../pages/user/SystemDepositHistory";
-
-// // // // // // // const Dashboard = ({ modalState, setModalState }) => {
-// // // // // // //   const { user, token, setUser, logout } = useAuth();
-// // // // // // //   // Data fetch ho jaane ke baad loading hata denge
-// // // // // // //   const [initialLoad, setInitialLoad] = useState(true);
-// // // // // // //   const navigate = useNavigate(); 
-  
-// // // // // // //   // 🚀 Naya State Stats store karne ke liye
-// // // // // // //   const [stats, setStats] = useState({
-// // // // // // //     totalGrandInvestment: 0,
-// // // // // // //     todayTotalInvestment: 0,
-// // // // // // //   });
-
-// // // // // // //   const fetchUserData = async () => {
-// // // // // // //     if (!token || !user?.userId) return;
-// // // // // // //     try {
-// // // // // // //       const userRes = await api.get(`/user/${user.userId}`, { 
-// // // // // // //         headers: { Authorization: `Bearer ${token}` } 
-// // // // // // //       });
-// // // // // // //       setUser(userRes.data.user); 
-// // // // // // //     } catch (err) {
-// // // // // // //       console.error("Failed to fetch user data:", err);
-// // // // // // //       if (err?.response?.status === 401) logout();
-// // // // // // //     }
-// // // // // // //   };
-
-// // // // // // //   // 🚀 Naya Function Stats fetch karne ke liye (Live feed api se)
-// // // // // // //   const fetchStats = async () => {
-// // // // // // //     if (!token) return;
-// // // // // // //     try {
-// // // // // // //       const res = await api.get("/transactions/deposits/live-feed", {
-// // // // // // //         headers: { Authorization: `Bearer ${token}` }
-// // // // // // //       });
-// // // // // // //       if (res.data.stats) {
-// // // // // // //         setStats({
-// // // // // // //           totalGrandInvestment: res.data.stats.totalGrandInvestment || 0,
-// // // // // // //           todayTotalInvestment: res.data.stats.todayTotalInvestment || 0
-// // // // // // //         });
-// // // // // // //       }
-// // // // // // //     } catch (err) {
-// // // // // // //       console.error("Error fetching live stats for dashboard", err);
-// // // // // // //     }
-// // // // // // //   };
-
-// // // // // // //   useEffect(() => {
-// // // // // // //     const loadAllData = async () => {
-// // // // // // //       if (token && user?.userId) {
-// // // // // // //         await Promise.all([fetchUserData(), fetchStats()]);
-// // // // // // //         setInitialLoad(false); // Sirf pehli baar load rokne ke liye
-// // // // // // //       }
-// // // // // // //     };
-// // // // // // //     loadAllData();
-// // // // // // //     // eslint-disable-next-line react-hooks/exhaustive-deps
-// // // // // // //   }, [user?.userId, token]); 
-
-// // // // // // //   // Agar token hi nahi hai toh seedha spinner dikhao
-// // // // // // //   if (!user || !token) return <SpinnerOverlay />;
-
-// // // // // // //   const referralLink = `${window.location.origin}/register?ref=${user.userId}`;
-
-// // // // // // //   return (
-// // // // // // //     <div className="w-full relative animate-fadeIn pb-28 md:pb-8 pt-4">
-// // // // // // //       {/* Agar background me load ho raha ho toh spinner dikhaye */}
-// // // // // // //       {initialLoad && <SpinnerOverlay />}
-
-// // // // // // //       {/* Main container with standard gap */}
-// // // // // // //       <div className="space-y-4 max-w-4xl mx-auto px-2 sm:px-0">
-        
-
-// // // // // // //         {/* 👇 YAHAN LAGA DIYA NAYA COMPONENT 👇 */}
-// // // // // // //       <UserInfoBoxes />
-      
-// // // // // // //         {/* 🚀 TOP STATS BOXES (Clickable) */}
-// // // // // // //         <div 
-// // // // // // //           className="grid grid-cols-2 gap-3 cursor-pointer hover:scale-[1.01] transition-transform duration-200"
-// // // // // // //           onClick={() => navigate("/system-live-feed")} 
-// // // // // // //         >
-
-// // // // // // //           {/* Yellow Box - Grand Total */}
-// // // // // // //           <div className="bg-[#d89814] p-4 rounded-xl border border-yellow-600 shadow-lg flex flex-col justify-center min-h-[95px]">
-// // // // // // //             <h3 className="text-black font-bold text-[10px] sm:text-xs uppercase tracking-wide">
-// // // // // // //                 Total Investment
-// // // // // // //             </h3>
-// // // // // // //             <p className="text-lg sm:text-2xl font-extrabold text-black mt-1 drop-shadow-md">
-// // // // // // //                 ${(2000 + (Number(stats.totalGrandInvestment) || 0)).toFixed(2)}
-// // // // // // //             </p>
-// // // // // // //           </div>
-
-// // // // // // //           {/* Dark Box - Today's Total */}
-// // // // // // //           <div className="bg-[#1c2233] p-4 rounded-xl border border-slate-700 shadow-lg flex flex-col justify-center min-h-[95px]">
-// // // // // // //             <h3 className="text-slate-400 font-bold text-[10px] sm:text-xs uppercase tracking-wide">
-// // // // // // //               Today's Total Investment
-// // // // // // //             </h3>
-// // // // // // //             <p className="text-lg sm:text-2xl font-bold text-white mt-1 drop-shadow-md">
-// // // // // // //               ${stats.todayTotalInvestment.toFixed(2)}
-// // // // // // //             </p>
-// // // // // // //           </div>
-// // // // // // //         </div>
-
-// // // // // // //         {/* 🚀 TOTAL EARNING & WALLET BALANCE BOX */}
-// // // // // // //         {/* Isme component ke andar se bottom margin hataya hai taaki main layout me hi margin adjust ho */}
-// // // // // // //         <TotalEarningBox user={user} />
-
-// // // // // // //         {/* 🚀 NAYA: MONTHLY SALARY TRACKER BOX (High Visibility) */}
-// // // // // // //         <MonthlySalaryCard userId={user.userId} />
-
-// // // // // // //         {/* 1. REFERRAL LINK BOX */}
-// // // // // // //         <ReferralLink link={referralLink} />
-
-// // // // // // //         {/* 2. QUICK ACTIONS MENU */}
-// // // // // // //         <QuickActions 
-// // // // // // //           onDepositClick={() => {
-// // // // // // //             if (setModalState) {
-// // // // // // //               setModalState(prev => ({ ...prev, showDeposit: true }));
-// // // // // // //             }
-// // // // // // //           }} 
-// // // // // // //         />
-       
-// // // // // // //         {/* 3. PACKAGES SECTION */}
-// // // // // // //         <div className="mt-8">
-// // // // // // //             <h2 className="text-2xl font-bold text-gray-800 mb-4 px-2">Investment Packages</h2>
-// // // // // // //             <Packages />
-// // // // // // //         </div>
-
-// // // // // // //         {/* 4. USER PACKAGES SECTION */}
-// // // // // // //          <div className="mt-8 bg-[#070b14] rounded-2xl overflow-hidden shadow-lg">
-// // // // // // //             <UserPackages />
-// // // // // // //         </div>
-
-// // // // // // //         {/* 5. LIVE TRADING FEED */}
-// // // // // // //         <div className="mt-8 rounded-2xl overflow-hidden shadow-lg">
-// // // // // // //             <TradingStatusPanel />
-// // // // // // //         </div>
-
-// // // // // // //         {/* 6. SYSTEM DEPOSIT HISTORY */}
-// // // // // // //         <div className="mt-8 rounded-2xl overflow-hidden shadow-lg">
-// // // // // // //             <SystemDepositHistory />
-// // // // // // //         </div>
-
-// // // // // // //       </div>
-// // // // // // //     </div>
-// // // // // // //   );
-// // // // // // // };
-
-// // // // // // // export default Dashboard;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// // // // // // import React, { useEffect, useState } from "react";
-// // // // // // import api from "../../api/axios"; 
-// // // // // // import { useAuth } from "../../context/AuthContext";
-// // // // // // import { useNavigate } from "react-router-dom"; 
-
-// // // // // // // Components Imports
-// // // // // // import ReferralLink from "../../components/dashboard/ReferralLink"; 
-// // // // // // import QuickActions from "../../components/dashboard/QuickActions"; 
-// // // // // // import SpinnerOverlay from "../../components/common/SpinnerOverlay";
-// // // // // // import TotalEarningBox from "../../components/dashboard/TotalEarningBox"; 
-// // // // // // import MonthlySalaryCard from "../../components/MonthlySalaryCard"; 
-// // // // // // import UserInfoBoxes from "../../components/dashboard/UserInfoBoxes";
-// // // // // // import Packages from "../../components/Packages"; 
-// // // // // // import UserPackages from "../../pages/user/UserPackages";
-// // // // // // import TradingStatusPanel from "../../pages/user/TradingStatusPanel"; 
-// // // // // // import SystemDepositHistory from "../../pages/user/SystemDepositHistory";
-
-// // // // // // // 🚀 NAYA IMPORT: Telegram Button (Jisme Popup aur Floating dono hain)
-// // // // // // import TelegramButton from "../../components/TelegramButton"; 
-
-// // // // // // const Dashboard = ({ modalState, setModalState }) => {
-// // // // // //   const { user, token, setUser, logout } = useAuth();
-// // // // // //   const [initialLoad, setInitialLoad] = useState(true);
-// // // // // //   const navigate = useNavigate(); 
-  
-// // // // // //   const [stats, setStats] = useState({
-// // // // // //     totalGrandInvestment: 0,
-// // // // // //     todayTotalInvestment: 0,
-// // // // // //   });
-
-// // // // // //   const fetchUserData = async () => {
-// // // // // //     if (!token || !user?.userId) return;
-// // // // // //     try {
-// // // // // //       const userRes = await api.get(`/user/${user.userId}`, { 
-// // // // // //         headers: { Authorization: `Bearer ${token}` } 
-// // // // // //       });
-// // // // // //       setUser(userRes.data.user); 
-// // // // // //     } catch (err) {
-// // // // // //       console.error("Failed to fetch user data:", err);
-// // // // // //       if (err?.response?.status === 401) logout();
-// // // // // //     }
-// // // // // //   };
-
-// // // // // //   const fetchStats = async () => {
-// // // // // //     if (!token) return;
-// // // // // //     try {
-// // // // // //       const res = await api.get("/transactions/deposits/live-feed", {
-// // // // // //         headers: { Authorization: `Bearer ${token}` }
-// // // // // //       });
-// // // // // //       if (res.data.stats) {
-// // // // // //         setStats({
-// // // // // //           totalGrandInvestment: res.data.stats.totalGrandInvestment || 0,
-// // // // // //           todayTotalInvestment: res.data.stats.todayTotalInvestment || 0
-// // // // // //         });
-// // // // // //       }
-// // // // // //     } catch (err) {
-// // // // // //       console.error("Error fetching live stats for dashboard", err);
-// // // // // //     }
-// // // // // //   };
-
-// // // // // //   useEffect(() => {
-// // // // // //     const loadAllData = async () => {
-// // // // // //       if (token && user?.userId) {
-// // // // // //         await Promise.all([fetchUserData(), fetchStats()]);
-// // // // // //         setInitialLoad(false); 
-// // // // // //       }
-// // // // // //     };
-// // // // // //     loadAllData();
-// // // // // //     // eslint-disable-next-line react-hooks/exhaustive-deps
-// // // // // //   }, [user?.userId, token]); 
-
-// // // // // //   if (!user || !token) return <SpinnerOverlay />;
-
-// // // // // //   const referralLink = `${window.location.origin}/register?ref=${user.userId}`;
-
-// // // // // //   return (
-// // // // // //     <div className="w-full relative animate-fadeIn pb-28 md:pb-8 pt-4">
-// // // // // //       {initialLoad && <SpinnerOverlay />}
-
-// // // // // //       <div className="space-y-4 max-w-4xl mx-auto px-2 sm:px-0">
-        
-// // // // // //         <UserInfoBoxes />
-      
-// // // // // //         <div 
-// // // // // //           className="grid grid-cols-2 gap-3 cursor-pointer hover:scale-[1.01] transition-transform duration-200"
-// // // // // //           onClick={() => navigate("/system-live-feed")} 
-// // // // // //         >
-// // // // // //           <div className="bg-[#d89814] p-4 rounded-xl border border-yellow-600 shadow-lg flex flex-col justify-center min-h-[95px]">
-// // // // // //             <h3 className="text-black font-bold text-[10px] sm:text-xs uppercase tracking-wide">
-// // // // // //                 Total Investment
-// // // // // //             </h3>
-// // // // // //             <p className="text-lg sm:text-2xl font-extrabold text-black mt-1 drop-shadow-md">
-// // // // // //                 ${(2000 + (Number(stats.totalGrandInvestment) || 0)).toFixed(2)}
-// // // // // //             </p>
-// // // // // //           </div>
-
-// // // // // //           <div className="bg-[#1c2233] p-4 rounded-xl border border-slate-700 shadow-lg flex flex-col justify-center min-h-[95px]">
-// // // // // //             <h3 className="text-slate-400 font-bold text-[10px] sm:text-xs uppercase tracking-wide">
-// // // // // //               Today's Total Investment
-// // // // // //             </h3>
-// // // // // //             <p className="text-lg sm:text-2xl font-bold text-white mt-1 drop-shadow-md">
-// // // // // //               ${stats.todayTotalInvestment.toFixed(2)}
-// // // // // //             </p>
-// // // // // //           </div>
-// // // // // //         </div>
-
-// // // // // //         <TotalEarningBox user={user} />
-// // // // // //         <MonthlySalaryCard userId={user.userId} />
-// // // // // //         <ReferralLink link={referralLink} />
-
-// // // // // //         <QuickActions 
-// // // // // //           onDepositClick={() => {
-// // // // // //             if (setModalState) {
-// // // // // //               setModalState(prev => ({ ...prev, showDeposit: true }));
-// // // // // //             }
-// // // // // //           }} 
-// // // // // //         />
-       
-// // // // // //         <div className="mt-8">
-// // // // // //             <h2 className="text-2xl font-bold text-gray-800 mb-4 px-2">Investment Packages</h2>
-// // // // // //             <Packages />
-// // // // // //         </div>
-
-// // // // // //          <div className="mt-8 bg-[#070b14] rounded-2xl overflow-hidden shadow-lg">
-// // // // // //             <UserPackages />
-// // // // // //         </div>
-
-// // // // // //         <div className="mt-8 rounded-2xl overflow-hidden shadow-lg">
-// // // // // //             <TradingStatusPanel />
-// // // // // //         </div>
-
-// // // // // //         <div className="mt-8 rounded-2xl overflow-hidden shadow-lg">
-// // // // // //             <SystemDepositHistory />
-// // // // // //         </div>
-
-// // // // // //       </div>
-
-// // // // // //       {/* 🚀 TELEGRAM POPUP AUR FLOATING BUTTON YAHAN ADD KIYA HAI */}
-// // // // // //       <TelegramButton />
-      
-// // // // // //     </div>
-// // // // // //   );
-// // // // // // };
-
-// // // // // // export default Dashboard;
-
-
-
-
-// // // // // // import React, { useEffect, useState } from "react";
-// // // // // // import api from "../../api/axios"; 
-// // // // // // import { useAuth } from "../../context/AuthContext";
-// // // // // // import { useNavigate } from "react-router-dom"; 
-
-// // // // // // // Components Imports
-// // // // // // import ReferralLink from "../../components/dashboard/ReferralLink"; 
-// // // // // // import QuickActions from "../../components/dashboard/QuickActions"; 
-// // // // // // import SpinnerOverlay from "../../components/common/SpinnerOverlay";
-// // // // // // import TotalEarningBox from "../../components/dashboard/TotalEarningBox"; 
-// // // // // // import MonthlySalaryCard from "../../components/MonthlySalaryCard"; 
-// // // // // // import UserInfoBoxes from "../../components/dashboard/UserInfoBoxes";
-// // // // // // import Packages from "../../components/Packages"; 
-// // // // // // import UserPackages from "../../pages/user/UserPackages";
-// // // // // // import TradingStatusPanel from "../../pages/user/TradingStatusPanel"; 
-// // // // // // import SystemDepositHistory from "../../pages/user/SystemDepositHistory";
-
-// // // // // // // 🚀 Salary Achievers component import kiya hai
-// // // // // // import SalaryAchievers from "../../pages/user/SalaryAchievers"; 
-
-// // // // // // // 🚀 Telegram Button Import
-// // // // // // import TelegramButton from "../../components/TelegramButton"; 
-
-// // // // // // const Dashboard = ({ modalState, setModalState }) => {
-// // // // // //   const { user, token, setUser, logout } = useAuth();
-// // // // // //   const [initialLoad, setInitialLoad] = useState(true);
-// // // // // //   const navigate = useNavigate(); 
-  
-// // // // // //   const [stats, setStats] = useState({
-// // // // // //     totalGrandInvestment: 0,
-// // // // // //     todayTotalInvestment: 0,
-// // // // // //   });
-
-// // // // // //   const fetchUserData = async () => {
-// // // // // //     if (!token || !user?.userId) return;
-// // // // // //     try {
-// // // // // //       const userRes = await api.get(`/user/${user.userId}`, { 
-// // // // // //         headers: { Authorization: `Bearer ${token}` } 
-// // // // // //       });
-// // // // // //       setUser(userRes.data.user); 
-// // // // // //     } catch (err) {
-// // // // // //       console.error("Failed to fetch user data:", err);
-// // // // // //       if (err?.response?.status === 401) logout();
-// // // // // //     }
-// // // // // //   };
-
-// // // // // //   const fetchStats = async () => {
-// // // // // //     if (!token) return;
-// // // // // //     try {
-// // // // // //       const res = await api.get("/transactions/deposits/live-feed", {
-// // // // // //         headers: { Authorization: `Bearer ${token}` }
-// // // // // //       });
-// // // // // //       if (res.data.stats) {
-// // // // // //         setStats({
-// // // // // //           totalGrandInvestment: res.data.stats.totalGrandInvestment || 0,
-// // // // // //           todayTotalInvestment: res.data.stats.todayTotalInvestment || 0
-// // // // // //         });
-// // // // // //       }
-// // // // // //     } catch (err) {
-// // // // // //       console.error("Error fetching live stats for dashboard", err);
-// // // // // //     }
-// // // // // //   };
-
-// // // // // //   useEffect(() => {
-// // // // // //     const loadAllData = async () => {
-// // // // // //       if (token && user?.userId) {
-// // // // // //         await Promise.all([fetchUserData(), fetchStats()]);
-// // // // // //         setInitialLoad(false); 
-// // // // // //       }
-// // // // // //     };
-// // // // // //     loadAllData();
-// // // // // //     // eslint-disable-next-line react-hooks/exhaustive-deps
-// // // // // //   }, [user?.userId, token]); 
-
-// // // // // //   if (!user || !token) return <SpinnerOverlay />;
-
-// // // // // //   const referralLink = `${window.location.origin}/register?ref=${user.userId}`;
-
-// // // // // //   return (
-// // // // // //     <div className="w-full relative animate-fadeIn pb-28 md:pb-8 pt-4">
-// // // // // //       {initialLoad && <SpinnerOverlay />}
-
-// // // // // //       <div className="space-y-4 max-w-4xl mx-auto px-2 sm:px-0">
-        
-// // // // // //         <UserInfoBoxes />
-      
-// // // // // //         <div 
-// // // // // //           className="grid grid-cols-2 gap-3 cursor-pointer hover:scale-[1.01] transition-transform duration-200"
-// // // // // //           onClick={() => navigate("/system-live-feed")} 
-// // // // // //         >
-// // // // // //           <div className="bg-[#d89814] p-4 rounded-xl border border-yellow-600 shadow-lg flex flex-col justify-center min-h-[95px]">
-// // // // // //             <h3 className="text-black font-bold text-[10px] sm:text-xs uppercase tracking-wide">
-// // // // // //                 Total Investment
-// // // // // //             </h3>
-// // // // // //             <p className="text-lg sm:text-2xl font-extrabold text-black mt-1 drop-shadow-md">
-// // // // // //                 ${(2000 + (Number(stats.totalGrandInvestment) || 0)).toFixed(2)}
-// // // // // //             </p>
-// // // // // //           </div>
-
-// // // // // //           <div className="bg-[#1c2233] p-4 rounded-xl border border-slate-700 shadow-lg flex flex-col justify-center min-h-[95px]">
-// // // // // //             <h3 className="text-slate-400 font-bold text-[10px] sm:text-xs uppercase tracking-wide">
-// // // // // //               Today's Total Investment
-// // // // // //             </h3>
-// // // // // //             <p className="text-lg sm:text-2xl font-bold text-white mt-1 drop-shadow-md">
-// // // // // //               ${stats.todayTotalInvestment.toFixed(2)}
-// // // // // //             </p>
-// // // // // //           </div>
-// // // // // //         </div>
-
-// // // // // //         <TotalEarningBox user={user} />
-// // // // // //         <MonthlySalaryCard userId={user.userId} />
-// // // // // //         <ReferralLink link={referralLink} />
-
-// // // // // //         <QuickActions 
-// // // // // //           onDepositClick={() => {
-// // // // // //             if (setModalState) {
-// // // // // //               setModalState(prev => ({ ...prev, showDeposit: true }));
-// // // // // //             }
-// // // // // //           }} 
-// // // // // //         />
-       
-// // // // // //         <div className="mt-8">
-// // // // // //             <h2 className="text-2xl font-bold text-gray-800 mb-4 px-2">Investment Packages</h2>
-// // // // // //             <Packages />
-// // // // // //         </div>
-
-// // // // // //          <div className="mt-8 bg-[#070b14] rounded-2xl overflow-hidden shadow-lg">
-// // // // // //             <UserPackages />
-// // // // // //         </div>
-
-// // // // // //         <div className="mt-8 rounded-2xl overflow-hidden shadow-lg">
-// // // // // //             <TradingStatusPanel />
-// // // // // //         </div>
-
-// // // // // //         {/* 1. SystemDepositHistory apni jagah bilkul safe hai */}
-// // // // // //         <div className="mt-8 rounded-2xl overflow-hidden shadow-lg">
-// // // // // //             <SystemDepositHistory />
-// // // // // //         </div>
-
-// // // // // //         {/* 2. Uske theek neechye Salary Achievers add kar diya hai */}
-// // // // // //         <div className="mt-8 rounded-2xl overflow-hidden shadow-lg">
-// // // // // //             <SalaryAchievers />
-// // // // // //         </div>
-
-// // // // // //       </div>
-
-// // // // // //       {/* Telegram Button */}
-// // // // // //       <TelegramButton />
-      
-// // // // // //     </div>
-// // // // // //   );
-// // // // // // };
-
-// // // // // // export default Dashboard;
-
-// // // // // import React, { useEffect, useState } from "react";
-// // // // // import api from "../../api/axios"; 
-// // // // // import { useAuth } from "../../context/AuthContext";
-// // // // // import { useNavigate } from "react-router-dom"; 
-
-// // // // // // Components Imports
-// // // // // import ReferralLink from "../../components/dashboard/ReferralLink"; 
-// // // // // import QuickActions from "../../components/dashboard/QuickActions"; 
-// // // // // import SpinnerOverlay from "../../components/common/SpinnerOverlay";
-// // // // // import TotalEarningBox from "../../components/dashboard/TotalEarningBox"; 
-// // // // // import MonthlySalaryCard from "../../components/MonthlySalaryCard"; 
-// // // // // import UserInfoBoxes from "../../components/dashboard/UserInfoBoxes";
-// // // // // import Packages from "../../components/Packages"; 
-// // // // // import UserPackages from "../../pages/user/UserPackages";
-// // // // // import TradingStatusPanel from "../../pages/user/TradingStatusPanel"; 
-// // // // // import SystemDepositHistory from "../../pages/user/SystemDepositHistory";
-// // // // // import SalaryAchievers from "../../pages/user/SalaryAchievers"; 
-// // // // // //import TelegramButton from "../../components/TelegramButton"; 
-
-// // // // // const Dashboard = ({ modalState, setModalState }) => {
-// // // // //   const { user, token, setUser, logout } = useAuth();
-// // // // //   const [initialLoad, setInitialLoad] = useState(true);
-// // // // //   const navigate = useNavigate(); 
-  
-// // // // //   const [stats, setStats] = useState({
-// // // // //     totalGrandInvestment: 0,
-// // // // //     todayTotalInvestment: 0,
-// // // // //   });
-
-// // // // //   // 🚀 FETCH DATA & SAVE TO CACHE
-// // // // //   const fetchUserData = async () => {
-// // // // //     if (!token || !user?.userId) return;
-// // // // //     try {
-// // // // //       const userRes = await api.get(`/user/${user.userId}`, { 
-// // // // //         headers: { Authorization: `Bearer ${token}` } 
-// // // // //       });
-// // // // //       const fetchedUser = userRes.data.user;
-// // // // //       setUser(fetchedUser); 
-// // // // //       // Save to Cache
-// // // // //       sessionStorage.setItem(`dash_user_${user.userId}`, JSON.stringify(fetchedUser));
-// // // // //     } catch (err) {
-// // // // //       console.error("Failed to fetch user data:", err);
-// // // // //       if (err?.response?.status === 401) logout();
-// // // // //     }
-// // // // //   };
-
-// // // // //   const fetchStats = async () => {
-// // // // //     if (!token) return;
-// // // // //     try {
-// // // // //       const res = await api.get("/transactions/deposits/live-feed", {
-// // // // //         headers: { Authorization: `Bearer ${token}` }
-// // // // //       });
-// // // // //       if (res.data.stats) {
-// // // // //         const newStats = {
-// // // // //           totalGrandInvestment: res.data.stats.totalGrandInvestment || 0,
-// // // // //           todayTotalInvestment: res.data.stats.todayTotalInvestment || 0
-// // // // //         };
-// // // // //         setStats(newStats);
-// // // // //         // Save to Cache
-// // // // //         sessionStorage.setItem('dash_stats', JSON.stringify(newStats));
-// // // // //       }
-// // // // //     } catch (err) {
-// // // // //       console.error("Error fetching live stats for dashboard", err);
-// // // // //     }
-// // // // //   };
-
-// // // // //   // 🚀 FAST CACHE LOAD LOGIC
-// // // // //   useEffect(() => {
-// // // // //     if (token && user?.userId) {
-// // // // //       const cachedUser = sessionStorage.getItem(`dash_user_${user.userId}`);
-// // // // //       const cachedStats = sessionStorage.getItem('dash_stats');
-      
-// // // // //       // Agar cache me data hai, toh turant bina ghoome dikha do
-// // // // //       if (cachedUser && cachedStats) {
-// // // // //         setUser(JSON.parse(cachedUser));
-// // // // //         setStats(JSON.parse(cachedStats));
-// // // // //         setInitialLoad(false); 
-// // // // //       }
-
-// // // // //       // Background me chup-chap naya data le aao (Silent Update)
-// // // // //       Promise.all([fetchUserData(), fetchStats()]).finally(() => {
-// // // // //         setInitialLoad(false);
-// // // // //       });
-// // // // //     }
-// // // // //     // eslint-disable-next-line react-hooks/exhaustive-deps
-// // // // //   }, [user?.userId, token]); 
-
-// // // // //   // Agar user nahi hai tabhi spinner dikhega
-// // // // //   if (!user || !token) return <SpinnerOverlay />;
-
-// // // // //   const referralLink = `${window.location.origin}/register?ref=${user.userId}`;
-
-// // // // //   return (
-// // // // //     <div className="w-full relative animate-fadeIn pb-28 md:pb-8 pt-4">
-// // // // //       {/* Ab ye spinner sirf tab aayega jab pehli baar bina cache ke load hoga */}
-// // // // //       {initialLoad && <SpinnerOverlay />}
-
-// // // // //       <div className="space-y-4 max-w-4xl mx-auto px-2 sm:px-0">
-        
-// // // // //         <UserInfoBoxes />
-      
-// // // // //         <div 
-// // // // //           className="grid grid-cols-2 gap-3 cursor-pointer hover:scale-[1.01] transition-transform duration-200"
-// // // // //           onClick={() => navigate("/system-live-feed")} 
-// // // // //         >
-// // // // //           <div className="bg-[#d89814] p-4 rounded-xl border border-yellow-600 shadow-lg flex flex-col justify-center min-h-[95px]">
-// // // // //             <h3 className="text-black font-bold text-[10px] sm:text-xs uppercase tracking-wide">
-// // // // //                 Total Investment
-// // // // //             </h3>
-// // // // //             <p className="text-lg sm:text-2xl font-extrabold text-black mt-1 drop-shadow-md">
-// // // // //                 ${(2000 + (Number(stats.totalGrandInvestment) || 0)).toFixed(2)}
-// // // // //             </p>
-// // // // //           </div>
-
-// // // // //           <div className="bg-[#1c2233] p-4 rounded-xl border border-slate-700 shadow-lg flex flex-col justify-center min-h-[95px]">
-// // // // //             <h3 className="text-slate-400 font-bold text-[10px] sm:text-xs uppercase tracking-wide">
-// // // // //               Today's Total Investment
-// // // // //             </h3>
-// // // // //             <p className="text-lg sm:text-2xl font-bold text-white mt-1 drop-shadow-md">
-// // // // //               ${stats.todayTotalInvestment.toFixed(2)}
-// // // // //             </p>
-// // // // //           </div>
-// // // // //         </div>
-
-// // // // //         <TotalEarningBox user={user} />
-// // // // //         <MonthlySalaryCard userId={user.userId} />
-// // // // //         <ReferralLink link={referralLink} />
-
-// // // // //         <QuickActions 
-// // // // //           onDepositClick={() => {
-// // // // //             if (setModalState) {
-// // // // //               setModalState(prev => ({ ...prev, showDeposit: true }));
-// // // // //             }
-// // // // //           }} 
-// // // // //         />
-       
-// // // // //         <div className="mt-8">
-// // // // //             <h2 className="text-2xl font-bold text-gray-800 mb-4 px-2">Investment Packages</h2>
-// // // // //             <Packages />
-// // // // //         </div>
-
-// // // // //          <div className="mt-8 bg-[#070b14] rounded-2xl overflow-hidden shadow-lg">
-// // // // //             <UserPackages />
-// // // // //         </div>
-
-// // // // //         <div className="mt-8 rounded-2xl overflow-hidden shadow-lg">
-// // // // //             <TradingStatusPanel />
-// // // // //         </div>
-
-// // // // //         <div className="mt-8 rounded-2xl overflow-hidden shadow-lg">
-// // // // //             <SystemDepositHistory />
-// // // // //         </div>
-
-// // // // //         <div className="mt-8 rounded-2xl overflow-hidden shadow-lg">
-// // // // //             <SalaryAchievers />
-// // // // //         </div>
-
-// // // // //       </div>
-
-// // // // //       {/* <TelegramButton /> */}
-      
-// // // // //     </div>
-// // // // //   );
-// // // // // };
-
-// // // // // export default Dashboard;
-
-// // // // import React, { useEffect, useState, Suspense, lazy } from "react";
-// // // // import api from "../../api/axios"; 
-// // // // import { useAuth } from "../../context/AuthContext";
-// // // // import { useNavigate } from "react-router-dom"; 
-
-// // // // // ⚡ Top ke zaroori components normal import rahenge (Taki turant dikhein)
-// // // // import ReferralLink from "../../components/dashboard/ReferralLink"; 
-// // // // import QuickActions from "../../components/dashboard/QuickActions"; 
-// // // // import SpinnerOverlay from "../../components/common/SpinnerOverlay";
-// // // // import TotalEarningBox from "../../components/dashboard/TotalEarningBox"; 
-// // // // import MonthlySalaryCard from "../../components/MonthlySalaryCard"; 
-// // // // import UserInfoBoxes from "../../components/dashboard/UserInfoBoxes";
-
-// // // // // 🚀 NAYA: Heavy / Niche wale components ko 'Lazy Load' kar diya gaya hai
-// // // // const Packages = lazy(() => import("../../components/Packages"));
-// // // // const UserPackages = lazy(() => import("../../pages/user/UserPackages"));
-// // // // const TradingStatusPanel = lazy(() => import("../../pages/user/TradingStatusPanel"));
-// // // // const SystemDepositHistory = lazy(() => import("../../pages/user/SystemDepositHistory"));
-// // // // const SalaryAchievers = lazy(() => import("../../pages/user/SalaryAchievers"));
-
-// // // // // Chota spinner jab niche ke section load ho rahe hon
-// // // // const SectionLoader = () => (
-// // // //   <div className="flex justify-center items-center h-32 w-full text-slate-500 text-sm animate-pulse">
-// // // //     Loading section...
-// // // //   </div>
-// // // // );
-
-// // // // const Dashboard = ({ modalState, setModalState }) => {
-// // // //   const { user, token, setUser, logout } = useAuth();
-// // // //   const [initialLoad, setInitialLoad] = useState(true);
-// // // //   const navigate = useNavigate(); 
-  
-// // // //   const [stats, setStats] = useState({
-// // // //     totalGrandInvestment: 0,
-// // // //     todayTotalInvestment: 0,
-// // // //   });
-
-// // // //   const fetchUserData = async () => {
-// // // //     if (!token || !user?.userId) return;
-// // // //     try {
-// // // //       const userRes = await api.get(`/user/${user.userId}`, { 
-// // // //         headers: { Authorization: `Bearer ${token}` } 
-// // // //       });
-// // // //       const fetchedUser = userRes.data.user;
-// // // //       setUser(fetchedUser); 
-// // // //       sessionStorage.setItem(`dash_user_${user.userId}`, JSON.stringify(fetchedUser));
-// // // //     } catch (err) {
-// // // //       console.error("Failed to fetch user data:", err);
-// // // //       if (err?.response?.status === 401) logout();
-// // // //     }
-// // // //   };
-
-// // // //   const fetchStats = async () => {
-// // // //     if (!token) return;
-// // // //     try {
-// // // //       const res = await api.get("/transactions/deposits/live-feed", {
-// // // //         headers: { Authorization: `Bearer ${token}` }
-// // // //       });
-// // // //       if (res.data.stats) {
-// // // //         const newStats = {
-// // // //           totalGrandInvestment: res.data.stats.totalGrandInvestment || 0,
-// // // //           todayTotalInvestment: res.data.stats.todayTotalInvestment || 0
-// // // //         };
-// // // //         setStats(newStats);
-// // // //         sessionStorage.setItem('dash_stats', JSON.stringify(newStats));
-// // // //       }
-// // // //     } catch (err) {
-// // // //       console.error("Error fetching live stats for dashboard", err);
-// // // //     }
-// // // //   };
-
-// // // //   useEffect(() => {
-// // // //     if (token && user?.userId) {
-// // // //       const cachedUser = sessionStorage.getItem(`dash_user_${user.userId}`);
-// // // //       const cachedStats = sessionStorage.getItem('dash_stats');
-      
-// // // //       if (cachedUser && cachedStats) {
-// // // //         try {
-// // // //           setUser(JSON.parse(cachedUser));
-// // // //           setStats(JSON.parse(cachedStats));
-// // // //           setInitialLoad(false); 
-// // // //         } catch(e) { console.error("Cache Parse Error"); }
-// // // //       }
-
-// // // //       Promise.all([fetchUserData(), fetchStats()]).finally(() => {
-// // // //         setInitialLoad(false);
-// // // //       });
-// // // //     }
-// // // //     // eslint-disable-next-line react-hooks/exhaustive-deps
-// // // //   }, [user?.userId, token]); 
-
-// // // //   if (!user || !token) return <SpinnerOverlay />;
-
-// // // //   const referralLink = `${window.location.origin}/register?ref=${user.userId}`;
-
-// // // //   return (
-// // // //     <div className="w-full relative animate-fadeIn pb-28 md:pb-8 pt-4">
-// // // //       {initialLoad && <SpinnerOverlay />}
-
-// // // //       <div className="space-y-4 max-w-4xl mx-auto px-2 sm:px-0">
-        
-// // // //         {/* FAST LOADING SECTIONS (Top View) */}
-// // // //         <UserInfoBoxes />
-      
-// // // //         <div 
-// // // //           className="grid grid-cols-2 gap-3 cursor-pointer hover:scale-[1.01] transition-transform duration-200"
-// // // //           onClick={() => navigate("/system-live-feed")} 
-// // // //         >
-// // // //           <div className="bg-[#d89814] p-4 rounded-xl border border-yellow-600 shadow-lg flex flex-col justify-center min-h-[95px]">
-// // // //             <h3 className="text-black font-bold text-[10px] sm:text-xs uppercase tracking-wide">
-// // // //                 Total Investment
-// // // //             </h3>
-// // // //             <p className="text-lg sm:text-2xl font-extrabold text-black mt-1 drop-shadow-md">
-// // // //                 ${(2000 + (Number(stats.totalGrandInvestment) || 0)).toFixed(2)}
-// // // //             </p>
-// // // //           </div>
-
-// // // //           <div className="bg-[#1c2233] p-4 rounded-xl border border-slate-700 shadow-lg flex flex-col justify-center min-h-[95px]">
-// // // //             <h3 className="text-slate-400 font-bold text-[10px] sm:text-xs uppercase tracking-wide">
-// // // //               Today's Total Investment
-// // // //             </h3>
-// // // //             <p className="text-lg sm:text-2xl font-bold text-white mt-1 drop-shadow-md">
-// // // //               ${stats.todayTotalInvestment.toFixed(2)}
-// // // //             </p>
-// // // //           </div>
-// // // //         </div>
-
-// // // //         <TotalEarningBox user={user} />
-// // // //         <MonthlySalaryCard userId={user.userId} />
-// // // //         <ReferralLink link={referralLink} />
-
-// // // //         <QuickActions 
-// // // //           onDepositClick={() => {
-// // // //             if (setModalState) {
-// // // //               setModalState(prev => ({ ...prev, showDeposit: true }));
-// // // //             }
-// // // //           }} 
-// // // //         />
-       
-// // // //         {/* 🚀 LAZY LOADED SECTIONS (Ye aaram se load honge background me) */}
-// // // //         <Suspense fallback={<SectionLoader />}>
-// // // //           <div className="mt-8">
-// // // //               <h2 className="text-2xl font-bold text-gray-800 mb-4 px-2">Investment Packages</h2>
-// // // //               <Packages />
-// // // //           </div>
-
-// // // //           <div className="mt-8 bg-[#070b14] rounded-2xl overflow-hidden shadow-lg">
-// // // //               <UserPackages />
-// // // //           </div>
-
-// // // //           <div className="mt-8 rounded-2xl overflow-hidden shadow-lg">
-// // // //               <TradingStatusPanel />
-// // // //           </div>
-
-// // // //           <div className="mt-8 rounded-2xl overflow-hidden shadow-lg">
-// // // //               <SystemDepositHistory />
-// // // //           </div>
-
-// // // //           <div className="mt-8 rounded-2xl overflow-hidden shadow-lg">
-// // // //               <SalaryAchievers />
-// // // //           </div>
-// // // //         </Suspense>
-
-// // // //       </div>
-// // // //     </div>
-// // // //   );
-// // // // };
-
-// // // // export default Dashboard;
-
-// // // import React, { useEffect, useState, Suspense, lazy } from "react";
-// // // import api from "../../api/axios"; 
+// // // import React, { useEffect, useState, Suspense, lazy, useRef } from "react";
+// // // import api from "../../api/axios";
 // // // import { useAuth } from "../../context/AuthContext";
-// // // import { useNavigate } from "react-router-dom"; 
+// // // import { useNavigate } from "react-router-dom";
 
-// // // // ⚡ Top ke zaroori components normal import
-// // // import ReferralLink from "../../components/dashboard/ReferralLink"; 
-// // // import QuickActions from "../../components/dashboard/QuickActions"; 
-// // // import TotalEarningBox from "../../components/dashboard/TotalEarningBox"; 
-// // // import MonthlySalaryCard from "../../components/MonthlySalaryCard"; 
+// // // import ReferralLink from "../../components/dashboard/ReferralLink";
+// // // import QuickActions from "../../components/dashboard/QuickActions";
+// // // import TotalEarningBox from "../../components/dashboard/TotalEarningBox";
+// // // import LivePackageStatsBox from "../../components/dashboard/LivePackageStatsBox";
+// // // import MonthlySalaryCard from "../../components/MonthlySalaryCard";
 // // // import UserInfoBoxes from "../../components/dashboard/UserInfoBoxes";
 
-// // // // 🚀 NAYA: Heavy components 'Lazy Load'
 // // // const Packages = lazy(() => import("../../components/Packages"));
 // // // const UserPackages = lazy(() => import("../../pages/user/UserPackages"));
-// // // const TradingStatusPanel = lazy(() => import("../../pages/user/TradingStatusPanel"));
-// // // const SystemDepositHistory = lazy(() => import("../../pages/user/SystemDepositHistory"));
-// // // const SalaryAchievers = lazy(() => import("../../pages/user/SalaryAchievers"));
-
-// // // const SectionLoader = () => (
-// // //   <div className="flex justify-center items-center h-32 w-full text-slate-500 text-sm animate-pulse">
-// // //     Loading data...
+ 
+// // // const SectionLoader = ({ label = "Loading section" }) => (
+// // //   <div className="flex min-h-[150px] w-full items-center justify-center gap-3 border border-white/[0.07] bg-[#0c1420] text-sm text-slate-400">
+// // //     <span className="h-4 w-4 animate-spin rounded-full border-2 border-amber-300/25 border-t-amber-300" />
+// // //     {label}...
 // // //   </div>
+// // // );
+
+// // // const DashboardSection = ({ eyebrow, title, children, className = "" }) => (
+// // //   <section className={`overflow-hidden border border-white/[0.08] bg-[#0c1420] shadow-[0_18px_55px_rgba(0,0,0,0.18)] ${className}`}>
+// // //     <div className="flex flex-col gap-1 border-b border-white/[0.07] px-4 py-4 sm:px-5">
+// // //       <p className="text-[9px] font-bold uppercase tracking-[0.28em] text-amber-300">{eyebrow}</p>
+// // //       <h2 className="text-lg font-semibold tracking-tight text-white sm:text-xl">{title}</h2>
+// // //     </div>
+// // //     <div className="p-3 sm:p-5">{children}</div>
+// // //   </section>
 // // // );
 
 // // // const Dashboard = ({ modalState, setModalState }) => {
 // // //   const { user, token, setUser, logout } = useAuth();
-// // //   const navigate = useNavigate(); 
-  
+// // //   const navigate = useNavigate();
+
+// // //   const [loading, setLoading] = useState(false);
+// // //   const hasFetched = useRef(false);
 // // //   const [stats, setStats] = useState({
 // // //     totalGrandInvestment: 0,
 // // //     todayTotalInvestment: 0,
-// // //     isFetching: true // Background loading state ke liye
+// // //     isFetching: true,
 // // //   });
 
 // // //   const fetchUserData = async () => {
 // // //     if (!token || !user?.userId) return;
 // // //     try {
-// // //       const userRes = await api.get(`/user/${user.userId}`, { 
-// // //         headers: { Authorization: `Bearer ${token}` } 
-// // //       });
+// // //       const userRes = await api.get(
+// // //         `/user/${user.userId}?t=${new Date().getTime()}`,
+// // //         { headers: { Authorization: `Bearer ${token}` } }
+// // //       );
 // // //       const fetchedUser = userRes.data.user;
-// // //       setUser(fetchedUser); 
-// // //       sessionStorage.setItem(`dash_user_${user.userId}`, JSON.stringify(fetchedUser));
+// // //       if (fetchedUser) {
+// // //         setUser(fetchedUser);
+// // //         localStorage.setItem(`dash_user_${user.userId}`, JSON.stringify(fetchedUser));
+// // //       }
 // // //     } catch (err) {
 // // //       if (err?.response?.status === 401) logout();
+// // //       else console.error("Dashboard user refresh failed:", err);
 // // //     }
 // // //   };
 
 // // //   const fetchStats = async () => {
 // // //     if (!token) return;
 // // //     try {
-// // //       const res = await api.get("/transactions/deposits/live-feed", {
-// // //         headers: { Authorization: `Bearer ${token}` }
-// // //       });
+// // //       const res = await api.get(
+// // //         `/transactions/deposits/live-feed?t=${new Date().getTime()}`,
+// // //         { headers: { Authorization: `Bearer ${token}` } }
+// // //       );
 // // //       if (res.data.stats) {
 // // //         const newStats = {
-// // //           totalGrandInvestment: res.data.stats.totalGrandInvestment || 0,
-// // //           todayTotalInvestment: res.data.stats.todayTotalInvestment || 0,
-// // //           isFetching: false
+// // //           totalGrandInvestment: Number(res.data.stats.totalGrandInvestment) || 0,
+// // //           todayTotalInvestment: Number(res.data.stats.todayTotalInvestment) || 0,
+// // //           isFetching: false,
 // // //         };
 // // //         setStats(newStats);
-// // //         sessionStorage.setItem('dash_stats', JSON.stringify(newStats));
+// // //         localStorage.setItem("dash_stats", JSON.stringify(newStats));
+// // //       } else {
+// // //         setStats((prev) => ({ ...prev, isFetching: false }));
 // // //       }
 // // //     } catch (err) {
-// // //       setStats(prev => ({ ...prev, isFetching: false }));
+// // //       setStats((prev) => ({ ...prev, isFetching: false }));
+// // //       console.error("Dashboard investment stats failed:", err);
 // // //     }
 // // //   };
 
 // // //   useEffect(() => {
-// // //     if (token && user?.userId) {
-// // //       // 1. Cache se turant data uthao aur dikha do (Instant Load)
-// // //       const cachedUser = sessionStorage.getItem(`dash_user_${user.userId}`);
-// // //       const cachedStats = sessionStorage.getItem('dash_stats');
-      
-// // //       if (cachedUser && cachedStats) {
+// // //     if (user?.userId) hasFetched.current = false;
+// // //   }, [user?.userId]);
+
+// // //   useEffect(() => {
+// // //     if (!hasFetched.current && token && user?.userId) {
+// // //       hasFetched.current = true;
+
+// // //       const cachedUser = localStorage.getItem(`dash_user_${user.userId}`);
+// // //       const cachedStats = localStorage.getItem("dash_stats");
+
+// // //       if (cachedUser) {
 // // //         try {
 // // //           setUser(JSON.parse(cachedUser));
+// // //         } catch (error) {
+// // //           console.error("Dashboard user cache error:", error);
+// // //         }
+// // //       }
+// // //       if (cachedStats) {
+// // //         try {
 // // //           setStats(JSON.parse(cachedStats));
-// // //         } catch(e) { console.error("Cache Error"); }
+// // //         } catch (error) {
+// // //           console.error("Dashboard stats cache error:", error);
+// // //         }
 // // //       }
 
-// // //       // 2. Background me API call kardo, par screen ko block mat karo!
-// // //       fetchUserData();
-// // //       fetchStats();
-// // //     }
-// // //     // eslint-disable-next-line react-hooks/exhaustive-deps
-// // //   }, [user?.userId, token]); 
+// // //       if (!cachedUser) setLoading(true);
 
-// // //   // Agar user object bilkul hi nahi hai tabhi spinner dikhega (Hard reload par)
-// // //   if (!user) return (
-// // //     <div className="h-screen w-full flex justify-center items-center">
-// // //       <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-yellow-500"></div>
-// // //     </div>
-// // //   );
+// // //       Promise.all([fetchUserData(), fetchStats()]).finally(() => {
+// // //         setLoading(false);
+// // //       });
+// // //     }
+// // //     // Intentionally fetch once per authenticated user/session.
+// // //     // eslint-disable-next-line react-hooks/exhaustive-deps
+// // //   }, [user?.userId, token]);
+
+// // //   if (loading || !user) {
+// // //     return (
+// // //       <div className="flex min-h-[70vh] w-full items-center justify-center bg-[#080c13]">
+// // //         <div className="text-center">
+// // //           <div className="mx-auto h-11 w-11 animate-spin rounded-full border-2 border-amber-300/20 border-t-amber-300" />
+// // //           <p className="mt-4 text-[10px] font-bold uppercase tracking-[0.25em] text-slate-500">
+// // //             Preparing your dashboard
+// // //           </p>
+// // //         </div>
+// // //       </div>
+// // //     );
+// // //   }
 
 // // //   const referralLink = `${window.location.origin}/register?ref=${user.userId}`;
+// // //   const totalInvestment = 200000 + (Number(stats.totalGrandInvestment) || 0);
+// // //   const todayInvestment = Number(stats.todayTotalInvestment) || 0;
 
 // // //   return (
-// // //     <div className="w-full relative animate-fadeIn pb-28 md:pb-8 pt-4">
-// // //       <div className="space-y-4 max-w-4xl mx-auto px-2 sm:px-0">
-        
-// // //         {/* FAST LOADING SECTIONS */}
-// // //         <UserInfoBoxes />
-      
-// // //         <div 
-// // //           className="grid grid-cols-2 gap-3 cursor-pointer hover:scale-[1.01] transition-transform duration-200"
-// // //           onClick={() => navigate("/system-live-feed")} 
-// // //         >
-// // //           <div className="bg-[#d89814] p-4 rounded-xl border border-yellow-600 shadow-lg flex flex-col justify-center min-h-[95px]">
-// // //             <h3 className="text-black font-bold text-[10px] sm:text-xs uppercase tracking-wide">
-// // //                 Total Investment
-// // //             </h3>
-// // //             <p className="text-lg sm:text-2xl font-extrabold text-black mt-1 drop-shadow-md">
-// // //                 {stats.isFetching && !stats.totalGrandInvestment 
-// // //                   ? "..." 
-// // //                   : `$${(2000 + (Number(stats.totalGrandInvestment) || 0)).toFixed(2)}`
+// // //     <main className="relative min-h-screen w-full overflow-hidden bg-[#080c13] px-3 pb-28 pt-5 font-sans text-white sm:px-5 md:pb-10 lg:px-8">
+// // //       <div className="pointer-events-none absolute -right-40 top-0 h-[420px] w-[420px] rounded-full bg-amber-300/[0.055] blur-[110px]" />
+// // //       <div className="pointer-events-none absolute -left-48 top-[620px] h-[420px] w-[420px] rounded-full bg-cyan-300/[0.035] blur-[110px]" />
+
+// // //       <div className="relative mx-auto max-w-[1440px] space-y-7">
+// // //         {/* Dashboard masthead */}
+// // //         <header className="relative overflow-hidden border border-white/[0.08] bg-gradient-to-br from-[#121b29] via-[#0d1420] to-[#0a1019] p-5 sm:p-7 lg:p-9">
+// // //           <div className="pointer-events-none absolute right-0 top-0 h-full w-1/2 bg-[radial-gradient(ellipse_at_top_right,rgba(234,179,8,0.12),transparent_65%)]" />
+// // //           <div className="relative flex flex-col justify-between gap-6 lg:flex-row lg:items-end">
+// // //             <div className="min-w-0">
+// // //               <p className="mb-3 flex items-center gap-2 text-[9px] font-black uppercase tracking-[0.34em] text-amber-300">
+// // //                 <span className="h-px w-8 bg-amber-300" />
+// // //                 Global Wealth · Member Overview
+// // //               </p>
+// // //               <h1 className="text-3xl font-semibold tracking-tight sm:text-5xl">
+// // //                 Welcome back<span className="text-amber-300">.</span>
+// // //               </h1>
+// // //               <p className="mt-3 max-w-xl text-sm leading-6 text-slate-400">
+// // //                 Your investment activity, earnings and account shortcuts are gathered in one place.
+// // //               </p>
+// // //               <div className="mt-5 flex flex-wrap items-center gap-2">
+// // //                 <span className="border border-emerald-400/20 bg-emerald-400/[0.07] px-3 py-1.5 text-[9px] font-bold uppercase tracking-[0.16em] text-emerald-300">
+// // //                   Account active
+// // //                 </span>
+// // //                 <span className="border border-white/10 bg-white/[0.03] px-3 py-1.5 font-mono text-[10px] text-slate-400">
+// // //                   ID · {user.userId}
+// // //                 </span>
+// // //               </div>
+// // //             </div>
+// // //             <div className="relative grid grid-cols-2 gap-3 lg:min-w-[390px]">
+// // //               <button
+// // //                 type="button"
+// // //                 onClick={() => navigate("/system-live-feed")}
+// // //                 className="group relative overflow-hidden border border-amber-300/35 bg-amber-300 px-4 py-5 text-left transition hover:bg-amber-200"
+// // //               >
+// // //                 <span className="text-[9px] font-black uppercase tracking-[0.18em] text-[#57400b]">Total investment</span>
+// // //                 <span className="mt-2 block break-all text-xl font-black tracking-tight text-[#17130a] sm:text-2xl">
+// // //                   {stats.isFetching && !stats.totalGrandInvestment ? "..." : `$${totalInvestment.toFixed(2)}`}
+// // //                 </span>
+// // //                 <span className="mt-3 block text-[10px] font-bold uppercase tracking-wider text-[#57400b]">View live feed ↗</span>
+// // //               </button>
+// // //               <button
+// // //                 type="button"
+// // //                 onClick={() => navigate("/system-live-feed")}
+// // //                 className="border border-white/10 bg-[#080e17]/80 px-4 py-5 text-left transition hover:border-amber-300/35"
+// // //               >
+// // //                 <span className="text-[9px] font-black uppercase tracking-[0.18em] text-slate-500">Today's investment</span>
+// // //                 <span className="mt-2 block break-all text-xl font-bold tracking-tight text-white sm:text-2xl">
+// // //                   {stats.isFetching && !todayInvestment ? "..." : `$${todayInvestment.toFixed(2)}`}
+// // //                 </span>
+// // //                 <span className="mt-3 block text-[10px] font-bold uppercase tracking-wider text-slate-500">Updated live ↗</span>
+// // //               </button>
+// // //             </div>
+// // //           </div>
+// // //         </header>
+
+// // //         {/* User identity / profile information */}
+// // //         <section className="border-b border-white/[0.08] pb-2">
+// // //           <div className="mb-3 flex items-end justify-between gap-3">
+// // //             <div>
+// // //               <p className="text-[9px] font-bold uppercase tracking-[0.25em] text-amber-300">Member profile</p>
+// // //               <h2 className="mt-1 text-lg font-semibold text-white">Account snapshot</h2>
+// // //             </div>
+// // //           </div>
+// // //           <UserInfoBoxes />
+// // //         </section>
+
+// // //         {/* Earnings and package metrics */}
+// // //         <section className="space-y-3">
+// // //           <div className="flex items-end justify-between">
+// // //             <div>
+// // //               <p className="text-[9px] font-bold uppercase tracking-[0.25em] text-amber-300">Performance</p>
+// // //               <h2 className="mt-1 text-xl font-semibold">Earnings & package overview</h2>
+// // //             </div>
+// // //           </div>
+// // //           <div className="grid gap-4 xl:grid-cols-2">
+// // //             <div className="min-w-0"><TotalEarningBox user={user} /></div>
+// // //             <div className="min-w-0"><LivePackageStatsBox user={user} /></div>
+// // //           </div>
+// // //           <div className="min-w-0">
+// // //             <MonthlySalaryCard userId={user.userId} />
+// // //           </div>
+// // //         </section>
+
+// // //         {/* Referral and quick action area — split editorial composition */}
+// // //         <section className="grid gap-4 xl:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
+// // //           <div className="min-w-0 border border-white/[0.08] bg-[#0c1420] p-4 sm:p-5">
+// // //             <p className="mb-3 text-[9px] font-bold uppercase tracking-[0.25em] text-amber-300">Grow your network</p>
+// // //             <ReferralLink link={referralLink} />
+// // //           </div>
+// // //           <div className="min-w-0 border border-white/[0.08] bg-[#0c1420] p-4 sm:p-5">
+// // //             <p className="mb-3 text-[9px] font-bold uppercase tracking-[0.25em] text-amber-300">Account shortcuts</p>
+// // //             <QuickActions
+// // //               onDepositClick={() => {
+// // //                 if (setModalState) {
+// // //                   setModalState((prev) => ({ ...prev, showDeposit: true }));
 // // //                 }
-// // //             </p>
+// // //               }}
+// // //             />
 // // //           </div>
+// // //         </section>
 
-// // //           <div className="bg-[#1c2233] p-4 rounded-xl border border-slate-700 shadow-lg flex flex-col justify-center min-h-[95px]">
-// // //             <h3 className="text-slate-400 font-bold text-[10px] sm:text-xs uppercase tracking-wide">
-// // //               Today's Total Investment
-// // //             </h3>
-// // //             <p className="text-lg sm:text-2xl font-bold text-white mt-1 drop-shadow-md">
-// // //               {stats.isFetching && !stats.todayTotalInvestment 
-// // //                   ? "..." 
-// // //                   : `$${stats.todayTotalInvestment.toFixed(2)}`
-// // //               }
-// // //             </p>
-// // //           </div>
-// // //         </div>
+// // //         {/* Investment package catalogue */}
+// // //         <DashboardSection eyebrow="Explore opportunities" title="Investment packages">
+// // //           <Suspense fallback={<SectionLoader label="Loading investment packages" />}>
+// // //             <Packages />
+// // //           </Suspense>
+// // //         </DashboardSection>
 
-// // //         <TotalEarningBox user={user} />
-// // //         <MonthlySalaryCard userId={user.userId} />
-// // //         <ReferralLink link={referralLink} />
+// // //         {/* User's own packages */}
+// // //         <DashboardSection eyebrow="Your portfolio" title="Active & purchased packages">
+// // //           <Suspense fallback={<SectionLoader label="Loading your packages" />}>
+// // //             <UserPackages />
+// // //           </Suspense>
+// // //         </DashboardSection>
 
-// // //         <QuickActions 
-// // //           onDepositClick={() => {
-// // //             if (setModalState) {
-// // //               setModalState(prev => ({ ...prev, showDeposit: true }));
-// // //             }
-// // //           }} 
-// // //         />
        
-// // //         {/* 🚀 LAZY LOADED SECTIONS */}
-// // //         <Suspense fallback={<SectionLoader />}>
-// // //           <div className="mt-8">
-// // //               <h2 className="text-2xl font-bold text-gray-800 mb-4 px-2">Investment Packages</h2>
-// // //               <Packages />
-// // //           </div>
 
-// // //           <div className="mt-8 bg-[#070b14] rounded-2xl overflow-hidden shadow-lg">
-// // //               <UserPackages />
-// // //           </div>
+      
 
-// // //           <div className="mt-8 rounded-2xl overflow-hidden shadow-lg">
-// // //               <TradingStatusPanel />
-// // //           </div>
-
-// // //           <div className="mt-8 rounded-2xl overflow-hidden shadow-lg">
-// // //               <SystemDepositHistory />
-// // //           </div>
-
-// // //           <div className="mt-8 rounded-2xl overflow-hidden shadow-lg">
-// // //               <SalaryAchievers />
-// // //           </div>
-// // //         </Suspense>
-
+    
 // // //       </div>
-// // //     </div>
+// // //     </main>
 // // //   );
 // // // };
 
 // // // export default Dashboard;
 
-// // import React, { useEffect, useState, Suspense, lazy } from "react";
-// // import api from "../../api/axios"; 
-// // import { useAuth } from "../../context/AuthContext";
-// // import { useNavigate } from "react-router-dom"; 
 
-// // // ⚡ Top ke zaroori components normal import
-// // import ReferralLink from "../../components/dashboard/ReferralLink"; 
-// // import QuickActions from "../../components/dashboard/QuickActions"; 
-// // import TotalEarningBox from "../../components/dashboard/TotalEarningBox"; 
-// // import MonthlySalaryCard from "../../components/MonthlySalaryCard"; 
+// // import React, { useEffect, useState, Suspense, lazy, useRef } from "react";
+// // import api from "../../api/axios";
+// // import { useAuth } from "../../context/AuthContext";
+// // import { useNavigate } from "react-router-dom";
+
+// // import ReferralLink from "../../components/dashboard/ReferralLink";
+// // import QuickActions from "../../components/dashboard/QuickActions";
+// // import TotalEarningBox from "../../components/dashboard/TotalEarningBox";
+// // import LivePackageStatsBox from "../../components/dashboard/LivePackageStatsBox";
+// // import MonthlySalaryCard from "../../components/MonthlySalaryCard";
 // // import UserInfoBoxes from "../../components/dashboard/UserInfoBoxes";
 
-// // // 🚀 NAYA: Heavy components 'Lazy Load'
 // // const Packages = lazy(() => import("../../components/Packages"));
 // // const UserPackages = lazy(() => import("../../pages/user/UserPackages"));
-// // const TradingStatusPanel = lazy(() => import("../../pages/user/TradingStatusPanel"));
-// // const SystemDepositHistory = lazy(() => import("../../pages/user/SystemDepositHistory"));
-// // const SalaryAchievers = lazy(() => import("../../pages/user/SalaryAchievers"));
 
-// // const SectionLoader = () => (
-// //   <div className="flex justify-center items-center h-24 w-full text-slate-500 text-sm animate-pulse">
-// //     Loading section...
+// // const SectionLoader = ({ label = "Loading" }) => (
+// //   <div className="flex min-h-[92px] items-center justify-center gap-2 border-y border-[#b99348]/20 text-xs text-[#b8aa8c]">
+// //     <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-[#b99348]/30 border-t-[#e4c477]" />
+// //     {label}...
+// //   </div>
+// // );
+
+// // const SectionHeading = ({ kicker, title, action }) => (
+// //   <div className="mb-3 flex items-end justify-between gap-3 border-b border-[#b99348]/20 pb-2">
+// //     <div>
+// //       <p className="text-[9px] font-bold uppercase tracking-[.25em] text-[#c4a35d]">{kicker}</p>
+// //       <h2 className="mt-1 font-serif text-lg font-bold text-[#f3e4c0] sm:text-xl">{title}</h2>
+// //     </div>
+// //     {action}
 // //   </div>
 // // );
 
 // // const Dashboard = ({ modalState, setModalState }) => {
 // //   const { user, token, setUser, logout } = useAuth();
-// //   const navigate = useNavigate(); 
-  
+// //   const navigate = useNavigate();
+
+// //   const [loading, setLoading] = useState(false);
+// //   const hasFetched = useRef(false);
 // //   const [stats, setStats] = useState({
 // //     totalGrandInvestment: 0,
 // //     todayTotalInvestment: 0,
-// //     isFetching: true // Background loading state ke liye
+// //     isFetching: true,
 // //   });
 
 // //   const fetchUserData = async () => {
 // //     if (!token || !user?.userId) return;
 // //     try {
-// //       const userRes = await api.get(`/user/${user.userId}`, { 
-// //         headers: { Authorization: `Bearer ${token}` } 
-// //       });
+// //       const userRes = await api.get(
+// //         `/user/${user.userId}?t=${new Date().getTime()}`,
+// //         { headers: { Authorization: `Bearer ${token}` } }
+// //       );
 // //       const fetchedUser = userRes.data.user;
-// //       setUser(fetchedUser); 
-// //       sessionStorage.setItem(`dash_user_${user.userId}`, JSON.stringify(fetchedUser));
+// //       if (fetchedUser) {
+// //         setUser(fetchedUser);
+// //         localStorage.setItem(`dash_user_${user.userId}`, JSON.stringify(fetchedUser));
+// //       }
 // //     } catch (err) {
 // //       if (err?.response?.status === 401) logout();
+// //       else console.error("Dashboard user refresh failed:", err);
 // //     }
 // //   };
 
 // //   const fetchStats = async () => {
 // //     if (!token) return;
 // //     try {
-// //       const res = await api.get("/transactions/deposits/live-feed", {
-// //         headers: { Authorization: `Bearer ${token}` }
-// //       });
+// //       const res = await api.get(
+// //         `/transactions/deposits/live-feed?t=${new Date().getTime()}`,
+// //         { headers: { Authorization: `Bearer ${token}` } }
+// //       );
 // //       if (res.data.stats) {
 // //         const newStats = {
-// //           totalGrandInvestment: res.data.stats.totalGrandInvestment || 0,
-// //           todayTotalInvestment: res.data.stats.todayTotalInvestment || 0,
-// //           isFetching: false
+// //           totalGrandInvestment: Number(res.data.stats.totalGrandInvestment) || 0,
+// //           todayTotalInvestment: Number(res.data.stats.todayTotalInvestment) || 0,
+// //           isFetching: false,
 // //         };
 // //         setStats(newStats);
-// //         sessionStorage.setItem('dash_stats', JSON.stringify(newStats));
+// //         localStorage.setItem("dash_stats", JSON.stringify(newStats));
+// //       } else {
+// //         setStats((prev) => ({ ...prev, isFetching: false }));
 // //       }
 // //     } catch (err) {
-// //       setStats(prev => ({ ...prev, isFetching: false }));
+// //       setStats((prev) => ({ ...prev, isFetching: false }));
+// //       console.error("Dashboard investment stats failed:", err);
 // //     }
 // //   };
 
 // //   useEffect(() => {
-// //     if (token && user?.userId) {
-// //       // 1. Cache se turant data uthao aur dikha do (Instant Load)
-// //       const cachedUser = sessionStorage.getItem(`dash_user_${user.userId}`);
-// //       const cachedStats = sessionStorage.getItem('dash_stats');
-      
-// //       if (cachedUser && cachedStats) {
+// //     if (user?.userId) hasFetched.current = false;
+// //   }, [user?.userId]);
+
+// //   useEffect(() => {
+// //     if (!hasFetched.current && token && user?.userId) {
+// //       hasFetched.current = true;
+// //       const cachedUser = localStorage.getItem(`dash_user_${user.userId}`);
+// //       const cachedStats = localStorage.getItem("dash_stats");
+
+// //       if (cachedUser) {
 // //         try {
 // //           setUser(JSON.parse(cachedUser));
-// //           setStats(JSON.parse(cachedStats));
-// //         } catch(e) { console.error("Cache Error"); }
+// //         } catch (error) {
+// //           console.error("Dashboard user cache error:", error);
+// //         }
 // //       }
-
-// //       // 2. Background me API call kardo, par screen ko block mat karo!
-// //       fetchUserData();
-// //       fetchStats();
+// //       if (cachedStats) {
+// //         try {
+// //           setStats(JSON.parse(cachedStats));
+// //         } catch (error) {
+// //           console.error("Dashboard stats cache error:", error);
+// //         }
+// //       }
+// //       if (!cachedUser) setLoading(true);
+// //       Promise.all([fetchUserData(), fetchStats()]).finally(() => setLoading(false));
 // //     }
+// //     // Intentionally fetch once per authenticated user/session.
 // //     // eslint-disable-next-line react-hooks/exhaustive-deps
-// //   }, [user?.userId, token]); 
+// //   }, [user?.userId, token]);
 
-// //   // Agar user object bilkul hi nahi hai tabhi spinner dikhega (Hard reload par)
-// //   if (!user) return (
-// //     <div className="h-screen w-full flex justify-center items-center">
-// //       <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[#eab308]"></div>
-// //     </div>
-// //   );
+// //   if (loading || !user) {
+// //     return (
+// //       <div className="flex min-h-[60vh] w-full items-center justify-center bg-[#050505]">
+// //         <div className="text-center">
+// //           <div className="mx-auto h-9 w-9 animate-spin rounded-full border-2 border-[#c6a45e]/20 border-t-[#e7c879]" />
+// //           <p className="mt-3 text-[9px] font-bold uppercase tracking-[.25em] text-[#b69a5b]">Preparing dashboard</p>
+// //         </div>
+// //       </div>
+// //     );
+// //   }
 
 // //   const referralLink = `${window.location.origin}/register?ref=${user.userId}`;
+// //   const totalInvestment = 200000 + (Number(stats.totalGrandInvestment) || 0);
+// //   const todayInvestment = Number(stats.todayTotalInvestment) || 0;
+// //   const money = (value) => `$${Number(value || 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
 // //   return (
-// //     <div className="w-full relative animate-fadeIn pb-28 md:pb-8 pt-4">
-// //       <div className="space-y-4 max-w-4xl mx-auto px-2 sm:px-0">
-        
-// //         {/* FAST LOADING SECTIONS */}
-// //         <UserInfoBoxes />
-      
-// //         <div 
-// //           className="grid grid-cols-2 gap-3 cursor-pointer hover:scale-[1.01] transition-transform duration-200"
-// //           onClick={() => navigate("/system-live-feed")} 
-// //         >
-// //           <div className="bg-[#d89814] p-4 rounded-xl border border-yellow-600 shadow-lg flex flex-col justify-center min-h-[95px]">
-// //             <h3 className="text-black font-bold text-[10px] sm:text-xs uppercase tracking-wide">
-// //                 Total Investment
-// //             </h3>
-// //             <p className="text-lg sm:text-2xl font-extrabold text-black mt-1 drop-shadow-md">
-// //                 {stats.isFetching && !stats.totalGrandInvestment 
-// //                   ? "..." 
-// //                   : `$${(2000 + (Number(stats.totalGrandInvestment) || 0)).toFixed(2)}`
-// //                 }
-// //             </p>
+// //     <main className="relative min-h-screen w-full overflow-hidden bg-[#050505] px-3 pb-24 pt-3 font-sans text-white sm:px-5 sm:pt-5 md:pb-10 lg:px-8">
+// //       <div className="pointer-events-none absolute -right-36 top-0 h-80 w-80 rounded-full bg-[#c69e4e]/[.08] blur-[100px]" />
+// //       <div className="pointer-events-none absolute left-[-180px] top-[520px] h-80 w-80 rounded-full bg-[#9c762f]/[.05] blur-[100px]" />
+
+// //       <div className="relative mx-auto max-w-[1440px] space-y-5 sm:space-y-7">
+// //         {/* Compact luxury welcome strip */}
+// //         <header className="relative overflow-hidden border border-[#b99348]/35 bg-[radial-gradient(ellipse_at_90%_0%,rgba(190,148,65,.16),transparent_45%),linear-gradient(120deg,#17140d,#090909_58%,#11100c)] px-4 py-4 sm:px-6 sm:py-6">
+// //           <div className="pointer-events-none absolute -right-12 -top-24 h-64 w-64 rounded-full border border-[#c5a45e]/10" />
+// //           <div className="relative flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+// //             <div className="min-w-0">
+// //               <p className="flex items-center gap-2 text-[8px] font-black uppercase tracking-[.28em] text-[#c6a45e] sm:text-[9px]">
+// //                 <span className="h-px w-5 bg-[#c6a45e]" /> GLOBAL WEALTH / MEMBER DASHBOARD
+// //               </p>
+// //               <h1 className="mt-2 font-serif text-[27px] font-bold leading-tight text-[#f4e6c6] sm:text-4xl">
+// //                 Welcome back<span className="text-[#cba75e]">, {user.name || "Member"}.</span>
+// //               </h1>
+// //               <div className="mt-2 flex flex-wrap items-center gap-2 text-[9px]">
+// //                 <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/25 bg-emerald-500/[.07] px-2.5 py-1 font-bold uppercase tracking-wider text-emerald-300">
+// //                   <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" /> Account active
+// //                 </span>
+// //                 <span className="rounded-full border border-white/10 px-2.5 py-1 font-mono text-[#b9ad95]">ID · {user.userId}</span>
+// //               </div>
+// //             </div>
+            
 // //           </div>
+// //         </header>
+ 
 
-// //           <div className="bg-[#1c2233] p-4 rounded-xl border border-slate-700 shadow-lg flex flex-col justify-center min-h-[95px]">
-// //             <h3 className="text-slate-400 font-bold text-[10px] sm:text-xs uppercase tracking-wide">
-// //               Today's Total Investment
-// //             </h3>
-// //             <p className="text-lg sm:text-2xl font-bold text-white mt-1 drop-shadow-md">
-// //               {stats.isFetching && !stats.todayTotalInvestment 
-// //                   ? "..." 
-// //                   : `$${stats.todayTotalInvestment.toFixed(2)}`
-// //               }
-// //             </p>
+// //         {/* Earnings widgets */}
+// //         <section>
+// //           <SectionHeading kicker="Financial snapshot" title="Earnings & packages" />
+// //           <div className="grid min-w-0 gap-3 xl:grid-cols-2">
+// //             <div className="min-w-0 overflow-hidden border-y border-[#b99348]/25 bg-gradient-to-r from-[#17140e] to-[#0a0a09] p-2 sm:p-3">
+// //               <TotalEarningBox user={user} />
+// //             </div>
+// //             <div className="min-w-0 overflow-hidden border-y border-[#b99348]/25 bg-gradient-to-r from-[#11100d] to-[#090909] p-2 sm:p-3">
+// //               <LivePackageStatsBox user={user} />
+// //             </div>
 // //           </div>
-// //         </div>
-
-// //         <TotalEarningBox user={user} />
-// //         <MonthlySalaryCard userId={user.userId} />
-// //         <ReferralLink link={referralLink} />
-
-// //         <QuickActions 
-// //           onDepositClick={() => {
-// //             if (setModalState) {
-// //               setModalState(prev => ({ ...prev, showDeposit: true }));
-// //             }
-// //           }} 
-// //         />
-       
-// //         {/* 🚀 LAZY LOADED SECTIONS (INDIVIDUAL SUSPENSE - FOR FAST RENDERING) */}
         
-// //         <div className="mt-8">
-// //             <h2 className="text-2xl font-bold text-gray-800 mb-4 px-2">Investment Packages</h2>
-// //             <Suspense fallback={<SectionLoader />}>
-// //               <Packages />
-// //             </Suspense>
-// //         </div>
+// //         </section>
 
-// //         <div className="mt-8 bg-[#070b14] rounded-2xl overflow-hidden shadow-lg">
-// //             <Suspense fallback={<SectionLoader />}>
-// //               <UserPackages />
-// //             </Suspense>
-// //         </div>
+// //         {/* Referral + actions in a slim two-column utility rail */}
+// //         <section className="grid min-w-0 gap-3 xl:grid-cols-[1.05fr_.95fr]">
+// //           <div className="min-w-0 border-l-2 border-[#c4a15b] bg-gradient-to-r from-[#17130b] to-transparent px-3 py-3 sm:px-4">
+// //             <p className="mb-2 text-[8px] font-black uppercase tracking-[.24em] text-[#c6a45e]">Referral network</p>
+// //             <ReferralLink link={referralLink} />
+// //           </div>
+// //           <div className="min-w-0 border-l-2 border-[#806536] bg-gradient-to-r from-[#12100b] to-transparent px-3 py-3 sm:px-4">
+// //             <p className="mb-2 text-[8px] font-black uppercase tracking-[.24em] text-[#c6a45e]">Quick access</p>
+// //             <QuickActions onDepositClick={() => {
+// //               if (setModalState) setModalState((prev) => ({ ...prev, showDeposit: true }));
+// //             }} />
+// //           </div>
+// //         </section>
 
-// //         <div className="mt-8 rounded-2xl overflow-hidden shadow-lg">
-// //             <Suspense fallback={<SectionLoader />}>
-// //               <TradingStatusPanel />
-// //             </Suspense>
-// //         </div>
+// //         {/* Catalogue and personal holdings */}
+// //         <section>
+// //           <SectionHeading kicker="Discover" title="Investment packages" />
+// //           <Suspense fallback={<SectionLoader label="Loading packages" />}>
+// //             <Packages />
+// //           </Suspense>
+// //         </section>
 
-// //         <div className="mt-8 rounded-2xl overflow-hidden shadow-lg">
-// //             <Suspense fallback={<SectionLoader />}>
-// //               <SystemDepositHistory />
-// //             </Suspense>
-// //         </div>
-
-// //         <div className="mt-8 rounded-2xl overflow-hidden shadow-lg">
-// //             <Suspense fallback={<SectionLoader />}>
-// //               <SalaryAchievers />
-// //             </Suspense>
-// //         </div>
-
+// //         <section>
+// //           <SectionHeading kicker="Your holdings" title="Active & purchased packages" />
+// //           <Suspense fallback={<SectionLoader label="Loading your portfolio" />}>
+// //             <UserPackages />
+// //           </Suspense>
+// //         </section>
 // //       </div>
-// //     </div>
+// //     </main>
 // //   );
 // // };
 
 // // export default Dashboard;
 
 
-
 // import React, { useEffect, useState, Suspense, lazy, useRef } from "react";
-// import api from "../../api/axios"; 
+// import api from "../../api/axios";
 // import { useAuth } from "../../context/AuthContext";
-// import { useNavigate } from "react-router-dom"; 
 
-// // ⚡ Top ke zaroori components normal import
-// import ReferralLink from "../../components/dashboard/ReferralLink"; 
-// import QuickActions from "../../components/dashboard/QuickActions"; 
-// import TotalEarningBox from "../../components/dashboard/TotalEarningBox"; 
-// import MonthlySalaryCard from "../../components/MonthlySalaryCard"; 
-// import UserInfoBoxes from "../../components/dashboard/UserInfoBoxes";
+// import ReferralLink from "../../components/dashboard/ReferralLink";
+// import QuickActions from "../../components/dashboard/QuickActions";
+// import TotalEarningBox from "../../components/dashboard/TotalEarningBox";
+// import LivePackageStatsBox from "../../components/dashboard/LivePackageStatsBox";
 
-// // 🚀 NAYA: Heavy components 'Lazy Load'
 // const Packages = lazy(() => import("../../components/Packages"));
 // const UserPackages = lazy(() => import("../../pages/user/UserPackages"));
-// const TradingStatusPanel = lazy(() => import("../../pages/user/TradingStatusPanel"));
-// const SystemDepositHistory = lazy(() => import("../../pages/user/SystemDepositHistory"));
-// const SalaryAchievers = lazy(() => import("../../pages/user/SalaryAchievers"));
 
-// const SectionLoader = () => (
-//   <div className="flex justify-center items-center h-24 w-full text-slate-500 text-sm animate-pulse">
-//     Loading section...
+// const SectionLoader = ({ label = "Loading" }) => (
+//   <div className="flex min-h-[88px] items-center justify-center gap-2 text-xs text-[#b8aa8c]">
+//     <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-[#b99348]/30 border-t-[#e4c477]" />
+//     <span>{label}</span>
 //   </div>
 // );
 
-// const Dashboard = ({ modalState, setModalState }) => {
+// const Dashboard = ({ setModalState }) => {
 //   const { user, token, setUser, logout } = useAuth();
-//   const navigate = useNavigate(); 
-  
-//   // 🔥 FAST LOAD FIX 1: Loading state aur useRef wapas le aaye
 //   const [loading, setLoading] = useState(false);
 //   const hasFetched = useRef(false);
 
-//   const [stats, setStats] = useState({
-//     totalGrandInvestment: 0,
-//     todayTotalInvestment: 0,
-//     isFetching: true // Background loading state ke liye
-//   });
-
 //   const fetchUserData = async () => {
 //     if (!token || !user?.userId) return;
-//     try {
-//       // 🔥 FAST LOAD FIX 2: Timestamp add kiya taaki api turant response de
-//       const userRes = await api.get(`/user/${user.userId}?t=${new Date().getTime()}`, { 
-//         headers: { Authorization: `Bearer ${token}` } 
-//       });
-//       const fetchedUser = userRes.data.user;
-//       setUser(fetchedUser); 
-//       // 🔥 FAST LOAD FIX 3: localStorage ka use kiya
-//       localStorage.setItem(`dash_user_${user.userId}`, JSON.stringify(fetchedUser));
-//     } catch (err) {
-//       if (err?.response?.status === 401) logout();
-//     }
-//   };
 
-//   const fetchStats = async () => {
-//     if (!token) return;
 //     try {
-//       const res = await api.get(`/transactions/deposits/live-feed?t=${new Date().getTime()}`, {
-//         headers: { Authorization: `Bearer ${token}` }
-//       });
-//       if (res.data.stats) {
-//         const newStats = {
-//           totalGrandInvestment: res.data.stats.totalGrandInvestment || 0,
-//           todayTotalInvestment: res.data.stats.todayTotalInvestment || 0,
-//           isFetching: false
-//         };
-//         setStats(newStats);
-//         localStorage.setItem('dash_stats', JSON.stringify(newStats));
+//       const userRes = await api.get(
+//         `/user/${encodeURIComponent(user.userId)}?t=${Date.now()}`,
+//         { headers: { Authorization: `Bearer ${token}` } }
+//       );
+
+//       const fetchedUser = userRes.data?.user;
+//       if (fetchedUser) {
+//         setUser(fetchedUser);
+//         localStorage.setItem(
+//           `dash_user_${user.userId}`,
+//           JSON.stringify(fetchedUser)
+//         );
 //       }
 //     } catch (err) {
-//       setStats(prev => ({ ...prev, isFetching: false }));
+//       if (err?.response?.status === 401) {
+//         logout();
+//       } else {
+//         console.error("Dashboard user refresh failed:", err);
+//       }
 //     }
 //   };
 
 //   useEffect(() => {
-//     if (user?.userId) {
-//         hasFetched.current = false;
-//     }
+//     hasFetched.current = false;
 //   }, [user?.userId]);
 
 //   useEffect(() => {
-//     // 🔥 FAST LOAD FIX 4: Sirf ek baar API call hone do (Network block nahi hoga)
-//     if (!hasFetched.current && token && user?.userId) {
-//       hasFetched.current = true;
+//     if (hasFetched.current || !token || !user?.userId) return;
 
-//       // 1. Cache se turant data uthao (Instant Load)
-//       const cachedUser = localStorage.getItem(`dash_user_${user.userId}`);
-//       const cachedStats = localStorage.getItem('dash_stats');
-      
-//       if (cachedUser && cachedStats) {
-//         try {
-//           setUser(JSON.parse(cachedUser));
-//           setStats(JSON.parse(cachedStats));
-//         } catch(e) { console.error("Cache Error"); }
-//       } else {
-//          // Agar Cache nahi hai (Pehli baar login kiya), tabhi spinner dikhega
-//          setLoading(true);
+//     hasFetched.current = true;
+//     const cachedUser = localStorage.getItem(`dash_user_${user.userId}`);
+
+//     if (cachedUser) {
+//       try {
+//         const parsedUser = JSON.parse(cachedUser);
+//         if (parsedUser) setUser(parsedUser);
+//       } catch (error) {
+//         console.error("Dashboard user cache error:", error);
 //       }
-
-//       // 2. Background me API call kardo, par screen ko block mat karo!
-//       Promise.all([fetchUserData(), fetchStats()]).finally(() => {
-//          setLoading(false);
-//       });
+//     } else {
+//       setLoading(true);
 //     }
+
+//     fetchUserData().finally(() => setLoading(false));
+//     // Fetch the profile once for each authenticated user.
 //     // eslint-disable-next-line react-hooks/exhaustive-deps
-//   }, [user?.userId, token]); 
+//   }, [user?.userId, token]);
 
-//   // Agar loading state true hai ya user set nahi hua, tab spinner dikhao
-//   if (loading || !user) return (
-//     <div className="h-screen w-full flex justify-center items-center">
-//       <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[#eab308]"></div>
-//     </div>
-//   );
+//   if (loading || !user) {
+//     return (
+//       <div className="flex min-h-[60vh] w-full items-center justify-center bg-[#050505]">
+//         <div className="text-center">
+//           <div className="mx-auto h-9 w-9 animate-spin rounded-full border-2 border-[#c6a45e]/20 border-t-[#e7c879]" />
+//           <p className="mt-3 text-[9px] font-bold uppercase tracking-[.2em] text-[#b69a5b]">
+//             Loading your account
+//           </p>
+//         </div>
+//       </div>
+//     );
+//   }
 
-//   const referralLink = `${window.location.origin}/register?ref=${user.userId}`;
+//   const referralLink = `${window.location.origin}/register?ref=${encodeURIComponent(user.userId)}`;
 
 //   return (
-//     <div className="w-full relative animate-fadeIn pb-28 md:pb-8 pt-4">
-//       <div className="space-y-4 max-w-4xl mx-auto px-2 sm:px-0">
-        
-//         {/* FAST LOADING SECTIONS */}
-//         <UserInfoBoxes />
-      
-//         <div 
-//           className="grid grid-cols-2 gap-3 cursor-pointer hover:scale-[1.01] transition-transform duration-200"
-//           onClick={() => navigate("/system-live-feed")} 
-//         >
-//           <div className="bg-[#d89814] p-4 rounded-xl border border-yellow-600 shadow-lg flex flex-col justify-center min-h-[95px]">
-//             <h3 className="text-black font-bold text-[10px] sm:text-xs uppercase tracking-wide">
-//                 Total Investment
-//             </h3>
-//             <p className="text-lg sm:text-2xl font-extrabold text-black mt-1 drop-shadow-md">
-//                 {stats.isFetching && !stats.totalGrandInvestment 
-//                   ? "..." 
-//                   : `$${(2000 + (Number(stats.totalGrandInvestment) || 0)).toFixed(2)}`
+//     <main className="relative min-h-screen w-full overflow-hidden bg-[#070707] px-3 pb-28 pt-4 font-sans text-white sm:px-5 sm:pb-10 sm:pt-6 lg:px-8">
+//       <div className="pointer-events-none absolute -right-40 -top-32 h-[420px] w-[420px] rounded-full bg-[#b88d3d]/[.07] blur-[110px]" />
+//       <div className="pointer-events-none absolute -left-40 top-[650px] h-[360px] w-[360px] rounded-full bg-[#8b6b32]/[.05] blur-[100px]" />
+
+//       <div className="relative mx-auto max-w-[1440px]">
+//         {/* Welcome area */}
+//         <header className="relative mb-7 overflow-hidden border-b border-[#b99348]/35 pb-5 sm:mb-9 sm:pb-7">
+//           <div className="absolute right-0 top-0 hidden select-none font-serif text-[100px] font-bold leading-none text-[#d4b46d]/[.035] md:block">
+//             GW
+//           </div>
+
+//           <div className="relative flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+//             <div className="min-w-0">
+//               <div className="mb-3 flex items-center gap-2 text-[9px] font-bold uppercase tracking-[.26em] text-[#c6a45e]">
+//                 <span className="h-px w-7 bg-[#c6a45e]" />
+//                 Global Wealth
+//               </div>
+//               <h1 className="font-serif text-3xl font-semibold tracking-tight text-[#f4e7c9] sm:text-4xl lg:text-5xl">
+//                 Welcome, <span className="text-[#c9a45b]">{user.name || "Member"}</span>
+//               </h1>
+//               <p className="mt-2 text-xs text-[#8f8879] sm:text-sm">
+//                 Your account at a glance.
+//               </p>
+//             </div>
+
+//             <div className="flex flex-wrap items-center gap-2 sm:justify-end">
+//               <span className="inline-flex items-center gap-2 border border-emerald-500/20 bg-emerald-500/[.06] px-3 py-2 text-[9px] font-bold uppercase tracking-[.13em] text-emerald-300">
+//                 <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+//                 Active
+//               </span>
+//               <span className="border border-white/10 bg-white/[.025] px-3 py-2 font-mono text-[10px] text-[#c9bea7]">
+//                 ID: {user.userId}
+//               </span>
+//             </div>
+//           </div>
+//         </header>
+
+//         {/* Main account figures */}
+//         <section className="mb-8 sm:mb-10">
+//           <div className="mb-4 flex items-center justify-between gap-3">
+//             <h2 className="font-serif text-xl text-[#f0dfb9] sm:text-2xl">
+//               Your overview
+//             </h2>
+//             <span className="text-[9px] uppercase tracking-[.18em] text-[#82765f]">
+//               Account summary
+//             </span>
+//           </div>
+
+//           <div className="grid min-w-0 gap-4 xl:grid-cols-2">
+//             <div className="min-w-0 border border-[#b99348]/25 bg-[linear-gradient(135deg,rgba(36,29,17,.72),rgba(12,12,11,.94)_65%)] p-3 sm:p-4">
+//               <TotalEarningBox user={user} />
+//             </div>
+//             <div className="min-w-0 border border-white/[.09] bg-[linear-gradient(135deg,rgba(25,24,20,.88),rgba(11,11,10,.96)_70%)] p-3 sm:p-4">
+//               <LivePackageStatsBox user={user} />
+//             </div>
+//           </div>
+//         </section>
+
+//         {/* Referral and actions: compact utility strip */}
+//         <section className="mb-9 grid min-w-0 gap-5 border-y border-white/[.09] py-5 lg:grid-cols-[1.1fr_.9fr] lg:gap-8">
+//           <div className="min-w-0">
+//             <div className="mb-3 flex items-center gap-2">
+//               <span className="h-5 w-[2px] bg-[#c6a45e]" />
+//               <h2 className="text-xs font-bold uppercase tracking-[.17em] text-[#d8c69e]">
+//                 Invite & refer
+//               </h2>
+//             </div>
+//             <ReferralLink link={referralLink} />
+//           </div>
+
+//           <div >
+           
+//             <QuickActions
+//               onDepositClick={() => {
+//                 if (setModalState) {
+//                   setModalState((prev) => ({ ...prev, showDeposit: true }));
 //                 }
+//               }}
+//             />
+//           </div>
+//         </section>
+
+//         {/* Package catalogue */}
+//         <section className="mb-10 sm:mb-12">
+//           <div className="mb-4 flex flex-col gap-1 border-l-2 border-[#c6a45e] pl-3 sm:flex-row sm:items-end sm:justify-between">
+//             <h2 className="font-serif text-2xl text-[#f0dfb9] sm:text-3xl">
+//               Explore packages
+//             </h2>
+//             <p className="text-[10px] text-[#817967]">
+//               Browse available investment plans
 //             </p>
 //           </div>
+//           <Suspense fallback={<SectionLoader label="Loading available packages" />}>
+//             <Packages />
+//           </Suspense>
+//         </section>
 
-//           <div className="bg-[#1c2233] p-4 rounded-xl border border-slate-700 shadow-lg flex flex-col justify-center min-h-[95px]">
-//             <h3 className="text-slate-400 font-bold text-[10px] sm:text-xs uppercase tracking-wide">
-//               Today's Total Investment
-//             </h3>
-//             <p className="text-lg sm:text-2xl font-bold text-white mt-1 drop-shadow-md">
-//               {stats.isFetching && !stats.todayTotalInvestment 
-//                   ? "..." 
-//                   : `$${stats.todayTotalInvestment.toFixed(2)}`
-//               }
+//         {/* Member holdings */}
+//         <section>
+//           <div className="mb-4 flex flex-col gap-1 border-l-2 border-[#806536] pl-3 sm:flex-row sm:items-end sm:justify-between">
+//             <h2 className="font-serif text-2xl text-[#f0dfb9] sm:text-3xl">
+//               My portfolio
+//             </h2>
+//             <p className="text-[10px] text-[#817967]">
+//               Your purchased and active packages
 //             </p>
 //           </div>
-//         </div>
-
-//         <TotalEarningBox user={user} />
-//         <MonthlySalaryCard userId={user.userId} />
-//         <ReferralLink link={referralLink} />
-
-//         <QuickActions 
-//           onDepositClick={() => {
-//             if (setModalState) {
-//               setModalState(prev => ({ ...prev, showDeposit: true }));
-//             }
-//           }} 
-//         />
-       
-//         {/* 🚀 LAZY LOADED SECTIONS (INDIVIDUAL SUSPENSE - FOR FAST RENDERING) */}
-        
-//         <div className="mt-8">
-//             <h2 className="text-2xl font-bold text-gray-800 mb-4 px-2">Investment Packages</h2>
-//             <Suspense fallback={<SectionLoader />}>
-//               <Packages />
-//             </Suspense>
-//         </div>
-
-//         <div className="mt-8 bg-[#070b14] rounded-2xl overflow-hidden shadow-lg">
-//             <Suspense fallback={<SectionLoader />}>
-//               <UserPackages />
-//             </Suspense>
-//         </div>
-
-//         <div className="mt-8 rounded-2xl overflow-hidden shadow-lg">
-//             <Suspense fallback={<SectionLoader />}>
-//               <TradingStatusPanel />
-//             </Suspense>
-//         </div>
-
-//         <div className="mt-8 rounded-2xl overflow-hidden shadow-lg">
-//             <Suspense fallback={<SectionLoader />}>
-//               <SystemDepositHistory />
-//             </Suspense>
-//         </div>
-
-//         <div className="mt-8 rounded-2xl overflow-hidden shadow-lg">
-//             <Suspense fallback={<SectionLoader />}>
-//               <SalaryAchievers />
-//             </Suspense>
-//         </div>
-
+//           <Suspense fallback={<SectionLoader label="Loading your portfolio" />}>
+//             <UserPackages />
+//           </Suspense>
+//         </section>
 //       </div>
-//     </div>
+//     </main>
 //   );
 // };
 
 // export default Dashboard;
 
+
 import React, { useEffect, useState, Suspense, lazy, useRef } from "react";
-import api from "../../api/axios"; 
+import api from "../../api/axios";
 import { useAuth } from "../../context/AuthContext";
-import { useNavigate } from "react-router-dom"; 
 
-// ⚡ Top ke zaroori components normal import
-import ReferralLink from "../../components/dashboard/ReferralLink"; 
-import QuickActions from "../../components/dashboard/QuickActions"; 
-import TotalEarningBox from "../../components/dashboard/TotalEarningBox"; 
- import LivePackageStatsBox from "../../components/dashboard/LivePackageStatsBox";
-import MonthlySalaryCard from "../../components/MonthlySalaryCard"; 
-import UserInfoBoxes from "../../components/dashboard/UserInfoBoxes";
+import ReferralLink from "../../components/dashboard/ReferralLink";
+import QuickActions from "../../components/dashboard/QuickActions";
+import TotalEarningBox from "../../components/dashboard/TotalEarningBox";
+import LivePackageStatsBox from "../../components/dashboard/LivePackageStatsBox";
 
-//import InstantSalaryPopup from '../../components/InstantSalaryPopup'; 
-
-// Path apne folder structure ke hisaab se adjust kar lena
-
-//import WithdrawalPopup from "../../components/WithdrawalPopup";
-// 🚀 NAYA: Heavy components 'Lazy Load'
 const Packages = lazy(() => import("../../components/Packages"));
 const UserPackages = lazy(() => import("../../pages/user/UserPackages"));
-const TradingStatusPanel = lazy(() => import("../../pages/user/TradingStatusPanel"));
-const SystemDepositHistory = lazy(() => import("../../pages/user/SystemDepositHistory"));
-const MonthlyLuckyWinner = lazy(() => import("../../pages/user/MonthlyLuckyWinner")); // 🔥 NAYA ADD KIYA YAHAN
-const SalaryAchievers = lazy(() => import("../../pages/user/SalaryAchievers"));
 
-const SectionLoader = () => (
-  <div className="flex justify-center items-center h-24 w-full text-slate-500 text-sm animate-pulse">
-    Loading section...
+const SectionLoader = ({ label = "Loading" }) => (
+  <div className="flex min-h-[56px] items-center justify-center gap-2 text-[11px] text-[#b8aa8c]">
+    <span className="h-3 w-3 animate-spin rounded-full border-2 border-[#b99348]/30 border-t-[#e4c477]" />
+    {label}
   </div>
 );
 
-const Dashboard = ({ modalState, setModalState }) => {
+const Dashboard = ({ setModalState }) => {
   const { user, token, setUser, logout } = useAuth();
-  const navigate = useNavigate(); 
-  
-  // 🔥 FAST LOAD FIX 1: Loading state aur useRef wapas le aaye
   const [loading, setLoading] = useState(false);
   const hasFetched = useRef(false);
 
-  const [stats, setStats] = useState({
-    totalGrandInvestment: 0,
-    todayTotalInvestment: 0,
-    isFetching: true // Background loading state ke liye
-  });
-
   const fetchUserData = async () => {
     if (!token || !user?.userId) return;
-    try {
-      // 🔥 FAST LOAD FIX 2: Timestamp add kiya taaki api turant response de
-      const userRes = await api.get(`/user/${user.userId}?t=${new Date().getTime()}`, { 
-        headers: { Authorization: `Bearer ${token}` } 
-      });
-      const fetchedUser = userRes.data.user;
-      setUser(fetchedUser); 
-      // 🔥 FAST LOAD FIX 3: localStorage ka use kiya
-      localStorage.setItem(`dash_user_${user.userId}`, JSON.stringify(fetchedUser));
-    } catch (err) {
-      if (err?.response?.status === 401) logout();
-    }
-  };
 
-  const fetchStats = async () => {
-    if (!token) return;
     try {
-      const res = await api.get(`/transactions/deposits/live-feed?t=${new Date().getTime()}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      if (res.data.stats) {
-        const newStats = {
-          totalGrandInvestment: res.data.stats.totalGrandInvestment || 0,
-          todayTotalInvestment: res.data.stats.todayTotalInvestment || 0,
-          isFetching: false
-        };
-        setStats(newStats);
-        localStorage.setItem('dash_stats', JSON.stringify(newStats));
+      const response = await api.get(
+        `/user/${encodeURIComponent(user.userId)}?t=${Date.now()}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      const freshUser = response.data?.user;
+      if (freshUser) {
+        setUser(freshUser);
+        localStorage.setItem(`dash_user_${user.userId}`, JSON.stringify(freshUser));
       }
-    } catch (err) {
-      setStats(prev => ({ ...prev, isFetching: false }));
+    } catch (error) {
+      if (error?.response?.status === 401) logout();
+      else console.error("Dashboard user refresh failed:", error);
     }
   };
 
   useEffect(() => {
-    if (user?.userId) {
-        hasFetched.current = false;
-    }
+    hasFetched.current = false;
   }, [user?.userId]);
 
   useEffect(() => {
-    // 🔥 FAST LOAD FIX 4: Sirf ek baar API call hone do (Network block nahi hoga)
-    if (!hasFetched.current && token && user?.userId) {
-      hasFetched.current = true;
+    if (hasFetched.current || !token || !user?.userId) return;
 
-      // 1. Cache se turant data uthao (Instant Load)
-      const cachedUser = localStorage.getItem(`dash_user_${user.userId}`);
-      const cachedStats = localStorage.getItem('dash_stats');
-      
-      if (cachedUser && cachedStats) {
-        try {
-          setUser(JSON.parse(cachedUser));
-          setStats(JSON.parse(cachedStats));
-        } catch(e) { console.error("Cache Error"); }
-      } else {
-         // Agar Cache nahi hai (Pehli baar login kiya), tabhi spinner dikhega
-         setLoading(true);
+    hasFetched.current = true;
+    const cached = localStorage.getItem(`dash_user_${user.userId}`);
+
+    if (cached) {
+      try {
+        const parsed = JSON.parse(cached);
+        if (parsed) setUser(parsed);
+      } catch (error) {
+        console.error("Dashboard user cache error:", error);
       }
-
-      // 2. Background me API call kardo, par screen ko block mat karo!
-      Promise.all([fetchUserData(), fetchStats()]).finally(() => {
-         setLoading(false);
-      });
+    } else {
+      setLoading(true);
     }
+
+    fetchUserData().finally(() => setLoading(false));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user?.userId, token]); 
+  }, [user?.userId, token]);
 
-  // Agar loading state true hai ya user set nahi hua, tab spinner dikhao
-  if (loading || !user) return (
-    <div className="h-screen w-full flex justify-center items-center">
-      <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[#eab308]"></div>
-    </div>
-  );
+  if (loading || !user) {
+    return (
+      <div className="flex min-h-[45vh] w-full items-center justify-center bg-[#070707]">
+        <div className="text-center">
+          <div className="mx-auto h-8 w-8 animate-spin rounded-full border-2 border-[#c6a45e]/20 border-t-[#e7c879]" />
+          <p className="mt-2 text-[9px] font-semibold uppercase tracking-[.16em] text-[#b69a5b]">
+            Loading account
+          </p>
+        </div>
+      </div>
+    );
+  }
 
-  const referralLink = `${window.location.origin}/register?ref=${user.userId}`;
+  const referralLink = `${window.location.origin}/register?ref=${encodeURIComponent(user.userId)}`;
 
   return (
-    <div className="w-full relative animate-fadeIn pb-28 md:pb-8 pt-4">
-      <div className="space-y-4 max-w-4xl mx-auto px-2 sm:px-0">
+    <main className="relative min-h-screen w-full overflow-hidden bg-[#070707] px-3 pb-24 pt-3 font-sans text-white sm:px-5 sm:pb-8 sm:pt-4 lg:px-8">
+      <div className="pointer-events-none absolute -right-40 -top-32 h-[360px] w-[360px] rounded-full bg-[#b88d3d]/[.06] blur-[100px]" />
 
-        {/* <WithdrawalPopup /> */}
-        
-        {/* FAST LOADING SECTIONS */}
-        <UserInfoBoxes />
-      {/* <InstantSalaryPopup /> */}
-        <div 
-          className="grid grid-cols-2 gap-3 cursor-pointer hover:scale-[1.01] transition-transform duration-200"
-          onClick={() => navigate("/system-live-feed")} 
-        >
-          <div className="bg-[#d89814] p-4 rounded-xl border border-yellow-600 shadow-lg flex flex-col justify-center min-h-[95px]">
-            <h3 className="text-black font-bold text-[10px] sm:text-xs uppercase tracking-wide">
-                Total Investment
-            </h3>
-            <p className="text-lg sm:text-2xl font-extrabold text-black mt-1 drop-shadow-md">
-                {stats.isFetching && !stats.totalGrandInvestment 
-                  ? "..." 
-                  : `$${(200000 + (Number(stats.totalGrandInvestment) || 0)).toFixed(2)}`
-                }
+      <div className="relative mx-auto max-w-[1440px] space-y-5 sm:space-y-6">
+        {/* Compact member header */}
+        <header className="flex flex-wrap items-center justify-between gap-3 border-b border-[#b99348]/25 pb-3">
+          {/* <div className="min-w-0">
+            <p className="text-[8px] font-bold uppercase tracking-[.2em] text-[#c6a45e]">
+              Global Wealth
             </p>
+            <h1 className="mt-1 truncate font-serif text-2xl font-semibold text-[#f4e7c9] sm:text-3xl">
+              Welcome, <span className="text-[#c9a45b]">{user.name || "Member"}</span>
+            </h1>
+          </div> */}
+          <div className="flex items-center gap-2">
+            <span className="flex items-center gap-1.5 border border-emerald-500/20 px-2.5 py-1.5 text-[9px] font-bold uppercase text-emerald-300">
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+              Active
+            </span>
+            <span className="border border-white/10 px-2.5 py-1.5 font-mono text-[10px] text-[#c9bea7]">
+              {user.userId}
+            </span>
           </div>
+        </header>
 
-          <div className="bg-[#1c2233] p-4 rounded-xl border border-slate-700 shadow-lg flex flex-col justify-center min-h-[95px]">
-            <h3 className="text-slate-400 font-bold text-[10px] sm:text-xs uppercase tracking-wide">
-              Today's Total Investment
-            </h3>
-            <p className="text-lg sm:text-2xl font-bold text-white mt-1 drop-shadow-md">
-              {stats.isFetching && !stats.todayTotalInvestment 
-                  ? "..." 
-                  : `$${stats.todayTotalInvestment.toFixed(2)}`
+        {/* Account figures */}
+        <section className="grid min-w-0 gap-3 xl:grid-cols-2">
+          <div className="min-w-0 overflow-hidden border border-[#b99348]/20 bg-[linear-gradient(135deg,rgba(36,29,17,.62),rgba(12,12,11,.94)_65%)] p-2.5 sm:p-3">
+            <TotalEarningBox user={user} />
+          </div>
+          <div className="min-w-0 overflow-hidden border border-white/[.08] bg-[linear-gradient(135deg,rgba(25,24,20,.75),rgba(11,11,10,.96)_70%)] p-2.5 sm:p-3">
+            <LivePackageStatsBox user={user} />
+          </div>
+        </section>
+
+        {/* Referral only. QuickActions remains a separate dock and cannot stretch this row. */}
+        <section className="min-w-0 border-y border-[#b99348]/20 py-3">
+          <ReferralLink link={referralLink} />
+        </section>
+
+        <div className="h-0">
+          <QuickActions
+            onDepositClick={() => {
+              if (setModalState) {
+                setModalState((prev) => ({ ...prev, showDeposit: true }));
               }
-            </p>
-          </div>
+            }}
+          />
         </div>
 
-        <TotalEarningBox user={user} />
-        <LivePackageStatsBox user={user} />
-        <MonthlySalaryCard userId={user.userId} />
-        <ReferralLink link={referralLink} />
+        {/* Package catalogue */}
+        <section className="min-w-0">
+          <Suspense fallback={<SectionLoader label="Loading packages" />}>
+            <Packages />
+          </Suspense>
+        </section>
 
-        <QuickActions 
-          onDepositClick={() => {
-            if (setModalState) {
-              setModalState(prev => ({ ...prev, showDeposit: true }));
-            }
-          }} 
-        />
-       
-        {/* 🚀 LAZY LOADED SECTIONS (INDIVIDUAL SUSPENSE - FOR FAST RENDERING) */}
-        
-        <div className="mt-8">
-            <h2 className="text-2xl font-bold text-gray-800 mb-4 px-2">Investment Packages</h2>
-            <Suspense fallback={<SectionLoader />}>
-              <Packages />
-            </Suspense>
-        </div>
-
-        <div className="mt-8 bg-[#070b14] rounded-2xl overflow-hidden shadow-lg">
-            <Suspense fallback={<SectionLoader />}>
-              <UserPackages />
-            </Suspense>
-        </div>
-
-        <div className="mt-8 rounded-2xl overflow-hidden shadow-lg">
-            <Suspense fallback={<SectionLoader />}>
-              <TradingStatusPanel />
-            </Suspense>
-        </div>
-
-        <div className="mt-8 rounded-2xl overflow-hidden shadow-lg">
-            <Suspense fallback={<SectionLoader />}>
-              <SystemDepositHistory />
-            </Suspense>
-        </div>
-
-        {/* 🔥 NAYA: MonthlyLuckyWinner yahan SalaryAchievers ke upar laga diya */}
-        <div className="mt-8 rounded-2xl overflow-hidden shadow-lg">
-            <Suspense fallback={<SectionLoader />}>
-              <MonthlyLuckyWinner />
-            </Suspense>
-        </div>
-
-        <div className="mt-8 rounded-2xl overflow-hidden shadow-lg">
-            <Suspense fallback={<SectionLoader />}>
-              <SalaryAchievers />
-            </Suspense>
-        </div>
-
+        {/* Member packages */}
+        <section className="min-w-0">
+          <Suspense fallback={<SectionLoader label="Loading portfolio" />}>
+            <UserPackages />
+          </Suspense>
+        </section>
       </div>
-    </div>
+    </main>
   );
 };
 

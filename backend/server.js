@@ -1,143 +1,200 @@
 require('dotenv').config();
+
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const path = require('path');
 
-// 📦 Imports
-const allRoutes = require('./routes'); 
+// ==========================================
+// 1. ROUTES
+// ==========================================
 
-// 🔥 EK HI CRON HAI APNA (Daily ROI) 🔥
-require('./cron/roiCron'); 
-require('./cron/autoCompoundCron'); // 🔥 Naya Auto Compound Cron yahan add kar do
-require('./cron/onePercentCompoundCron');
-require('./cron/salaryCron'); // 👈 Ye wali line miss ho rahi thi, isko add kar do
- require('./cron/telegramCron'); // 👈 Ye rahi aapki nayi line
-// 🔥 USER MODEL
-const User = require('./models/User'); 
- 
+const allRoutes = require('./routes');
+
+// New Auto Compound V2 routes
+const autoCompoundV2Routes = require('./routes/autoCompoundV2Routes');
+
+// ==========================================
+// 2. GLOBAL WEALTH CRON JOBS
+// ==========================================
+
+// Existing daily ROI cron
+require('./cron/roiCron');
+
+// Existing salary cron
+require('./cron/salaryCron');
+
+// New Auto Compound V2 simulation cron
+require('./cron/autoCompoundV2Cron');
+
+console.log('Global Wealth cron modules loaded');
+
+// ==========================================
+// 3. EXPRESS APP
+// ==========================================
+
 const app = express();
+
 app.set('trust proxy', true);
 
-// ====================== 1. CORS SETUP ======================
+// ==========================================
+// 4. CORS CONFIGURATION
+// ==========================================
+
 const allowedOrigins = [
-  // --- Local Testing ke liye ---
-  'http://localhost:3000',
-  'http://127.0.0.1:3000',
-  'http://pure.localhost:3000',
-  'http://localhost:5000',       
-  'http://127.0.0.1:5000',
-  'http://localhost:5173',       
-  'http://127.0.0.1:5173',
-  'http://pure.localhost:5173', 
+    // Local development
+    'http://localhost:3000',
+    'http://127.0.0.1:3000',
+    'http://pure.localhost:3000',
 
-  // --- LIVE SERVER KE LIYE ---
-  'https://worldfinance24.online',        
-  'https://www.worldfinance24.online',    
-  'https://pure.worldfinance24.online',   
+    'http://localhost:5000',
+    'http://127.0.0.1:5000',
 
-  'https://worldtogether24.online',
-  'https://www.worldtogether24.online',
-  'https://pure.worldtogether24.online' // Agar naye domain par bhi pure subdomain banana ho
+    'http://localhost:5173',
+    'http://127.0.0.1:5173',
+    'http://pure.localhost:5173',
+
+    // Global Wealth live domains
+    'https://globalwealth.trade',
+    'https://www.globalwealth.trade',
+    'https://pure.globalwealth.trade',
+
+    // World Together domains
+    'https://worldtogether24.online',
+    'https://www.worldtogether24.online',
+    'https://pure.worldtogether24.online'
 ];
 
 app.use(cors({
-  origin: function (origin, callback) {
-    if (!origin) return callback(null, true);
-    const cleanOrigin = origin.replace(/\/$/, "");
-    if (allowedOrigins.includes(cleanOrigin)) {
-      callback(null, true);
-    } else {
-      console.log("Blocked by CORS:", origin);
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
-  credentials: true
+    origin: function (origin, callback) {
+
+        // Allow requests without browser origin
+        if (!origin) {
+            return callback(null, true);
+        }
+
+        const cleanOrigin = origin.replace(/\/+$/, '');
+
+        if (allowedOrigins.includes(cleanOrigin)) {
+            return callback(null, true);
+        }
+
+        console.log('Blocked by CORS:', origin);
+
+        return callback(new Error('Not allowed by CORS'));
+    },
+
+    credentials: true
 }));
 
 app.use(express.json());
 
-// ====================== 2. API ROUTES ======================
+app.use(express.urlencoded({
+    extended: true
+}));
+
+// ==========================================
+// 5. API ROUTES
+// ==========================================
+
+// Existing project routes
 app.use('/api', allRoutes);
 
-// ====================== 3. MAGIC ROUTE: CREATE ROOT ID ======================
-app.get('/setup-root', async (req, res) => {
-  try {
-    const rootId = 100000; 
+// New Auto Compound V2 routes
+app.use('/api/auto-compound-v2', autoCompoundV2Routes);
 
-    const rootExists = await User.findOne({ userId: rootId });
-    if (rootExists) {
-      return res.send(`<h1>Root ID already exists! ID: ${rootId}</h1>`);
-    }
+// ==========================================
+// 6. HEALTH CHECK
+// ==========================================
 
-    const rootUser = new User({
-      userId: rootId, 
-      name: 'Global Founder',
-      mobile: '9999999999',
-      email: 'admin@cryptocomm.com',
-      password: 'adminpassword123', 
-      transactionPassword: 'adminpassword123', 
-      sponsorId: "0", 
-      country: 'Global',
-      isActive: true
+app.get('/api/health', (req, res) => {
+    res.status(200).json({
+        success: true,
+        message: 'Global Wealth API is running',
+        database: mongoose.connection.readyState === 1
+            ? 'connected'
+            : 'disconnected',
+        timestamp: new Date()
+    });
+});
+
+// ==========================================
+// 7. API 404 HANDLER
+// ==========================================
+
+app.use('/api', (req, res) => {
+    res.status(404).json({
+        success: false,
+        message: 'API Route Not Found!'
+    });
+});
+
+// ==========================================
+// 8. FRONTEND SERVING
+// ==========================================
+
+if (process.env.NODE_ENV === 'production') {
+
+    // Vite production build directory
+    const frontendPath = path.join(
+        __dirname,
+        '../frontend/dist'
+    );
+
+    app.use(express.static(frontendPath));
+
+    app.get(/.*/, (req, res) => {
+        res.sendFile(
+            path.join(frontendPath, 'index.html')
+        );
     });
 
-    await rootUser.save(); 
-    return res.send(`<h1>🎉 ROOT ID CREATED SUCCESSFULLY! ID: ${rootId} <br> Ab MongoDB Compass refresh karo!</h1>`);
-    
-  } catch (err) {
-    console.error(err);
-    res.status(500).send("Error creating root ID: " + err.message);
-  }
-});
-
-// ====================== 4. API 404 HANDLER ======================
-app.use('/api', (req, res) => {
-  res.status(404).json({ message: "API Route Not Found!" });
-});
-
-
-// ====================== 5. FRONTEND SERVING ======================
-if (process.env.NODE_ENV === 'production') {
-  app.use(express.static(path.join(__dirname, '../frontend/build')));
-  app.get('*/{*path}', (req, res) => {
-    res.sendFile(path.join(__dirname, '../frontend/build', 'index.html'));
-  });
 } else {
-  app.get('/', (req, res) => {
-    res.send('API is running locally... Use React Dev Server for UI.');
-  });
+
+    app.get('/', (req, res) => {
+        res.send('Global Wealth API is running locally...');
+    });
+
 }
 
-// ====================== 6. DATABASE & SERVER ======================
-// mongoose.connect(process.env.MONGO_URI) 
-//   .then(async () => { 
-//     console.log('✅ MongoDB connected successfully for World Finance'); 
+// ==========================================
+// 9. DATABASE & SERVER START
+// ==========================================
 
-//     const PORT = process.env.PORT || 5000;
-//     app.listen(PORT, () => {
-//       console.log(`🚀 Server running on port ${PORT}`);
-//     });
-//   })
-//   .catch((err) => {
-//     console.error('❌ MongoDB connection error:', err);
-//     process.exit(1);
-//   });
-
+const PORT = process.env.PORT || 5000;
 
 mongoose.connect(process.env.MONGO_URI, {
-  maxPoolSize: 100, // 🔥 Ek sath 100 connections handle karega (Bottleneck khatam)
-  serverSelectionTimeoutMS: 15000
-}) 
-  .then(async () => { 
-    console.log('✅ MongoDB connected successfully for World Finance'); 
+    maxPoolSize: 100,
+    serverSelectionTimeoutMS: 15000
+})
 
-    const PORT = process.env.PORT || 5000;
+.then(() => {
+
+    console.log(
+        'MongoDB connected successfully for Global Wealth'
+    );
+
     app.listen(PORT, () => {
-      console.log(`🚀 Server running on port ${PORT}`);
+
+        console.log(
+            `Global Wealth Server running on port ${PORT}`
+        );
+
+        console.log(
+            `Environment: ${process.env.NODE_ENV || 'development'}`
+        );
+
     });
-  })
-  .catch((err) => {
-    console.error('❌ MongoDB connection error:', err);
+
+})
+
+.catch((error) => {
+
+    console.error(
+        'Global Wealth MongoDB connection error:',
+        error
+    );
+
     process.exit(1);
-  });
+
+});

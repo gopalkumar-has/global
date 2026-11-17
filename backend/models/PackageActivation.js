@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 
 const packageActivationSchema = new mongoose.Schema({
     userId: {
-        type: String, 
+        type: String,
         required: true
     },
     memberId: {
@@ -23,7 +23,7 @@ const packageActivationSchema = new mongoose.Schema({
     },
     totalDays: {
         type: Number,
-        default: 25
+        default: 45
     },
     daysCompleted: {
         type: Number,

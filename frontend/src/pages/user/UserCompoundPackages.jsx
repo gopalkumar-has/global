@@ -1,225 +1,111 @@
-// import React, { useState, useEffect } from "react";
-// import { CalendarDays, DollarSign, CheckCircle2, Activity, Loader2, Layers, Zap, ArrowDownToLine } from "lucide-react";
-// import api from "../../api/axios";
-// import { useAuth } from "../../context/AuthContext";
-
-// // 🔹 Circular Progress Component
-// const CircularProgress = ({ days, totalDays, status, isMaster }) => {
-//   const percentage = Math.min((days / totalDays) * 100, 100);
-//   const radius = 22;
-//   const circumference = 2 * Math.PI * radius;
-//   const strokeDashoffset = circumference - (percentage / 100) * circumference;
-  
-//   // Master aur Child ke liye alag color ring
-//   const ringColor = status === "completed" 
-//     ? "text-emerald-500" 
-//     : isMaster ? "text-[#d4af37]" : "text-[#00d2ff]";
-
-//   return (
-//     <div className="relative flex items-center justify-center w-12 h-12 sm:w-14 sm:h-14 shrink-0">
-//       <svg viewBox="0 0 64 64" className="w-full h-full transform -rotate-90">
-//         <circle cx="32" cy="32" r={radius} stroke="currentColor" strokeWidth="4.5" fill="transparent" className="text-gray-800" />
-//         <circle
-//           cx="32" cy="32" r={radius} stroke="currentColor" strokeWidth="4.5" fill="transparent"
-//           strokeDasharray={circumference} strokeDashoffset={strokeDashoffset} strokeLinecap="round"
-//           className={`${ringColor} transition-all duration-1000 ease-out`}
-//         />
-//       </svg>
-//       <div className="absolute flex flex-col items-center justify-center text-center mt-0.5">
-//         <span className="text-xs sm:text-sm font-black text-white leading-none">{days}</span>
-//         <span className="text-[7px] sm:text-[8px] text-gray-400 uppercase font-bold tracking-widest mt-0.5">Day</span>
-//       </div>
-//     </div>
-//   );
-// };
-
-// const UserCompoundPackages = () => {
-//   const { user, token } = useAuth();
-//   const [packages, setPackages] = useState([]);
-//   const [loading, setLoading] = useState(true);
-
-//   // 🔥 FETCH LOGIC (Updated to match your backend route)
-//   useEffect(() => {
-//     const fetchCompoundPackages = async () => {
-//       if (!user?.userId || !token) return;
-      
-//       try {
-//         setLoading(true);
-//         // Backend ke naye route ke hisaab se call: /package/auto-compound/:userId
-//         const res = await api.get(`/package/auto-compound/${user.userId}`, {
-//           headers: { Authorization: `Bearer ${token}` }
-//         });
-        
-//         // Backend se res.data.packages aa raha hai
-//         const packageData = res.data.packages || [];
-        
-//         // Data ko sort kar rahe hain taaki naye (Cron wale) sabse upar dikhein
-//         const sortedPackages = packageData.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-//         setPackages(sortedPackages);
-//       } catch (error) {
-//         console.error("Failed to fetch compound packages:", error);
-//       } finally {
-//         setLoading(false);
-//       }
-//     };
-
-//     fetchCompoundPackages();
-//   }, [user?.userId, token]);
-
-//   const formatDate = (dateString) => {
-//     if (!dateString) return "N/A";
-//     return new Date(dateString).toLocaleDateString("en-GB", {
-//       day: "2-digit", month: "short", year: "numeric"
-//     });
-//   };
-
-//   return (
-//     <div className="w-full max-w-3xl mx-auto p-3 sm:p-5 bg-[#070b14] rounded-2xl">
-      
-//       {/* Header */}
-//       <div className="mb-3 flex items-center justify-between border-b border-gray-800 pb-2">
-//         <div>
-//           <h2 className="text-lg sm:text-xl font-black text-white tracking-wide uppercase flex items-center gap-2">
-//             <Layers className="text-[#d4af37]" size={20} /> My Auto Compound
-//           </h2>
-//           <p className="text-[9px] sm:text-[10px] text-gray-400 font-medium tracking-widest mt-1 uppercase flex items-center gap-1">
-//             <Zap size={10} className="text-[#22c55e]" /> 6% Daily Reinvestment System
-//           </p>
-//         </div>
-//       </div>
-
-//       {/* Main Content Area */}
-//       {loading ? (
-//         <div className="flex flex-col items-center justify-center py-8">
-//           <Loader2 className="animate-spin text-[#d4af37] mb-3" size={28} />
-//           <span className="text-xs text-gray-400 font-bold tracking-widest uppercase">Loading Packages...</span>
-//         </div>
-//       ) : (
-//         <div className="flex flex-col gap-3">
-//           {packages.length > 0 ? (
-//             packages.map((pkg, index) => {
-//               const amount = Number(pkg.packageAmount) || 0;
-//               const daysDone = Number(pkg.daysCompleted) || 0;
-//               const isMaster = pkg.packageType === 'master';
-              
-//               // Child package hamesha 25 din ka hota hai, Master apni cycle ka
-//               const totalCycleDays = isMaster 
-//                 ? (Number(pkg.compoundingDuration) || Number(pkg.totalDays) || 25)
-//                 : 25; 
-              
-//               const dailyRoi = (amount * 6) / 100;
-//               const earnedRoi = dailyRoi * daysDone; 
-//               const totalExpected = dailyRoi * totalCycleDays; 
-
-//               return (
-//                 <div key={pkg._id || index} 
-//                   className={`bg-[#111827] border ${isMaster ? 'border-[#d4af37]/40 shadow-[#d4af37]/10' : 'border-[#00d2ff]/30 shadow-[#00d2ff]/5'} rounded-xl p-3 flex flex-row items-center gap-3 shadow-lg relative overflow-hidden transition-all hover:border-gray-500`}
-//                 >
-//                   {/* Glow effect based on Master or Child */}
-//                   {pkg.status === "active" && (
-//                     <div className={`absolute top-0 right-0 w-32 h-32 blur-[40px] pointer-events-none ${isMaster ? 'bg-[#d4af37]/5' : 'bg-[#00d2ff]/5'}`}></div>
-//                   )}
-
-//                   {/* Circle Chart */}
-//                   <CircularProgress days={daysDone} totalDays={totalCycleDays} status={pkg.status} isMaster={isMaster} />
-
-//                   {/* Details Area */}
-//                   <div className="flex-1 min-w-0 z-10">
-//                     <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1.5 mb-1.5">
-                      
-//                       <div className="flex items-center gap-2 truncate">
-//                         <h3 className="text-sm sm:text-base font-bold text-white flex items-center gap-1">
-//                           <DollarSign size={14} className={isMaster ? "text-[#d4af37]" : "text-[#00d2ff]"} />
-//                           ${amount.toFixed(2)}
-//                         </h3>
-//                         {/* 🔥 MASTER vs CHILD BADGE */}
-//                         {isMaster ? (
-//                           <span className="text-[8px] bg-[#d4af37]/20 text-[#d4af37] border border-[#d4af37]/30 px-1.5 py-0.5 rounded uppercase font-black tracking-wider flex items-center gap-1">
-//                             ★ Master Plan
-//                           </span>
-//                         ) : (
-//                           <span className="text-[8px] bg-[#00d2ff]/20 text-[#00d2ff] border border-[#00d2ff]/30 px-1.5 py-0.5 rounded uppercase font-black tracking-wider flex items-center gap-1">
-//                             <ArrowDownToLine size={8} /> Re-invested
-//                           </span>
-//                         )}
-//                       </div>
-                      
-//                       <span className={`w-fit text-[8px] sm:text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full border flex items-center gap-1 ${
-//                         pkg.status === "completed" 
-//                           ? "text-emerald-400 bg-emerald-500/10 border-emerald-500/20" 
-//                           : "text-[#22c55e] bg-[#22c55e]/10 border-[#22c55e]/20"
-//                       }`}>
-//                         {pkg.status === "completed" ? <CheckCircle2 size={10} /> : <Activity size={10} />}
-//                         {pkg.status}
-//                       </span>
-//                     </div>
-
-//                     {/* Data Grid */}
-//                     <div className="grid grid-cols-2 gap-1.5 mt-1.5 bg-[#0b1221] p-2 sm:p-2.5 rounded-lg border border-gray-800">
-//                       <div className="flex flex-col">
-//                         <span className="text-[7.5px] sm:text-[8px] text-gray-500 uppercase tracking-widest font-bold">Earned So Far</span>
-//                         <span className="text-xs font-black text-[#22c55e]">${earnedRoi.toFixed(2)}</span>
-//                       </div>
-//                       <div className="flex flex-col">
-//                         <span className="text-[7.5px] sm:text-[8px] text-gray-500 uppercase tracking-widest font-bold">Total Expected ({totalCycleDays}D)</span>
-//                         <span className="text-xs font-black text-white">${totalExpected.toFixed(2)}</span>
-//                       </div>
-//                       <div className="flex flex-col col-span-2 pt-1 border-t border-gray-800/50 mt-1">
-//                         <span className="text-[7.5px] sm:text-[8px] text-gray-500 uppercase tracking-widest font-bold flex items-center gap-1">
-//                           <CalendarDays size={9} /> Activated On
-//                         </span>
-//                         <span className="text-[9px] sm:text-[10px] font-bold text-gray-300 mt-0.5">{formatDate(pkg.startDate)}</span>
-//                       </div>
-//                     </div>
-//                   </div>
-//                 </div>
-//               );
-//             })
-//           ) : (
-//             <div className="text-center py-6 sm:py-8 border border-dashed border-gray-700 rounded-xl bg-[#0b1221]/50">
-//               <span className="text-gray-400 text-xs font-bold tracking-widest uppercase">No Active Compound Packages Found</span>
-//             </div>
-//           )}
-//         </div>
-//       )}
-//     </div>
-//   );
-// };
-
-// export default UserCompoundPackages;
-
-
-import React, { useState, useEffect } from "react";
-import { CalendarDays, DollarSign, CheckCircle2, Activity, Loader2, Layers, Zap, ArrowDownToLine, Flame } from "lucide-react";
+import React, { useEffect, useMemo, useState, useCallback } from "react";
+import {
+  CalendarDays,
+  CheckCircle2,
+  Activity,
+  Loader2,
+  Layers,
+  Zap,
+  ArrowDownToLine,
+  DollarSign,
+  Wallet,
+  RefreshCw,
+  Users,
+  Network,
+  Clock3,
+  TrendingUp,
+} from "lucide-react";
 import api from "../../api/axios";
 import { useAuth } from "../../context/AuthContext";
 
-// 🔹 Circular Progress Component
-const CircularProgress = ({ days, totalDays, status, isMaster, isOnePercent }) => {
-  const percentage = Math.min((days / totalDays) * 100, 100);
+const toAmount = (value) => {
+  if (value === null || value === undefined || value === "") return 0;
+  const raw =
+    typeof value === "object" && value.$numberDecimal !== undefined
+      ? value.$numberDecimal
+      : value;
+  const number = Number(raw);
+  return Number.isFinite(number) ? number : 0;
+};
+
+const money = (value) =>
+  `$${toAmount(value).toLocaleString("en-US", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })}`;
+
+const dateText = (value) => {
+  if (!value) return "—";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "—";
+  return date.toLocaleDateString("en-GB", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
+};
+
+const asArray = (response, keys = ["data"]) => {
+  const payload = response?.data;
+  if (Array.isArray(payload)) return payload;
+  for (const key of keys) {
+    if (Array.isArray(payload?.[key])) return payload[key];
+  }
+  return [];
+};
+
+const getLatestLedger = (ledger) => {
+  if (!Array.isArray(ledger) || ledger.length === 0) return null;
+  return [...ledger].sort((a, b) => {
+    const aDate = new Date(
+      a?.createdAt || a?.processingDate || a?.updatedAt || 0
+    ).getTime();
+    const bDate = new Date(
+      b?.createdAt || b?.processingDate || b?.updatedAt || 0
+    ).getTime();
+    return bDate - aDate;
+  })[0];
+};
+
+const CircularProgress = ({ completed, total, color = "text-[#e5c875]" }) => {
+  const safeTotal = Math.max(1, toAmount(total));
+  const safeCompleted = Math.min(safeTotal, Math.max(0, toAmount(completed)));
+  const percentage = Math.min(100, (safeCompleted / safeTotal) * 100);
   const radius = 22;
   const circumference = 2 * Math.PI * radius;
-  const strokeDashoffset = circumference - (percentage / 100) * circumference;
-  
-  // 1% ke liye Red/Gold, 6% Master ke liye Gold, 6% Child ke liye Blue
-  let ringColor = "text-[#00d2ff]"; // Default Child Blue
-  if (status === "completed") ringColor = "text-emerald-500";
-  else if (isOnePercent) ringColor = "text-[#dc2626]"; // 1% 2X Plan Color
-  else if (isMaster) ringColor = "text-[#d4af37]"; // 6% Master Color
 
   return (
-    <div className="relative flex items-center justify-center w-12 h-12 sm:w-14 sm:h-14 shrink-0">
-      <svg viewBox="0 0 64 64" className="w-full h-full transform -rotate-90">
-        <circle cx="32" cy="32" r={radius} stroke="currentColor" strokeWidth="4.5" fill="transparent" className="text-gray-800" />
+    <div className="relative flex h-14 w-14 shrink-0 items-center justify-center">
+      <svg viewBox="0 0 64 64" className="-rotate-90">
         <circle
-          cx="32" cy="32" r={radius} stroke="currentColor" strokeWidth="4.5" fill="transparent"
-          strokeDasharray={circumference} strokeDashoffset={strokeDashoffset} strokeLinecap="round"
-          className={`${ringColor} transition-all duration-1000 ease-out`}
+          cx="32"
+          cy="32"
+          r={radius}
+          stroke="currentColor"
+          strokeWidth="4.5"
+          fill="transparent"
+          className="text-white/10"
+        />
+        <circle
+          cx="32"
+          cy="32"
+          r={radius}
+          stroke="currentColor"
+          strokeWidth="4.5"
+          fill="transparent"
+          strokeDasharray={circumference}
+          strokeDashoffset={circumference - (percentage / 100) * circumference}
+          strokeLinecap="round"
+          className={`${color} transition-all duration-700`}
         />
       </svg>
-      <div className="absolute flex flex-col items-center justify-center text-center mt-0.5">
-        <span className="text-xs sm:text-sm font-black text-white leading-none">{days}</span>
-        <span className="text-[7px] sm:text-[8px] text-gray-400 uppercase font-bold tracking-widest mt-0.5">Day</span>
+      <div className="absolute flex flex-col items-center">
+        <span className="text-sm font-black leading-none text-white">
+          {safeCompleted}
+        </span>
+        <span className="mt-1 text-[8px] font-bold uppercase tracking-wider text-slate-500">
+          Day
+        </span>
       </div>
     </div>
   );
@@ -228,170 +114,541 @@ const CircularProgress = ({ days, totalDays, status, isMaster, isOnePercent }) =
 const UserCompoundPackages = () => {
   const { user, token } = useAuth();
   const [packages, setPackages] = useState([]);
+  const [commissions, setCommissions] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
 
-  // 🔥 FETCH LOGIC
+  const fetchData = useCallback(async (showLoader = true) => {
+    if (!user?.userId || !token) {
+      setPackages([]);
+      setCommissions([]);
+      setLoading(false);
+      return;
+    }
+
+    if (showLoader) setLoading(true);
+    setErrorMessage("");
+
+    const headers = { Authorization: `Bearer ${token}` };
+
+    try {
+      // Matches the supplied autoCompoundV2Routes:
+      // GET /my-packages and GET /my-commissions
+      const [packageResult, commissionResult] = await Promise.allSettled([
+        api.get("/auto-compound-v2/my-packages", { headers }),
+        api.get("/auto-compound-v2/my-commissions", { headers }),
+      ]);
+
+      if (packageResult.status !== "fulfilled") {
+        throw packageResult.reason;
+      }
+
+      const packageList = asArray(packageResult.value, ["data", "packages"]);
+
+      // The backend ledger endpoint returns { success, package, ledger }.
+      // Fetch each package ledger so the UI displays the actual latest
+      // closingBalance, rather than incorrectly treating packageAmount as profit.
+      const ledgerResults = await Promise.allSettled(
+        packageList.map((pkg) =>
+          pkg?._id
+            ? api.get(
+                `/auto-compound-v2/ledger/${encodeURIComponent(pkg._id)}`,
+                { headers }
+              )
+            : Promise.resolve({ data: { ledger: [] } })
+        )
+      );
+
+      const packagesWithLedger = packageList.map((pkg, index) => {
+        const result = ledgerResults[index];
+        const ledger =
+          result.status === "fulfilled"
+            ? asArray(result.value, ["ledger"])
+            : [];
+        const latestLedger = getLatestLedger(ledger);
+
+        // Backend stores currentBalance and remainingAmount on the package.
+        // Prefer latest ledger closingBalance whenever a ledger entry exists.
+        const status = String(pkg?.status || "").toLowerCase();
+        let currentBalance;
+        if (latestLedger?.closingBalance !== undefined &&
+            latestLedger?.closingBalance !== null) {
+          currentBalance = toAmount(latestLedger.closingBalance);
+        } else if (status === "distribution") {
+          currentBalance = toAmount(pkg?.remainingAmount);
+        } else {
+          currentBalance = toAmount(pkg?.currentBalance ?? pkg?.packageAmount);
+        }
+
+        return {
+          ...pkg,
+          ledger,
+          latestLedger,
+          displayCurrentBalance: Math.max(0, currentBalance),
+        };
+      });
+
+      setPackages(packagesWithLedger);
+
+      if (commissionResult.status === "fulfilled") {
+        setCommissions(
+          asArray(commissionResult.value, ["data", "commissions"])
+        );
+      } else {
+        console.warn(
+          "Auto Compound V2 commission fetch failed:",
+          commissionResult.reason
+        );
+        setCommissions([]);
+      }
+    } catch (error) {
+      console.error("Auto Compound V2 page fetch error:", error);
+      setErrorMessage(
+        error?.response?.data?.message ||
+          "Unable to load Auto Compound V2 details. Please try again."
+      );
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  }, [user?.userId, token]);
+
   useEffect(() => {
-    const fetchCompoundPackages = async () => {
-      if (!user?.userId || !token) return;
-      
-      try {
-        setLoading(true);
-        const res = await api.get(`/package/auto-compound/${user.userId}`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        
-        const packageData = res.data.packages || [];
-        
-        // Sort newest first
-        const sortedPackages = packageData.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-        setPackages(sortedPackages);
-      } catch (error) {
-        console.error("Failed to fetch compound packages:", error);
-      } finally {
+    let cancelled = false;
+
+    const run = async () => {
+      if (!user?.userId || !token) {
+        setPackages([]);
+        setCommissions([]);
         setLoading(false);
+        return;
+      }
+
+      setLoading(true);
+      setErrorMessage("");
+      const headers = { Authorization: `Bearer ${token}` };
+
+      try {
+        const [packageResult, commissionResult] = await Promise.allSettled([
+          api.get("/auto-compound-v2/my-packages", { headers }),
+          api.get("/auto-compound-v2/my-commissions", { headers }),
+        ]);
+
+        if (packageResult.status !== "fulfilled") {
+          throw packageResult.reason;
+        }
+
+        const packageList = asArray(packageResult.value, ["data", "packages"]);
+        const ledgerResults = await Promise.allSettled(
+          packageList.map((pkg) =>
+            pkg?._id
+              ? api.get(
+                  `/auto-compound-v2/ledger/${encodeURIComponent(pkg._id)}`,
+                  { headers }
+                )
+              : Promise.resolve({ data: { ledger: [] } })
+          )
+        );
+
+        if (cancelled) return;
+
+        const withLedger = packageList.map((pkg, index) => {
+          const result = ledgerResults[index];
+          const ledger =
+            result.status === "fulfilled"
+              ? asArray(result.value, ["ledger"])
+              : [];
+          const latestLedger = getLatestLedger(ledger);
+          const status = String(pkg?.status || "").toLowerCase();
+
+          let currentBalance;
+          if (latestLedger?.closingBalance !== undefined &&
+              latestLedger?.closingBalance !== null) {
+            currentBalance = toAmount(latestLedger.closingBalance);
+          } else if (status === "distribution") {
+            currentBalance = toAmount(pkg?.remainingAmount);
+          } else {
+            currentBalance = toAmount(pkg?.currentBalance ?? pkg?.packageAmount);
+          }
+
+          return {
+            ...pkg,
+            ledger,
+            latestLedger,
+            displayCurrentBalance: Math.max(0, currentBalance),
+          };
+        });
+
+        setPackages(withLedger);
+        setCommissions(
+          commissionResult.status === "fulfilled"
+            ? asArray(commissionResult.value, ["data", "commissions"])
+            : []
+        );
+      } catch (error) {
+        console.error("Auto Compound V2 page fetch error:", error);
+        if (!cancelled) {
+          setErrorMessage(
+            error?.response?.data?.message ||
+              "Unable to load Auto Compound V2 details. Please try again."
+          );
+        }
+      } finally {
+        if (!cancelled) setLoading(false);
       }
     };
 
-    fetchCompoundPackages();
+    run();
+    return () => {
+      cancelled = true;
+    };
   }, [user?.userId, token]);
 
-  const formatDate = (dateString) => {
-    if (!dateString) return "N/A";
-    return new Date(dateString).toLocaleDateString("en-GB", {
-      day: "2-digit", month: "short", year: "numeric"
-    });
+  const ongoingPackages = useMemo(
+    () =>
+      packages.filter((pkg) =>
+        ["active", "distribution"].includes(
+          String(pkg?.status || "").toLowerCase()
+        )
+      ),
+    [packages]
+  );
+
+  const completedPackages = useMemo(
+    () =>
+      packages.filter(
+        (pkg) => String(pkg?.status || "").toLowerCase() === "completed"
+      ),
+    [packages]
+  );
+
+  const activePrincipal = useMemo(
+    () =>
+      ongoingPackages.reduce(
+        (sum, pkg) => sum + Math.max(0, toAmount(pkg?.packageAmount)),
+        0
+      ),
+    [ongoingPackages]
+  );
+
+  const currentCompoundBalance = useMemo(
+    () =>
+      ongoingPackages.reduce(
+        (sum, pkg) => sum + Math.max(0, toAmount(pkg?.displayCurrentBalance)),
+        0
+      ),
+    [ongoingPackages]
+  );
+
+  const pendingDirect = useMemo(
+    () =>
+      commissions
+        .filter(
+          (item) =>
+            String(item?.type || "").toLowerCase() === "direct_income" &&
+            String(item?.status || "").toLowerCase() === "pending"
+        )
+        .reduce((sum, item) => sum + Math.max(0, toAmount(item?.amount)), 0),
+    [commissions]
+  );
+
+  const pendingLevel = useMemo(
+    () =>
+      commissions
+        .filter(
+          (item) =>
+            String(item?.type || "").toLowerCase() === "level_income" &&
+            String(item?.status || "").toLowerCase() === "pending"
+        )
+        .reduce((sum, item) => sum + Math.max(0, toAmount(item?.amount)), 0),
+    [commissions]
+  );
+
+  const refresh = async () => {
+    setRefreshing(true);
+    await fetchData(false);
   };
 
   return (
-    <div className="w-full max-w-3xl mx-auto p-3 sm:p-5 bg-[#070b14] rounded-2xl">
-      
-      {/* Header */}
-      <div className="mb-3 flex items-center justify-between border-b border-gray-800 pb-2">
-        <div>
-          <h2 className="text-lg sm:text-xl font-black text-white tracking-wide uppercase flex items-center gap-2">
-            <Layers className="text-[#d4af37]" size={20} /> My Active Plans
-          </h2>
-          <p className="text-[9px] sm:text-[10px] text-gray-400 font-medium tracking-widest mt-1 uppercase flex items-center gap-1">
-            <Zap size={10} className="text-[#22c55e]" /> Auto Compound & 2X Plans
+    <section className="mx-auto w-full max-w-4xl rounded-[22px] border border-[#d4af37]/20 bg-[#080d15] p-3 text-white shadow-[0_18px_55px_rgba(0,0,0,0.32)] sm:p-5">
+      <div className="mb-4 flex items-center justify-between gap-3 border-b border-white/[0.08] pb-4">
+        <div className="flex min-w-0 items-center gap-2">
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-[#d4af37]/25 bg-[#d4af37]/10 text-[#e5c875]">
+            <Layers size={18} />
+          </span>
+          <div className="min-w-0">
+            <h2 className="truncate text-sm font-black uppercase tracking-[0.13em] text-white sm:text-base">
+              Auto Compound V2
+            </h2>
+            <p className="mt-1 flex items-center gap-1.5 text-[9px] font-semibold uppercase tracking-[0.13em] text-slate-500 sm:text-[10px]">
+              <Zap size={11} className="text-[#e5c875]" />
+              Live Package &amp; Ledger Details
+            </p>
+          </div>
+        </div>
+
+        <button
+          type="button"
+          onClick={refresh}
+          disabled={loading || refreshing}
+          aria-label="Refresh Auto Compound V2"
+          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-white/[0.04] text-slate-400 transition hover:border-[#d4af37]/40 hover:text-[#e5c875] disabled:opacity-40"
+        >
+          <RefreshCw size={15} className={refreshing ? "animate-spin" : ""} />
+        </button>
+      </div>
+
+      <div className="mb-5 grid grid-cols-2 gap-2 sm:grid-cols-4">
+        <div className="col-span-2 rounded-2xl border border-[#d4af37]/30 bg-gradient-to-br from-[#d4af37]/[0.12] to-[#101722] p-3.5 sm:col-span-2 sm:p-4">
+          <div className="flex items-center gap-2 text-[#e5c875]">
+            <Wallet size={15} />
+            <span className="text-[9px] font-extrabold uppercase tracking-[0.13em]">
+              Active Package Amount
+            </span>
+          </div>
+          <p className="mt-2 break-all text-2xl font-black tracking-tight text-white tabular-nums sm:text-[26px]">
+            {loading ? "—" : money(activePrincipal)}
+          </p>
+          <p className="mt-1 text-[9px] text-slate-500">
+            Sum of active + distribution packageAmount
+          </p>
+        </div>
+
+        <div className="rounded-2xl border border-white/[0.08] bg-white/[0.025] p-3.5 sm:p-4">
+          <div className="flex items-center gap-2 text-slate-400">
+            <TrendingUp size={14} className="text-emerald-400" />
+            <span className="text-[9px] font-bold uppercase tracking-[0.12em]">
+              Current Balance
+            </span>
+          </div>
+          <p className="mt-2 break-all text-lg font-black text-white tabular-nums">
+            {loading ? "—" : money(currentCompoundBalance)}
+          </p>
+          <p className="mt-1 text-[9px] text-slate-500">Latest ledger closing</p>
+        </div>
+
+        <div className="rounded-2xl border border-white/[0.08] bg-white/[0.025] p-3.5 sm:p-4">
+          <div className="flex items-center gap-2 text-slate-400">
+            <Activity size={14} className="text-[#e5c875]" />
+            <span className="text-[9px] font-bold uppercase tracking-[0.12em]">
+              Ongoing Plans
+            </span>
+          </div>
+          <p className="mt-2 text-2xl font-black text-white tabular-nums">
+            {loading ? "—" : ongoingPackages.length}
+          </p>
+          <p className="mt-1 text-[9px] text-slate-500">Active + distribution</p>
+        </div>
+      </div>
+
+      <div className="mb-5 grid grid-cols-2 gap-2">
+        <div className="rounded-xl border border-white/[0.08] bg-white/[0.025] p-3">
+          <div className="flex items-center gap-2 text-slate-400">
+            <Users size={13} className="text-[#e5c875]" />
+            <span className="text-[9px] font-bold uppercase tracking-wider">
+              Pending Direct Commission
+            </span>
+          </div>
+          <p className="mt-1.5 text-base font-black text-white tabular-nums">
+            {loading ? "—" : money(pendingDirect)}
+          </p>
+          <p className="mt-1 text-[8px] text-slate-500">
+            Backend commission status: pending
+          </p>
+        </div>
+        <div className="rounded-xl border border-white/[0.08] bg-white/[0.025] p-3">
+          <div className="flex items-center gap-2 text-slate-400">
+            <Network size={13} className="text-cyan-300" />
+            <span className="text-[9px] font-bold uppercase tracking-wider">
+              Pending Level Commission
+            </span>
+          </div>
+          <p className="mt-1.5 text-base font-black text-white tabular-nums">
+            {loading ? "—" : money(pendingLevel)}
+          </p>
+          <p className="mt-1 text-[8px] text-slate-500">
+            Backend commission status: pending
           </p>
         </div>
       </div>
 
-      {/* Main Content Area */}
       {loading ? (
-        <div className="flex flex-col items-center justify-center py-8">
-          <Loader2 className="animate-spin text-[#d4af37] mb-3" size={28} />
-          <span className="text-xs text-gray-400 font-bold tracking-widest uppercase">Loading Packages...</span>
+        <div className="flex flex-col items-center justify-center py-12">
+          <Loader2 className="mb-3 animate-spin text-[#d4af37]" size={28} />
+          <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-slate-500">
+            Loading Auto Compound V2...
+          </span>
+        </div>
+      ) : errorMessage ? (
+        <div className="rounded-2xl border border-rose-400/20 bg-rose-400/[0.05] px-4 py-7 text-center">
+          <p className="text-xs font-semibold text-rose-200">{errorMessage}</p>
+          <button
+            type="button"
+            onClick={refresh}
+            className="mt-3 rounded-lg border border-[#d4af37]/30 px-4 py-2 text-[10px] font-bold uppercase tracking-wider text-[#e5c875] hover:bg-[#d4af37]/10"
+          >
+            Try Again
+          </button>
+        </div>
+      ) : packages.length === 0 ? (
+        <div className="rounded-2xl border border-dashed border-[#d4af37]/20 bg-[#0b111b] px-4 py-10 text-center">
+          <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl border border-[#d4af37]/20 bg-[#d4af37]/[0.07] text-[#e5c875]">
+            <Layers size={21} />
+          </span>
+          <p className="mt-3 text-xs font-bold uppercase tracking-[0.13em] text-slate-300">
+            No Auto Compound V2 Packages
+          </p>
+          <p className="mt-1 text-[10px] text-slate-500">
+            Your V2 packages will appear here after activation.
+          </p>
         </div>
       ) : (
         <div className="flex flex-col gap-3">
-          {packages.length > 0 ? (
-            packages.map((pkg, index) => {
-              const amount = Number(pkg.packageAmount) || 0;
-              const daysDone = Number(pkg.daysCompleted) || 0;
-              const isMaster = pkg.packageType === 'master';
-              
-              // 🔥 DYNAMIC LOGIC: Pata karo 6% wala hai ya 1% wala
-              const dailyPercent = Number(pkg.dailyPercentage) || 6; // Agar purana hai jisme percentage save nahi tha, toh 6 manega
-              const isOnePercentPlan = dailyPercent === 1;
+          {packages.map((pkg, index) => {
+            const status = String(pkg?.status || "unknown").toLowerCase();
+            const isDistribution = status === "distribution";
+            const isCompleted = status === "completed";
+            const isActive = status === "active";
+            const amount = toAmount(pkg?.packageAmount);
+            const currentBalance = toAmount(pkg?.displayCurrentBalance);
+            const selectedDays = Math.max(1, toAmount(pkg?.selectedDays) || 1);
+            const daysCompleted = toAmount(pkg?.daysCompleted);
+            const distributionDays = Math.max(
+              1,
+              toAmount(pkg?.distributionDays) || 25
+            );
+            const distributionDaysCompleted = toAmount(
+              pkg?.distributionDaysCompleted
+            );
 
-              // 🔥 CYCLE DAYS CALCULATION
-              let totalCycleDays = 25;
-              if (isOnePercentPlan) {
-                  totalCycleDays = Number(pkg.totalDays) || 70; // 1% wala hamesha 70 days
-              } else {
-                  totalCycleDays = isMaster ? (Number(pkg.compoundingDuration) || Number(pkg.totalDays) || 25) : 25; // 6% wala logic
-              }
-              
-              // 🔥 EARNING & EXPECTED CALCULATION
-              const dailyRoiAmount = (amount * dailyPercent) / 100;
-              const earnedRoi = dailyRoiAmount * daysDone; // Earned so far
-              
-              // 1% plan double deta hai (Amount * 2). 6% plan apni cycle ke hisaab se deta hai.
-              const totalExpected = isOnePercentPlan ? (amount * 2) : (dailyRoiAmount * totalCycleDays); 
+            const stageCompleted = isDistribution
+              ? distributionDaysCompleted
+              : daysCompleted;
+            const stageTotal = isDistribution ? distributionDays : selectedDays;
+            const stageLabel = isDistribution
+              ? "Distribution Progress"
+              : "Compounding Progress";
+            const progressColor = isCompleted
+              ? "text-emerald-400"
+              : isDistribution
+                ? "text-cyan-300"
+                : "text-[#e5c875]";
 
-              return (
-                <div key={pkg._id || index} 
-                  className={`bg-[#111827] border ${isOnePercentPlan ? 'border-[#dc2626]/40 shadow-[#dc2626]/10' : isMaster ? 'border-[#d4af37]/40 shadow-[#d4af37]/10' : 'border-[#00d2ff]/30 shadow-[#00d2ff]/5'} rounded-xl p-3 flex flex-row items-center gap-3 shadow-lg relative overflow-hidden transition-all hover:border-gray-500`}
-                >
-                  {/* Glow effect */}
-                  {pkg.status === "active" && (
-                    <div className={`absolute top-0 right-0 w-32 h-32 blur-[40px] pointer-events-none ${isOnePercentPlan ? 'bg-[#dc2626]/10' : isMaster ? 'bg-[#d4af37]/5' : 'bg-[#00d2ff]/5'}`}></div>
-                  )}
+            const latestGrowth = toAmount(
+              pkg?.latestLedger?.calculatedAmount
+            );
+            const latestStage = String(
+              pkg?.latestLedger?.stage || ""
+            ).toLowerCase();
 
-                  {/* Circle Chart */}
-                  <CircularProgress days={daysDone} totalDays={totalCycleDays} status={pkg.status} isMaster={isMaster} isOnePercent={isOnePercentPlan} />
+            return (
+              <article
+                key={pkg?._id || `${pkg?.createdAt || "v2"}-${index}`}
+                className="relative flex min-w-0 items-center gap-3 overflow-hidden rounded-2xl border border-[#d4af37]/20 bg-gradient-to-br from-[#121a27] to-[#090e16] p-3 shadow-[0_8px_24px_rgba(0,0,0,0.18)] transition hover:border-[#d4af37]/40 sm:gap-4 sm:p-4"
+              >
+                <div className="pointer-events-none absolute -right-8 -top-10 h-28 w-28 rounded-full bg-[#d4af37]/[0.045] blur-3xl" />
 
-                  {/* Details Area */}
-                  <div className="flex-1 min-w-0 z-10">
-                    <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1.5 mb-1.5">
-                      
-                      <div className="flex items-center gap-2 truncate">
-                        <h3 className="text-sm sm:text-base font-bold text-white flex items-center gap-1">
-                          <DollarSign size={14} className={isOnePercentPlan ? "text-[#dc2626]" : isMaster ? "text-[#d4af37]" : "text-[#00d2ff]"} />
-                          ${amount.toFixed(2)}
-                        </h3>
-                        
-                        {/* 🔥 DYNAMIC BADGES */}
-                        {isOnePercentPlan ? (
-                          <span className="text-[8px] bg-gradient-to-r from-[#dc2626]/20 to-[#ef4444]/20 text-[#ef4444] border border-[#dc2626]/30 px-1.5 py-0.5 rounded uppercase font-black tracking-wider flex items-center gap-1">
-                            <Flame size={8} /> 2X PLAN (1%)
-                          </span>
-                        ) : isMaster ? (
-                          <span className="text-[8px] bg-[#d4af37]/20 text-[#d4af37] border border-[#d4af37]/30 px-1.5 py-0.5 rounded uppercase font-black tracking-wider flex items-center gap-1">
-                            ★ MASTER (6%)
-                          </span>
-                        ) : (
-                          <span className="text-[8px] bg-[#00d2ff]/20 text-[#00d2ff] border border-[#00d2ff]/30 px-1.5 py-0.5 rounded uppercase font-black tracking-wider flex items-center gap-1">
-                            <ArrowDownToLine size={8} /> RE-INVESTED (6%)
-                          </span>
-                        )}
-                      </div>
-                      
-                      <span className={`w-fit text-[8px] sm:text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full border flex items-center gap-1 ${
-                        pkg.status === "completed" 
-                          ? "text-emerald-400 bg-emerald-500/10 border-emerald-500/20" 
-                          : "text-[#22c55e] bg-[#22c55e]/10 border-[#22c55e]/20"
-                      }`}>
-                        {pkg.status === "completed" ? <CheckCircle2 size={10} /> : <Activity size={10} />}
-                        {pkg.status}
+                <CircularProgress
+                  completed={stageCompleted}
+                  total={stageTotal}
+                  color={progressColor}
+                />
+
+                <div className="z-10 min-w-0 flex-1">
+                  <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+                    <div className="flex min-w-0 flex-wrap items-center gap-2">
+                      <h3 className="flex items-center gap-1 text-sm font-black text-white sm:text-base">
+                        <DollarSign size={14} className="text-[#e5c875]" />
+                        {money(amount)}
+                      </h3>
+                      <span className="rounded-md border border-[#d4af37]/25 bg-[#d4af37]/[0.08] px-1.5 py-1 text-[8px] font-black uppercase tracking-wide text-[#e5c875]">
+                        Auto Compound V2 · {selectedDays} Days
                       </span>
                     </div>
 
-                    {/* Data Grid */}
-                    <div className="grid grid-cols-2 gap-1.5 mt-1.5 bg-[#0b1221] p-2 sm:p-2.5 rounded-lg border border-gray-800">
-                      <div className="flex flex-col">
-                        <span className="text-[7.5px] sm:text-[8px] text-gray-500 uppercase tracking-widest font-bold">
-                           {isOnePercentPlan ? "Virtual Growth" : "Earned So Far"}
-                        </span>
-                        <span className="text-xs font-black text-[#22c55e]">${earnedRoi.toFixed(2)}</span>
-                      </div>
-                      <div className="flex flex-col">
-                        <span className="text-[7.5px] sm:text-[8px] text-gray-500 uppercase tracking-widest font-bold">
-                           Expected ({totalCycleDays}D)
-                        </span>
-                        <span className="text-xs font-black text-white">${totalExpected.toFixed(2)}</span>
-                      </div>
-                      <div className="flex flex-col col-span-2 pt-1 border-t border-gray-800/50 mt-1">
-                        <span className="text-[7.5px] sm:text-[8px] text-gray-500 uppercase tracking-widest font-bold flex items-center gap-1">
-                          <CalendarDays size={9} /> Activated On
-                        </span>
-                        <span className="text-[9px] sm:text-[10px] font-bold text-gray-300 mt-0.5">{formatDate(pkg.startDate)}</span>
+                    <span
+                      className={`inline-flex items-center gap-1 rounded-full border px-2 py-1 text-[8px] font-extrabold uppercase tracking-wider ${
+                        isCompleted
+                          ? "border-emerald-400/20 bg-emerald-400/[0.07] text-emerald-300"
+                          : isActive
+                            ? "border-[#d4af37]/25 bg-[#d4af37]/[0.08] text-[#e5c875]"
+                            : isDistribution
+                              ? "border-cyan-400/20 bg-cyan-400/[0.07] text-cyan-300"
+                              : "border-slate-400/20 bg-slate-400/[0.06] text-slate-300"
+                      }`}
+                    >
+                      {isCompleted ? (
+                        <CheckCircle2 size={10} />
+                      ) : isDistribution ? (
+                        <ArrowDownToLine size={10} />
+                      ) : (
+                        <Activity size={10} />
+                      )}
+                      {status}
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2 rounded-xl border border-white/[0.07] bg-[#070c14]/75 p-2.5 sm:grid-cols-3 sm:p-3">
+                    <div className="min-w-0">
+                      <p className="text-[8px] font-bold uppercase tracking-[0.12em] text-slate-500">
+                        Current Package Balance
+                      </p>
+                      <p className="mt-1 break-all text-xs font-black text-emerald-300 tabular-nums">
+                        {money(currentBalance)}
+                      </p>
+                    </div>
+
+                    <div className="min-w-0">
+                      <p className="text-[8px] font-bold uppercase tracking-[0.12em] text-slate-500">
+                        {stageLabel}
+                      </p>
+                      <p className="mt-1 text-xs font-black text-white tabular-nums">
+                        {stageCompleted} / {stageTotal} Days
+                      </p>
+                    </div>
+
+                    <div className="col-span-2 min-w-0 sm:col-span-1">
+                      <p className="text-[8px] font-bold uppercase tracking-[0.12em] text-slate-500">
+                        Latest Ledger Growth
+                      </p>
+                      <p className="mt-1 break-all text-xs font-black text-[#e5c875] tabular-nums">
+                        {pkg?.latestLedger ? money(latestGrowth) : "—"}
+                      </p>
+                      {latestStage && (
+                        <p className="mt-0.5 text-[8px] capitalize text-slate-500">
+                          {latestStage}
+                        </p>
+                      )}
+                    </div>
+
+                    <div className="col-span-2 mt-1 border-t border-white/[0.07] pt-2 sm:col-span-3">
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <p className="flex items-center gap-1.5 text-[8px] font-bold uppercase tracking-[0.12em] text-slate-500">
+                          <CalendarDays size={10} className="text-[#d4af37]" />
+                          Started {dateText(pkg?.startDate)}
+                        </p>
+                        <p className="flex items-center gap-1.5 text-[8px] font-semibold text-slate-500">
+                          <Clock3 size={10} />
+                          Ends {dateText(pkg?.endDate)}
+                        </p>
                       </div>
                     </div>
                   </div>
                 </div>
-              );
-            })
-          ) : (
-            <div className="text-center py-6 sm:py-8 border border-dashed border-gray-700 rounded-xl bg-[#0b1221]/50">
-              <span className="text-gray-400 text-xs font-bold tracking-widest uppercase">No Active Compound Packages Found</span>
-            </div>
-          )}
+              </article>
+            );
+          })}
         </div>
       )}
-    </div>
+
+      {!loading && completedPackages.length > 0 && (
+        <p className="mt-3 text-right text-[9px] font-semibold text-slate-500">
+          {completedPackages.length} completed package
+          {completedPackages.length === 1 ? "" : "s"} included in package history
+        </p>
+      )}
+    </section>
   );
 };
 

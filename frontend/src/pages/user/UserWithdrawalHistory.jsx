@@ -1,1196 +1,375 @@
-// // import React, { useEffect, useState } from "react";
-// // import api from "../../api/axios";
-// // import {
-// //   Search,
-// //   Banknote,
-// //   ChevronLeft,
-// //   ChevronRight,
-// //   Wallet,
-// // } from "lucide-react";
-
-// // function UserWithdrawalHistory() {
-// //   const [withdrawals, setWithdrawals] = useState([]);
-// //   const [loading, setLoading] = useState(true);
-// //   const [search, setSearch] = useState("");
-// //   const [statusFilter, setStatusFilter] = useState("all");
-// //   const [currentPage, setCurrentPage] = useState(1);
-
-// //   const itemsPerPage = 10;
-
-// //   const user = JSON.parse(localStorage.getItem("user"));
-// //   const userId = Number(user?.userId);
-  
-// //   // 🔥 Check if user is a Leader
-// //   const isLeader = user?.role?.toLowerCase() === "leader";
-
-// //   useEffect(() => {
-// //     const fetchWithdrawals = async () => {
-// //       try {
-// //         setLoading(true);
-// //         const res = await api.get(
-// //           `/wallet/withdrawals/${userId}?t=${new Date().getTime()}`
-// //         );
-// //         setWithdrawals(res.data.withdrawals || []);
-// //       } catch (error) {
-// //         console.error("Error fetching withdrawal history:", error);
-// //       } finally {
-// //         setLoading(false);
-// //       }
-// //     };
-
-// //     if (userId) fetchWithdrawals();
-// //     else setLoading(false);
-// //   }, [userId]);
-
-// //   // 🔥 GROUP & ADJUST ENTRIES (WITH TIME-BASED LOGIC)
-// //   const groupWithdrawals = (list) => {
-// //     const sorted = [...list].sort(
-// //       (a, b) => new Date(a.createdAt) - new Date(b.createdAt)
-// //     );
-
-// //     const groups = [];
-// //     const THRESHOLD_MS = 5000;
-    
-// //     // 🔥 CUTOFF TIME: 13 July 2026, 4:00 PM IST
-// //     const CUTOFF_TIME = new Date("2026-07-13T16:00:00+05:30").getTime();
-
-// //     for (const item of sorted) {
-// //       const itemTime = new Date(item.createdAt).getTime();
-// //       const lastGroup = groups[groups.length - 1];
-
-// //       // 👉 TIME CHECK: Purana (before 4 PM) ya Naya (after 4 PM)
-// //       const isNewLogic = itemTime >= CUTOFF_TIME;
-
-// //       // 👉 AMOUNT CALCULATION LOGIC (Fee Removed completely)
-// //       const iGross = isNewLogic ? Number(item.grossAmount || 0) : Number(item.grossAmount || 0) * 2;
-// //       const iCryptoNet = Number(item.netAmount || 0); // USDT portion
-      
-// //       // TopUp calculation: Without fee -> TopUp = Gross - USDT
-// //       const iTopupNet = isNewLogic ? (iGross - iCryptoNet) : Number(item.netAmount || 0);
-
-// //       if (
-// //         lastGroup &&
-// //         itemTime -
-// //           new Date(
-// //             lastGroup.entries[lastGroup.entries.length - 1].createdAt
-// //           ).getTime() <=
-// //           THRESHOLD_MS
-// //       ) {
-// //         lastGroup.entries.push(item);
-
-// //         lastGroup.rawGross += iGross;
-// //         lastGroup.rawCryptoNet += iCryptoNet;
-// //         lastGroup.rawTopupNet += iTopupNet;
-
-// //         if (item.status?.toLowerCase() === "pending")
-// //           lastGroup.status = "pending";
-// //         else if (
-// //           item.status?.toLowerCase() === "rejected" &&
-// //           lastGroup.status !== "pending"
-// //         )
-// //           lastGroup.status = "rejected";
-// //       } else {
-// //         groups.push({
-// //           _id: item._id,
-// //           createdAt: item.createdAt,
-// //           entries: [item],
-// //           rawGross: iGross,
-// //           rawCryptoNet: iCryptoNet,
-// //           rawTopupNet: iTopupNet,
-// //           walletAddress: item.walletAddress,
-// //           status: item.status || "pending",
-// //           isNewLogic: isNewLogic // Tracking for Leader override
-// //         });
-// //       }
-// //     }
-
-// //     // 🔥 LEADER ADJUSTMENT LOGIC (Fee removed, 50-50 split for old logic)
-// //     groups.forEach(g => {
-// //         if (isLeader && !g.isNewLogic) {
-// //             // Agar Leader hai aur entry PURANI hai (Before 4 PM)
-// //             const roundedGross = Math.floor(g.rawGross / 10) * 10;
-// //             g.totalGross = roundedGross;
-// //             g.totalCryptoNet = roundedGross * 0.50; // Adjusted for 0 fee
-// //             g.totalTopupNet = roundedGross * 0.50;  // Adjusted for 0 fee
-// //         } else {
-// //             // Normal user YA Naya logic (After 4 PM) -> Exact backend values
-// //             g.totalGross = g.rawGross;
-// //             g.totalCryptoNet = g.rawCryptoNet;
-// //             g.totalTopupNet = g.rawTopupNet;
-// //         }
-// //     });
-
-// //     return groups;
-// //   };
-
-// //   const grouped = groupWithdrawals(withdrawals);
-
-// //   const totalAmount = grouped.reduce((sum, g) => {
-// //       // Sirf Success/Approved withdrawals ka total
-// //       if (g.status?.toLowerCase() === "success" || g.status?.toLowerCase() === "approved") {
-// //           return sum + g.totalGross;
-// //       }
-// //       return sum;
-// //   }, 0);
-
-// //   const filtered = grouped.filter((g) => {
-// //     const searchLower = search.toLowerCase();
-// //     const matchSearch =
-// //       g.status?.toLowerCase().includes(searchLower) ||
-// //       g.totalGross.toString().includes(searchLower) ||
-// //       new Date(g.createdAt)
-// //         .toLocaleDateString("en-GB")
-// //         .includes(searchLower) ||
-// //       (g.walletAddress?.toLowerCase() || "").includes(searchLower);
-
-// //     const matchStatus =
-// //       statusFilter === "all" ||
-// //       g.status?.toLowerCase() === statusFilter.toLowerCase();
-
-// //     return matchSearch && matchStatus;
-// //   });
-
-// //   const sortedFiltered = [...filtered].sort(
-// //     (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
-// //   );
-
-// //   const totalPages =
-// //     Math.ceil(sortedFiltered.length / itemsPerPage) || 1;
-
-// //   const startIdx = (currentPage - 1) * itemsPerPage;
-
-// //   const paginated = sortedFiltered.slice(
-// //     startIdx,
-// //     startIdx + itemsPerPage
-// //   );
-
-// //   useEffect(() => {
-// //     setCurrentPage(1);
-// //   }, [search, statusFilter]);
-
-// //   const getStatusDetails = (group) => {
-// //     const s = group.status?.toLowerCase();
-
-// //     if (s === "approved" || s === "success") {
-// //       return {
-// //         label: group.status,
-// //         color: "bg-green-500/10 text-green-400 border-green-500/20",
-// //       };
-// //     }
-
-// //     if (s === "pending") {
-// //       return {
-// //         label: group.status,
-// //         color: "bg-[#eab308]/10 text-[#eab308] border-[#eab308]/20",
-// //       };
-// //     }
-
-// //     if (s === "rejected" || s === "failed") {
-// //       return {
-// //         label: group.status,
-// //         color: "bg-red-500/10 text-red-400 border-red-500/20",
-// //       };
-// //     }
-
-// //     return {
-// //       label: group.status || "UNKNOWN",
-// //       color: "bg-gray-500/10 text-gray-400 border-gray-500/20",
-// //     };
-// //   };
-
-// //   return (
-// //     <div className="w-full min-h-screen bg-[#0b1221] p-4 md:p-8 font-sans">
-
-// //       {/* Inner Card Container */}
-// //       <div className="max-w-7xl mx-auto bg-[#131c31] rounded-xl border-t-[3px] border-[#eab308] shadow-2xl p-4 sm:p-6">
-
-// //         {/* HEADER */}
-// //         <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-8 gap-4">
-// //           <div>
-// //             <h2 className="text-2xl sm:text-3xl text-[#eab308] font-bold tracking-wide flex items-center gap-3">
-// //               <Banknote className="text-[#eab308]" size={28} />
-// //               Withdrawal History
-// //             </h2>
-            
-// //           </div>
-// //         </div>
-
-// //         {/* STATS */}
-// //         <div className="mb-8">
-// //           <div className="bg-[#0b1221] border border-gray-700 rounded-xl p-5 md:p-6 relative overflow-hidden flex flex-col justify-center max-w-sm">
-// //             <h3 className="text-gray-400 text-[10px] md:text-xs font-bold uppercase tracking-widest flex items-center gap-2 mb-2">
-// //               <Wallet size={14} className="text-[#eab308]" />
-// //               Total Withdrawn
-// //             </h3>
-// //             <p className="text-3xl md:text-4xl font-black text-green-400">
-// //               ${totalAmount.toFixed(2)}
-// //             </p>
-// //           </div>
-// //         </div>
-
-// //         {/* FILTERS */}
-// //         <div className="flex flex-col sm:flex-row gap-4 mb-6 justify-between items-start sm:items-center text-gray-300 text-sm">
-
-// //           <div className="flex items-center gap-2 w-full sm:w-auto">
-// //             <div className="relative w-full sm:w-80 group">
-// //               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-// //                 <Search size={16} className="text-gray-500" />
-// //               </div>
-// //               <input
-// //                 type="text"
-// //                 placeholder="Search amount, wallet..."
-// //                 value={search}
-// //                 onChange={(e) => setSearch(e.target.value)}
-// //                 className="w-full bg-[#0b1221] border border-gray-700 text-gray-200 rounded px-3 py-2 pl-10 focus:outline-none focus:border-[#eab308] transition-colors placeholder-gray-500"
-// //               />
-// //             </div>
-// //           </div>
-
-// //           <div className="flex items-center gap-3 w-full sm:w-auto">
-// //             <span className="text-xs font-bold text-gray-400 uppercase tracking-widest whitespace-nowrap">
-// //               Filter:
-// //             </span>
-// //             <select
-// //               value={statusFilter}
-// //               onChange={(e) => setStatusFilter(e.target.value)}
-// //               className="w-full sm:w-auto bg-[#0b1221] border border-gray-700 text-[#eab308] text-sm font-bold rounded px-4 py-2 focus:outline-none focus:border-[#eab308] transition-colors cursor-pointer capitalize"
-// //             >
-// //               <option value="all">All Statuses</option>
-// //               <option value="pending">Pending</option>
-// //               <option value="approved">Approved</option>
-// //               <option value="rejected">Rejected</option>
-// //             </select>
-// //           </div>
-// //         </div>
-
-// //         {/* TABLE */}
-// //         <div className="overflow-x-auto border border-gray-700 rounded-lg">
-// //           <table className="w-full text-left whitespace-nowrap border-collapse">
-// //             <thead className="text-[#eab308] bg-[#1a253e] text-sm border-b border-gray-700">
-// //               <tr>
-// //                 <th className="p-4 border-r border-gray-700/50 font-bold text-center w-16">Sr. <span className="text-[10px] text-gray-500 ml-1">♦</span></th>
-// //                 <th className="p-4 border-r border-gray-700/50 font-bold text-center">Date <span className="text-[10px] text-gray-500 ml-1">♦</span></th>
-// //                 <th className="p-4 border-r border-gray-700/50 font-bold text-center">Total <span className="text-[10px] text-gray-500 ml-1">♦</span></th>
-// //                 <th className="p-4 border-r border-gray-700/50 font-bold text-center">USDT <span className="text-[10px] text-gray-500 ml-1">♦</span></th>
-// //                 <th className="p-4 border-r border-gray-700/50 font-bold text-center">TopUp Wallet <span className="text-[10px] text-gray-500 ml-1">♦</span></th>
-// //                 <th className="p-4 border-r border-gray-700/50 font-bold">Wallet Address</th>
-// //                 <th className="p-4 font-bold text-center">Status</th>
-// //               </tr>
-// //             </thead>
-
-// //             <tbody className="text-gray-300 text-sm">
-// //               {loading ? (
-// //                 <tr>
-// //                   <td colSpan="7" className="text-center py-12 text-[#eab308]">
-// //                      <div className="animate-spin h-8 w-8 mx-auto mb-3 border-4 border-t-transparent border-[#eab308] rounded-full"></div>
-// //                      Loading History...
-// //                   </td>
-// //                 </tr>
-// //               ) : paginated.length === 0 ? (
-// //                 <tr>
-// //                   <td colSpan="7" className="text-center py-12 text-gray-500">
-// //                     No Withdrawal Records Found
-// //                   </td>
-// //                 </tr>
-// //               ) : (
-// //                 paginated.map((group, idx) => {
-// //                   const statusInfo = getStatusDetails(group);
-
-// //                   return (
-// //                     <tr
-// //                       key={group._id}
-// //                       className="border-b border-gray-700 hover:bg-[#1a253e] transition-colors"
-// //                     >
-// //                       <td className="p-4 border-r border-gray-700/50 font-medium text-center">
-// //                         {startIdx + idx + 1}
-// //                       </td>
-
-// //                       <td className="p-4 border-r border-gray-700/50 font-medium text-center">
-// //                         {new Date(group.createdAt).toLocaleDateString(
-// //                           "en-GB", { day: '2-digit', month: 'short', year: 'numeric' }
-// //                         )}
-// //                       </td>
-
-// //                       <td className="p-4 border-r border-gray-700/50 font-bold text-center text-white">
-// //                         ${group.totalGross.toFixed(2)}
-// //                       </td>
-
-// //                       <td className="p-4 border-r border-gray-700/50 font-bold text-center text-[#eab308]">
-// //                         ${group.totalCryptoNet.toFixed(2)}
-// //                       </td>
-
-// //                       <td className="p-4 border-r border-gray-700/50 font-bold text-center text-purple-400">
-// //                         ${group.totalTopupNet.toFixed(2)}
-// //                       </td>
-
-// //                       <td className="p-4 border-r border-gray-700/50 text-gray-400 font-mono text-[11px] sm:text-xs">
-// //                         {group.walletAddress ? (
-// //                           <span className="px-2 py-1 rounded border border-gray-700 bg-[#0b1221]">
-// //                             {group.walletAddress}
-// //                           </span>
-// //                         ) : (
-// //                           "N/A"
-// //                         )}
-// //                       </td>
-
-// //                       <td className="p-4 text-center">
-// //                         <span
-// //                           className={`inline-flex items-center justify-center border px-2.5 py-1 text-[10px] font-bold tracking-widest rounded uppercase ${statusInfo.color}`}
-// //                         >
-// //                           {statusInfo.label}
-// //                         </span>
-// //                       </td>
-
-// //                     </tr>
-// //                   );
-// //                 })
-// //               )}
-// //             </tbody>
-// //           </table>
-// //         </div>
-
-// //         {/* PAGINATION */}
-// //         {!loading && sortedFiltered.length > 0 && (
-// //           <div className="flex flex-col sm:flex-row justify-between items-center mt-6 text-gray-400 text-sm gap-4">
-// //             <div>
-// //               Showing <span className="text-white font-medium">{startIdx + 1}</span> to{" "}
-// //               <span className="text-white font-medium">
-// //                 {Math.min(startIdx + itemsPerPage, sortedFiltered.length)}
-// //               </span>{" "}
-// //               of <span className="text-white font-medium">{sortedFiltered.length}</span> entries
-// //             </div>
-
-// //             <div className="flex items-center bg-[#0b1221] rounded border border-gray-700 overflow-hidden">
-// //               <button
-// //                 onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
-// //                 disabled={currentPage === 1}
-// //                 className={`px-4 py-2 transition-colors ${
-// //                   currentPage === 1
-// //                     ? "text-gray-600 bg-transparent cursor-not-allowed"
-// //                     : "text-[#eab308] hover:bg-[#1a253e]"
-// //                 }`}
-// //               >
-// //                 Previous
-// //               </button>
-// //               <div className="px-4 py-2 border-l border-r border-gray-700 bg-[#1a253e] text-[#eab308] font-bold">
-// //                 {currentPage}
-// //               </div>
-// //               <button
-// //                 onClick={() =>
-// //                   setCurrentPage((p) => Math.min(p + 1, totalPages))
-// //                 }
-// //                 disabled={currentPage === totalPages}
-// //                 className={`px-4 py-2 transition-colors ${
-// //                   currentPage === totalPages
-// //                     ? "text-gray-600 bg-transparent cursor-not-allowed"
-// //                     : "text-[#eab308] hover:bg-[#1a253e]"
-// //                 }`}
-// //               >
-// //                 Next
-// //               </button>
-// //             </div>
-// //           </div>
-// //         )}
-// //       </div>
-// //     </div>
-// //   );
-// // }
-
-// // export default UserWithdrawalHistory;
-
-// import React, { useEffect, useState } from "react";
-// import api from "../../api/axios";
-// import { useAuth } from "../../context/AuthContext"; // 🔥 FIX 1: useAuth import kiya
-// import {
-//   Search,
-//   Banknote,
-//   ChevronLeft,
-//   ChevronRight,
-//   Wallet,
-// } from "lucide-react";
-
-// function UserWithdrawalHistory() {
-//   const { user, token } = useAuth(); // 🔥 FIX 2: localStorage ki jagah useAuth use kiya
-
-//   const [withdrawals, setWithdrawals] = useState([]);
-//   const [loading, setLoading] = useState(true);
-//   const [search, setSearch] = useState("");
-//   const [statusFilter, setStatusFilter] = useState("all");
-//   const [currentPage, setCurrentPage] = useState(1);
-
-//   const itemsPerPage = 10;
-
-//   // 🔥 FIX 3: Number() hata diya taaki 'WF...' string ID exactly waisi hi jaye
-//   const userId = user?.userId; 
-  
-//   // Check if user is a Leader
-//   const isLeader = user?.role?.toLowerCase() === "leader";
-
-//   useEffect(() => {
-//     const fetchWithdrawals = async () => {
-//       if (!userId || !token) return; // Token aur userId ke bina API call nahi hogi
-//       try {
-//         setLoading(true);
-//         // 🔥 FIX 4: Token pass kiya aur aapke naye route /wallet/withdrawals par request bheji
-//         const res = await api.get(
-//           `/wallet/withdrawals/${userId}?t=${new Date().getTime()}`,
-//           { headers: { Authorization: `Bearer ${token}` } } 
-//         );
-        
-//         // Backend seedha 'withdrawals' array bhej raha hai
-//         setWithdrawals(res.data.withdrawals || []);
-//       } catch (error) {
-//         console.error("Error fetching withdrawal history:", error);
-//       } finally {
-//         setLoading(false);
-//       }
-//     };
-
-//     fetchWithdrawals();
-//   }, [userId, token]);
-
-//   // 🔥 GROUP & ADJUST ENTRIES (WITH TIME-BASED LOGIC)
-//   const groupWithdrawals = (list) => {
-//     const sorted = [...list].sort(
-//       (a, b) => new Date(a.createdAt) - new Date(b.createdAt)
-//     );
-
-//     const groups = [];
-//     const THRESHOLD_MS = 5000;
-    
-//     // 🔥 CUTOFF TIME: 13 July 2026, 4:00 PM IST
-//     const CUTOFF_TIME = new Date("2026-07-13T16:00:00+05:30").getTime();
-
-//     for (const item of sorted) {
-//       const itemTime = new Date(item.createdAt).getTime();
-//       const lastGroup = groups[groups.length - 1];
-
-//       // 👉 TIME CHECK: Purana (before 4 PM) ya Naya (after 4 PM)
-//       const isNewLogic = itemTime >= CUTOFF_TIME;
-
-//       // 👉 AMOUNT CALCULATION LOGIC (Fee Removed completely)
-//       const iGross = isNewLogic ? Number(item.grossAmount || 0) : Number(item.grossAmount || 0) * 2;
-//       const iCryptoNet = Number(item.netAmount || 0); // USDT portion
-      
-//       // TopUp calculation: Without fee -> TopUp = Gross - USDT
-//       const iTopupNet = isNewLogic ? (iGross - iCryptoNet) : Number(item.netAmount || 0);
-
-//       if (
-//         lastGroup &&
-//         itemTime -
-//           new Date(
-//             lastGroup.entries[lastGroup.entries.length - 1].createdAt
-//           ).getTime() <=
-//           THRESHOLD_MS
-//       ) {
-//         lastGroup.entries.push(item);
-
-//         lastGroup.rawGross += iGross;
-//         lastGroup.rawCryptoNet += iCryptoNet;
-//         lastGroup.rawTopupNet += iTopupNet;
-
-//         if (item.status?.toLowerCase() === "pending")
-//           lastGroup.status = "pending";
-//         else if (
-//           item.status?.toLowerCase() === "rejected" &&
-//           lastGroup.status !== "pending"
-//         )
-//           lastGroup.status = "rejected";
-//       } else {
-//         groups.push({
-//           _id: item._id,
-//           createdAt: item.createdAt,
-//           entries: [item],
-//           rawGross: iGross,
-//           rawCryptoNet: iCryptoNet,
-//           rawTopupNet: iTopupNet,
-//           walletAddress: item.walletAddress,
-//           status: item.status || "pending",
-//           isNewLogic: isNewLogic // Tracking for Leader override
-//         });
-//       }
-//     }
-
-//     // 🔥 LEADER ADJUSTMENT LOGIC (Fee removed, 50-50 split for old logic)
-//     groups.forEach(g => {
-//         if (isLeader && !g.isNewLogic) {
-//             // Agar Leader hai aur entry PURANI hai (Before 4 PM)
-//             const roundedGross = Math.floor(g.rawGross / 10) * 10;
-//             g.totalGross = roundedGross;
-//             g.totalCryptoNet = roundedGross * 0.50; // Adjusted for 0 fee
-//             g.totalTopupNet = roundedGross * 0.50;  // Adjusted for 0 fee
-//         } else {
-//             // Normal user YA Naya logic (After 4 PM) -> Exact backend values
-//             g.totalGross = g.rawGross;
-//             g.totalCryptoNet = g.rawCryptoNet;
-//             g.totalTopupNet = g.rawTopupNet;
-//         }
-//     });
-
-//     return groups;
-//   };
-
-//   const grouped = groupWithdrawals(withdrawals);
-
-//   const totalAmount = grouped.reduce((sum, g) => {
-//       // Sirf Success/Approved withdrawals ka total
-//       if (g.status?.toLowerCase() === "success" || g.status?.toLowerCase() === "approved") {
-//           return sum + g.totalGross;
-//       }
-//       return sum;
-//   }, 0);
-
-//   const filtered = grouped.filter((g) => {
-//     const searchLower = search.toLowerCase();
-//     const matchSearch =
-//       g.status?.toLowerCase().includes(searchLower) ||
-//       g.totalGross.toString().includes(searchLower) ||
-//       new Date(g.createdAt)
-//         .toLocaleDateString("en-GB")
-//         .includes(searchLower) ||
-//       (g.walletAddress?.toLowerCase() || "").includes(searchLower);
-
-//     const matchStatus =
-//       statusFilter === "all" ||
-//       g.status?.toLowerCase() === statusFilter.toLowerCase();
-
-//     return matchSearch && matchStatus;
-//   });
-
-//   const sortedFiltered = [...filtered].sort(
-//     (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
-//   );
-
-//   const totalPages =
-//     Math.ceil(sortedFiltered.length / itemsPerPage) || 1;
-
-//   const startIdx = (currentPage - 1) * itemsPerPage;
-
-//   const paginated = sortedFiltered.slice(
-//     startIdx,
-//     startIdx + itemsPerPage
-//   );
-
-//   useEffect(() => {
-//     setCurrentPage(1);
-//   }, [search, statusFilter]);
-
-//   const getStatusDetails = (group) => {
-//     const s = group.status?.toLowerCase();
-
-//     if (s === "approved" || s === "success") {
-//       return {
-//         label: group.status,
-//         color: "bg-green-500/10 text-green-400 border-green-500/20",
-//       };
-//     }
-
-//     if (s === "pending") {
-//       return {
-//         label: group.status,
-//         color: "bg-[#eab308]/10 text-[#eab308] border-[#eab308]/20",
-//       };
-//     }
-
-//     if (s === "rejected" || s === "failed") {
-//       return {
-//         label: group.status,
-//         color: "bg-red-500/10 text-red-400 border-red-500/20",
-//       };
-//     }
-
-//     return {
-//       label: group.status || "UNKNOWN",
-//       color: "bg-gray-500/10 text-gray-400 border-gray-500/20",
-//     };
-//   };
-
-//   return (
-//     <div className="w-full min-h-screen bg-[#0b1221] p-4 md:p-8 font-sans">
-
-//       {/* Inner Card Container */}
-//       <div className="max-w-7xl mx-auto bg-[#131c31] rounded-xl border-t-[3px] border-[#eab308] shadow-2xl p-4 sm:p-6">
-
-//         {/* HEADER */}
-//         <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-8 gap-4">
-//           <div>
-//             <h2 className="text-2xl sm:text-3xl text-[#eab308] font-bold tracking-wide flex items-center gap-3">
-//               <Banknote className="text-[#eab308]" size={28} />
-//               Withdrawal History
-//             </h2>
-            
-//           </div>
-//         </div>
-
-//         {/* STATS */}
-//         <div className="mb-8">
-//           <div className="bg-[#0b1221] border border-gray-700 rounded-xl p-5 md:p-6 relative overflow-hidden flex flex-col justify-center max-w-sm">
-//             <h3 className="text-gray-400 text-[10px] md:text-xs font-bold uppercase tracking-widest flex items-center gap-2 mb-2">
-//               <Wallet size={14} className="text-[#eab308]" />
-//               Total Withdrawn
-//             </h3>
-//             <p className="text-3xl md:text-4xl font-black text-green-400">
-//               ${totalAmount.toFixed(2)}
-//             </p>
-//           </div>
-//         </div>
-
-//         {/* FILTERS */}
-//         <div className="flex flex-col sm:flex-row gap-4 mb-6 justify-between items-start sm:items-center text-gray-300 text-sm">
-
-//           <div className="flex items-center gap-2 w-full sm:w-auto">
-//             <div className="relative w-full sm:w-80 group">
-//               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-//                 <Search size={16} className="text-gray-500" />
-//               </div>
-//               <input
-//                 type="text"
-//                 placeholder="Search amount, wallet..."
-//                 value={search}
-//                 onChange={(e) => setSearch(e.target.value)}
-//                 className="w-full bg-[#0b1221] border border-gray-700 text-gray-200 rounded px-3 py-2 pl-10 focus:outline-none focus:border-[#eab308] transition-colors placeholder-gray-500"
-//               />
-//             </div>
-//           </div>
-
-//           <div className="flex items-center gap-3 w-full sm:w-auto">
-//             <span className="text-xs font-bold text-gray-400 uppercase tracking-widest whitespace-nowrap">
-//               Filter:
-//             </span>
-//             <select
-//               value={statusFilter}
-//               onChange={(e) => setStatusFilter(e.target.value)}
-//               className="w-full sm:w-auto bg-[#0b1221] border border-gray-700 text-[#eab308] text-sm font-bold rounded px-4 py-2 focus:outline-none focus:border-[#eab308] transition-colors cursor-pointer capitalize"
-//             >
-//               <option value="all">All Statuses</option>
-//               <option value="pending">Pending</option>
-//               <option value="approved">Approved</option>
-//               <option value="rejected">Rejected</option>
-//             </select>
-//           </div>
-//         </div>
-
-//         {/* TABLE */}
-//         <div className="overflow-x-auto border border-gray-700 rounded-lg">
-//           <table className="w-full text-left whitespace-nowrap border-collapse">
-//             <thead className="text-[#eab308] bg-[#1a253e] text-sm border-b border-gray-700">
-//               <tr>
-//                 <th className="p-4 border-r border-gray-700/50 font-bold text-center w-16">Sr. <span className="text-[10px] text-gray-500 ml-1">♦</span></th>
-//                 <th className="p-4 border-r border-gray-700/50 font-bold text-center">Date <span className="text-[10px] text-gray-500 ml-1">♦</span></th>
-//                 <th className="p-4 border-r border-gray-700/50 font-bold text-center">Total <span className="text-[10px] text-gray-500 ml-1">♦</span></th>
-//                  <th className="p-4 border-r border-gray-700/50 font-bold">Wallet Address</th>
-//                 <th className="p-4 font-bold text-center">Status</th>
-//               </tr>
-//             </thead>
-
-//             <tbody className="text-gray-300 text-sm">
-//               {loading ? (
-//                 <tr>
-//                   <td colSpan="7" className="text-center py-12 text-[#eab308]">
-//                      <div className="animate-spin h-8 w-8 mx-auto mb-3 border-4 border-t-transparent border-[#eab308] rounded-full"></div>
-//                      Loading History...
-//                   </td>
-//                 </tr>
-//               ) : paginated.length === 0 ? (
-//                 <tr>
-//                   <td colSpan="7" className="text-center py-12 text-gray-500">
-//                     No Withdrawal Records Found
-//                   </td>
-//                 </tr>
-//               ) : (
-//                 paginated.map((group, idx) => {
-//                   const statusInfo = getStatusDetails(group);
-
-//                   return (
-//                     <tr
-//                       key={group._id || idx}
-//                       className="border-b border-gray-700 hover:bg-[#1a253e] transition-colors"
-//                     >
-//                       <td className="p-4 border-r border-gray-700/50 font-medium text-center">
-//                         {startIdx + idx + 1}
-//                       </td>
-
-//                       <td className="p-4 border-r border-gray-700/50 font-medium text-center">
-//                         {new Date(group.createdAt).toLocaleDateString(
-//                           "en-GB", { day: '2-digit', month: 'short', year: 'numeric' }
-//                         )}
-//                       </td>
-
-//                       <td className="p-4 border-r border-gray-700/50 font-bold text-center text-white">
-//                         ${group.totalGross.toFixed(2)}
-//                       </td>
- 
-
-                       
-
-//                       <td className="p-4 border-r border-gray-700/50 text-gray-400 font-mono text-[11px] sm:text-xs">
-//                         {group.walletAddress ? (
-//                           <span className="px-2 py-1 rounded border border-gray-700 bg-[#0b1221]">
-//                             {group.walletAddress}
-//                           </span>
-//                         ) : (
-//                           "N/A"
-//                         )}
-//                       </td>
-
-//                       <td className="p-4 text-center">
-//                         <span
-//                           className={`inline-flex items-center justify-center border px-2.5 py-1 text-[10px] font-bold tracking-widest rounded uppercase ${statusInfo.color}`}
-//                         >
-//                           {statusInfo.label}
-//                         </span>
-//                       </td>
-
-//                     </tr>
-//                   );
-//                 })
-//               )}
-//             </tbody>
-//           </table>
-//         </div>
-
-//         {/* PAGINATION */}
-//         {!loading && sortedFiltered.length > 0 && (
-//           <div className="flex flex-col sm:flex-row justify-between items-center mt-6 text-gray-400 text-sm gap-4">
-//             <div>
-//               Showing <span className="text-white font-medium">{startIdx + 1}</span> to{" "}
-//               <span className="text-white font-medium">
-//                 {Math.min(startIdx + itemsPerPage, sortedFiltered.length)}
-//               </span>{" "}
-//               of <span className="text-white font-medium">{sortedFiltered.length}</span> entries
-//             </div>
-
-//             <div className="flex items-center bg-[#0b1221] rounded border border-gray-700 overflow-hidden">
-//               <button
-//                 onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
-//                 disabled={currentPage === 1}
-//                 className={`px-4 py-2 transition-colors ${
-//                   currentPage === 1
-//                     ? "text-gray-600 bg-transparent cursor-not-allowed"
-//                     : "text-[#eab308] hover:bg-[#1a253e]"
-//                 }`}
-//               >
-//                 Previous
-//               </button>
-//               <div className="px-4 py-2 border-l border-r border-gray-700 bg-[#1a253e] text-[#eab308] font-bold">
-//                 {currentPage}
-//               </div>
-//               <button
-//                 onClick={() =>
-//                   setCurrentPage((p) => Math.min(p + 1, totalPages))
-//                 }
-//                 disabled={currentPage === totalPages}
-//                 className={`px-4 py-2 transition-colors ${
-//                   currentPage === totalPages
-//                     ? "text-gray-600 bg-transparent cursor-not-allowed"
-//                     : "text-[#eab308] hover:bg-[#1a253e]"
-//                 }`}
-//               >
-//                 Next
-//               </button>
-//             </div>
-//           </div>
-//         )}
-//       </div>
-//     </div>
-//   );
-// }
-
-// export default UserWithdrawalHistory;
-
-
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import api from "../../api/axios";
-import { useAuth } from "../../context/AuthContext"; 
-import {
-  Search,
-  Banknote,
-  ChevronLeft,
-  ChevronRight,
-  Wallet,
-  CalendarClock
-} from "lucide-react";
+
+const CREDIT_TYPES = ["success", "approved"];
+
+const money = (value) =>
+  `$${Number(value || 0).toLocaleString("en-US", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })}`;
+
+const dateLabel = (value, withTime = false) => {
+  if (!value) return "Date unavailable";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "Date unavailable";
+  return date.toLocaleString("en-IN", {
+    timeZone: "Asia/Kolkata",
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+    ...(withTime ? { hour: "2-digit", minute: "2-digit", hour12: true } : {}),
+  });
+};
 
 function UserWithdrawalHistory() {
-  const { user, token } = useAuth(); 
-
   const [withdrawals, setWithdrawals] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
-
   const itemsPerPage = 10;
-  const userId = user?.userId; 
-  const isLeader = user?.role?.toLowerCase() === "leader";
+
+  const storedUser = useMemo(() => {
+    try {
+      return JSON.parse(localStorage.getItem("user") || "null");
+    } catch {
+      return null;
+    }
+  }, []);
+  const userId = Number(storedUser?.userId);
+  const isLeader = String(storedUser?.role || "").toLowerCase() === "leader";
 
   useEffect(() => {
     const fetchWithdrawals = async () => {
-      if (!userId || !token) return; 
+      if (!userId) {
+        setLoading(false);
+        return;
+      }
       try {
         setLoading(true);
         const res = await api.get(
-          `/wallet/withdrawals/${userId}?t=${new Date().getTime()}`,
-          { headers: { Authorization: `Bearer ${token}` } } 
+          `/wallet/withdrawals/${userId}?t=${new Date().getTime()}`
         );
-        
-        setWithdrawals(res.data.withdrawals || []);
+        setWithdrawals(Array.isArray(res.data.withdrawals) ? res.data.withdrawals : []);
       } catch (error) {
         console.error("Error fetching withdrawal history:", error);
+        setWithdrawals([]);
       } finally {
         setLoading(false);
       }
     };
-
     fetchWithdrawals();
-  }, [userId, token]);
+  }, [userId]);
 
-  const groupWithdrawals = (list) => {
-    const sorted = [...list].sort(
-      (a, b) => new Date(a.createdAt) - new Date(b.createdAt)
+  // Preserve the existing 5-second grouping and historical Leader calculation.
+  const grouped = useMemo(() => {
+    const sorted = [...withdrawals].sort(
+      (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
     );
-
     const groups = [];
-    const THRESHOLD_MS = 5000;
-    const CUTOFF_TIME = new Date("2026-07-13T16:00:00+05:30").getTime();
+    const thresholdMs = 5000;
+    const cutoffTime = new Date("2026-07-13T16:00:00+05:30").getTime();
 
     for (const item of sorted) {
       const itemTime = new Date(item.createdAt).getTime();
+      const isNewLogic = itemTime >= cutoffTime;
+      const itemGross = isNewLogic
+        ? Number(item.grossAmount || 0)
+        : Number(item.grossAmount || 0) * 2;
+      const itemCrypto = Number(item.netAmount || 0);
+      const itemTopup = isNewLogic
+        ? itemGross - itemCrypto
+        : Number(item.netAmount || 0);
       const lastGroup = groups[groups.length - 1];
-      const isNewLogic = itemTime >= CUTOFF_TIME;
+      const lastEntryTime = lastGroup
+        ? new Date(lastGroup.entries[lastGroup.entries.length - 1].createdAt).getTime()
+        : 0;
 
-      const iGross = isNewLogic ? Number(item.grossAmount || 0) : Number(item.grossAmount || 0) * 2;
-      const iCryptoNet = Number(item.netAmount || 0); 
-      const iTopupNet = isNewLogic ? (iGross - iCryptoNet) : Number(item.netAmount || 0);
-
-      if (
-        lastGroup &&
-        itemTime -
-          new Date(
-            lastGroup.entries[lastGroup.entries.length - 1].createdAt
-          ).getTime() <=
-          THRESHOLD_MS
-      ) {
+      if (lastGroup && itemTime - lastEntryTime <= thresholdMs) {
         lastGroup.entries.push(item);
-
-        lastGroup.rawGross += iGross;
-        lastGroup.rawCryptoNet += iCryptoNet;
-        lastGroup.rawTopupNet += iTopupNet;
-
-        if (item.status?.toLowerCase() === "pending")
-          lastGroup.status = "pending";
-        else if (
-          item.status?.toLowerCase() === "rejected" &&
-          lastGroup.status !== "pending"
-        )
+        lastGroup.rawGross += itemGross;
+        lastGroup.rawCryptoNet += itemCrypto;
+        lastGroup.rawTopupNet += itemTopup;
+        const status = String(item.status || "").toLowerCase();
+        if (status === "pending") lastGroup.status = "pending";
+        else if (status === "rejected" && lastGroup.status !== "pending") {
           lastGroup.status = "rejected";
+        }
       } else {
         groups.push({
           _id: item._id,
           createdAt: item.createdAt,
           entries: [item],
-          rawGross: iGross,
-          rawCryptoNet: iCryptoNet,
-          rawTopupNet: iTopupNet,
+          rawGross: itemGross,
+          rawCryptoNet: itemCrypto,
+          rawTopupNet: itemTopup,
           walletAddress: item.walletAddress,
           status: item.status || "pending",
-          isNewLogic: isNewLogic 
+          isNewLogic,
         });
       }
     }
 
-    groups.forEach(g => {
-        if (isLeader && !g.isNewLogic) {
-            const roundedGross = Math.floor(g.rawGross / 10) * 10;
-            g.totalGross = roundedGross;
-            g.totalCryptoNet = roundedGross * 0.50; 
-            g.totalTopupNet = roundedGross * 0.50;  
-        } else {
-            g.totalGross = g.rawGross;
-            g.totalCryptoNet = g.rawCryptoNet;
-            g.totalTopupNet = g.rawTopupNet;
-        }
+    groups.forEach((group) => {
+      if (isLeader && !group.isNewLogic) {
+        const roundedGross = Math.floor(group.rawGross / 10) * 10;
+        group.totalGross = roundedGross;
+        group.totalCryptoNet = roundedGross * 0.5;
+        group.totalTopupNet = roundedGross * 0.5;
+      } else {
+        group.totalGross = group.rawGross;
+        group.totalCryptoNet = group.rawCryptoNet;
+        group.totalTopupNet = group.rawTopupNet;
+      }
     });
 
-    return groups;
-  };
+    return groups.sort(
+      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    );
+  }, [withdrawals, isLeader]);
 
-  const grouped = groupWithdrawals(withdrawals);
-
-  const totalAmount = grouped.reduce((sum, g) => {
-      if (g.status?.toLowerCase() === "success" || g.status?.toLowerCase() === "approved") {
-          return sum + g.totalGross;
-      }
-      return sum;
-  }, 0);
-
-  const filtered = grouped.filter((g) => {
-    const searchLower = search.toLowerCase();
-    const matchSearch =
-      g.status?.toLowerCase().includes(searchLower) ||
-      g.totalGross.toString().includes(searchLower) ||
-      new Date(g.createdAt)
-        .toLocaleDateString("en-GB")
-        .includes(searchLower) ||
-      (g.walletAddress?.toLowerCase() || "").includes(searchLower);
-
-    const matchStatus =
-      statusFilter === "all" ||
-      g.status?.toLowerCase() === statusFilter.toLowerCase();
-
-    return matchSearch && matchStatus;
-  });
-
-  const sortedFiltered = [...filtered].sort(
-    (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+  const totalAmount = useMemo(
+    () =>
+      grouped.reduce((sum, group) => {
+        const status = String(group.status || "").toLowerCase();
+        return CREDIT_TYPES.includes(status) ? sum + group.totalGross : sum;
+      }, 0),
+    [grouped]
   );
 
-  const totalPages = Math.ceil(sortedFiltered.length / itemsPerPage) || 1;
-  const startIdx = (currentPage - 1) * itemsPerPage;
-  const paginated = sortedFiltered.slice(startIdx, startIdx + itemsPerPage);
+  const filtered = useMemo(() => {
+    const term = search.trim().toLowerCase();
+    return grouped.filter((group) => {
+      const status = String(group.status || "").toLowerCase();
+      const matchesStatus = statusFilter === "all" || status === statusFilter;
+      const searchable = [
+        status,
+        group.totalGross,
+        group.totalCryptoNet,
+        group.totalTopupNet,
+        group.walletAddress,
+        dateLabel(group.createdAt),
+      ]
+        .join(" ")
+        .toLowerCase();
+      return matchesStatus && (!term || searchable.includes(term));
+    });
+  }, [grouped, search, statusFilter]);
 
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [search, statusFilter]);
+  useEffect(() => setCurrentPage(1), [search, statusFilter]);
 
-  const getStatusDetails = (group) => {
-    const s = group.status?.toLowerCase();
+  const totalPages = Math.max(1, Math.ceil(filtered.length / itemsPerPage));
+  const page = Math.min(currentPage, totalPages);
+  const startIdx = (page - 1) * itemsPerPage;
+  const pageItems = filtered.slice(startIdx, startIdx + itemsPerPage);
 
-    if (s === "approved" || s === "success") {
-      return {
-        label: group.status,
-        color: "bg-green-500/10 text-green-400 border-green-500/20",
-      };
+  const statusAppearance = (status) => {
+    const value = String(status || "unknown").toLowerCase();
+    if (["success", "approved"].includes(value)) {
+      return "border-emerald-400/25 bg-emerald-400/10 text-emerald-300";
     }
-    if (s === "pending") {
-      return {
-        label: group.status,
-        color: "bg-[#eab308]/10 text-[#eab308] border-[#eab308]/20",
-      };
+    if (value === "pending") {
+      return "border-amber-300/25 bg-amber-300/10 text-amber-200";
     }
-    if (s === "rejected" || s === "failed") {
-      return {
-        label: group.status,
-        color: "bg-red-500/10 text-red-400 border-red-500/20",
-      };
+    if (["rejected", "failed"].includes(value)) {
+      return "border-rose-400/25 bg-rose-400/10 text-rose-300";
     }
-    return {
-      label: group.status || "UNKNOWN",
-      color: "bg-gray-500/10 text-gray-400 border-gray-500/20",
-    };
-  };
-
-  // 🔥 NAYA LOGIC: EXPECTED CREDIT DATE CALCULATION
-  const getExpectedCreditDate = (createdAtStr) => {
-    const createdDate = new Date(createdAtStr);
-    const ruleStartDate = new Date("2026-10-11T00:00:00+05:30"); // Naya rule kal se lagu hua hai
-
-    if (createdDate >= ruleStartDate) {
-        // Naye withdrawals ke liye +10 Din jod do
-        const expectedDate = new Date(createdDate);
-        expectedDate.setDate(expectedDate.getDate() + 10);
-        return expectedDate.toLocaleDateString("en-GB", { day: '2-digit', month: 'short', year: 'numeric' });
-    } else {
-        // Purane withdrawals (Jo pehle hi aa chuke hain) unki same date dikhao
-        return createdDate.toLocaleDateString("en-GB", { day: '2-digit', month: 'short', year: 'numeric' });
-    }
+    return "border-slate-400/20 bg-slate-400/10 text-slate-300";
   };
 
   return (
-    <div className="w-full min-h-screen bg-[#0b1221] p-4 md:p-8 font-sans">
-
-      <div className="max-w-7xl mx-auto bg-[#131c31] rounded-xl border-t-[3px] border-[#eab308] shadow-2xl p-4 sm:p-6">
-
-        {/* HEADER */}
-        <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-8 gap-4">
-          <div>
-            <h2 className="text-2xl sm:text-3xl text-[#eab308] font-bold tracking-wide flex items-center gap-3">
-              <Banknote className="text-[#eab308]" size={28} />
-              Withdrawal History
-            </h2>
-          </div>
-        </div>
-
-        {/* STATS */}
-        <div className="mb-8">
-          <div className="bg-[#0b1221] border border-gray-700 rounded-xl p-5 md:p-6 relative overflow-hidden flex flex-col justify-center max-w-sm">
-            <h3 className="text-gray-400 text-[10px] md:text-xs font-bold uppercase tracking-widest flex items-center gap-2 mb-2">
-              <Wallet size={14} className="text-[#eab308]" />
-              Total Withdrawn
-            </h3>
-            <p className="text-3xl md:text-4xl font-black text-green-400">
-              ${totalAmount.toFixed(2)}
-            </p>
-          </div>
-        </div>
-
-        {/* FILTERS */}
-        <div className="flex flex-col sm:flex-row gap-4 mb-6 justify-between items-start sm:items-center text-gray-300 text-sm">
-          <div className="flex items-center gap-2 w-full sm:w-auto">
-            <div className="relative w-full sm:w-80 group">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Search size={16} className="text-gray-500" />
-              </div>
-              <input
-                type="text"
-                placeholder="Search amount, wallet..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="w-full bg-[#0b1221] border border-gray-700 text-gray-200 rounded px-3 py-2 pl-10 focus:outline-none focus:border-[#eab308] transition-colors placeholder-gray-500"
-              />
+    <main className="min-h-screen w-full bg-[#080c13] px-4 pb-12 pt-24 font-sans text-white sm:px-6 lg:px-10">
+      <div className="mx-auto max-w-7xl">
+        {/* Distinct editorial / finance-report layout */}
+        <header className="relative mb-8 overflow-hidden border-b border-white/10 pb-8">
+          <div className="pointer-events-none absolute -right-16 -top-20 h-72 w-72 rounded-full bg-amber-300/[0.08] blur-3xl" />
+          <div className="relative grid gap-7 lg:grid-cols-[1fr_310px] lg:items-end">
+            <div>
+              <p className="mb-4 flex items-center gap-3 text-[10px] font-bold uppercase tracking-[0.34em] text-amber-300">
+                <span className="h-px w-9 bg-amber-300" />
+                Global Wealth · Treasury
+              </p>
+              <h1 className="max-w-3xl text-4xl font-semibold leading-[1.05] tracking-tight sm:text-6xl">
+                Withdrawal
+                <span className="block font-light text-slate-400">statement.</span>
+              </h1>
+              <p className="mt-4 max-w-xl text-sm leading-6 text-slate-400">
+                Review payout requests, settlement splits and wallet destinations in one chronological statement.
+              </p>
+            </div>
+            <div className="relative border-l-2 border-amber-300 pl-5 lg:pb-1">
+              <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-slate-500">
+                Successfully withdrawn
+              </p>
+              <p className="mt-2 text-4xl font-semibold tracking-tight text-emerald-300">
+                {money(totalAmount)}
+              </p>
+              <p className="mt-2 text-xs text-slate-500">
+                Approved and successful requests only
+              </p>
             </div>
           </div>
+        </header>
 
-          <div className="flex items-center gap-3 w-full sm:w-auto">
-            <span className="text-xs font-bold text-gray-400 uppercase tracking-widest whitespace-nowrap">
-              Filter:
-            </span>
+        {/* Summary strip */}
+        <section className="mb-9 grid grid-cols-2 gap-x-5 gap-y-6 border-b border-white/10 pb-7 md:grid-cols-4">
+          <div>
+            <p className="text-[10px] uppercase tracking-[0.2em] text-slate-500">Requests</p>
+            <p className="mt-2 text-2xl font-semibold">{grouped.length}</p>
+            <p className="mt-1 text-[11px] text-slate-600">Grouped payout records</p>
+          </div>
+          <div>
+            <p className="text-[10px] uppercase tracking-[0.2em] text-slate-500">Pending</p>
+            <p className="mt-2 text-2xl font-semibold text-amber-200">
+              {grouped.filter((g) => String(g.status).toLowerCase() === "pending").length}
+            </p>
+            <p className="mt-1 text-[11px] text-slate-600">Awaiting processing</p>
+          </div>
+          <div>
+            <p className="text-[10px] uppercase tracking-[0.2em] text-slate-500">Rejected</p>
+            <p className="mt-2 text-2xl font-semibold text-rose-300">
+              {grouped.filter((g) => ["rejected", "failed"].includes(String(g.status).toLowerCase())).length}
+            </p>
+            <p className="mt-1 text-[11px] text-slate-600">Unsuccessful requests</p>
+          </div>
+          <div>
+            <p className="text-[10px] uppercase tracking-[0.2em] text-slate-500">Approved</p>
+            <p className="mt-2 text-2xl font-semibold text-emerald-300">
+              {grouped.filter((g) => ["approved", "success"].includes(String(g.status).toLowerCase())).length}
+            </p>
+            <p className="mt-1 text-[11px] text-slate-600">Completed requests</p>
+          </div>
+        </section>
+
+        {/* Filter bar */}
+        <section className="mb-5 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+          <div>
+            <p className="text-[10px] font-bold uppercase tracking-[0.25em] text-amber-300">Payout archive</p>
+            <h2 className="mt-1 text-xl font-semibold">Your withdrawal activity</h2>
+            <p className="mt-1 text-xs text-slate-500">All dates and times are shown in IST.</p>
+          </div>
+          <div className="flex flex-col gap-3 sm:flex-row">
+            <label className="relative block sm:min-w-[270px]">
+              <span className="sr-only">Search withdrawals</span>
+              <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-500">⌕</span>
+              <input
+                type="search"
+                value={search}
+                onChange={(event) => setSearch(event.target.value)}
+                placeholder="Search amount, date, wallet..."
+                className="w-full rounded-lg border border-white/10 bg-[#101722] py-3 pl-9 pr-4 text-sm text-white outline-none placeholder:text-slate-600 focus:border-amber-300/60"
+              />
+            </label>
             <select
               value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="w-full sm:w-auto bg-[#0b1221] border border-gray-700 text-[#eab308] text-sm font-bold rounded px-4 py-2 focus:outline-none focus:border-[#eab308] transition-colors cursor-pointer capitalize"
+              onChange={(event) => setStatusFilter(event.target.value)}
+              className="rounded-lg border border-white/10 bg-[#101722] px-4 py-3 text-sm font-medium text-amber-200 outline-none focus:border-amber-300/60"
             >
-              <option value="all">All Statuses</option>
+              <option value="all">All statuses</option>
               <option value="pending">Pending</option>
               <option value="approved">Approved</option>
+              <option value="success">Success</option>
               <option value="rejected">Rejected</option>
+              <option value="failed">Failed</option>
             </select>
           </div>
-        </div>
+        </section>
 
-        {/* TABLE */}
-        <div className="overflow-x-auto border border-gray-700 rounded-lg">
-          <table className="w-full text-left whitespace-nowrap border-collapse">
-            <thead className="text-[#eab308] bg-[#1a253e] text-sm border-b border-gray-700">
-              <tr>
-                <th className="p-4 border-r border-gray-700/50 font-bold text-center w-16">Sr.</th>
-                <th className="p-4 border-r border-gray-700/50 font-bold text-center">Request Date</th>
-                {/* 🔥 NAYA COLUMN: Credit Date */}
-                <th className="p-4 border-r border-gray-700/50 font-bold text-center">Total</th>
-                 <th className="p-4 border-r border-gray-700/50 font-bold">Wallet Address</th>
-                <th className="p-4 border-r border-gray-700/50 font-bold text-center">Credit Date</th>
-                <th className="p-4 font-bold text-center">Status</th>
-              </tr>
-            </thead>
-
-            <tbody className="text-gray-300 text-sm">
-              {loading ? (
-                <tr>
-                  <td colSpan="6" className="text-center py-12 text-[#eab308]">
-                     <div className="animate-spin h-8 w-8 mx-auto mb-3 border-4 border-t-transparent border-[#eab308] rounded-full"></div>
-                     Loading History...
-                  </td>
-                </tr>
-              ) : paginated.length === 0 ? (
-                <tr>
-                  <td colSpan="6" className="text-center py-12 text-gray-500">
-                    No Withdrawal Records Found
-                  </td>
-                </tr>
-              ) : (
-                paginated.map((group, idx) => {
-                  const statusInfo = getStatusDetails(group);
-                  const expectedDate = getExpectedCreditDate(group.createdAt); // 🔥 Naya function call kiya
-
-                  return (
-                    <tr
-                      key={group._id || idx}
-                      className="border-b border-gray-700 hover:bg-[#1a253e] transition-colors"
-                    >
-                      <td className="p-4 border-r border-gray-700/50 font-medium text-center">
-                        {startIdx + idx + 1}
-                      </td>
-
-                      <td className="p-4 border-r border-gray-700/50 font-medium text-center text-gray-400">
-                        {new Date(group.createdAt).toLocaleDateString(
-                          "en-GB", { day: '2-digit', month: 'short', year: 'numeric' }
-                        )}
-                      </td>
-
-                     
-
-                      <td className="p-4 border-r border-gray-700/50 font-black text-center text-white">
-                        ${group.totalGross.toFixed(2)}
-                      </td>
- 
-                      <td className="p-4 border-r border-gray-700/50 text-gray-400 font-mono text-[11px] sm:text-xs">
-                        {group.walletAddress ? (
-                          <span className="px-2 py-1 rounded border border-gray-700 bg-[#0b1221]">
-                            {group.walletAddress}
-                          </span>
-                        ) : (
-                          "N/A"
-                        )}
-                      </td>
-
-                       {/* 🔥 EXPECTED DATE DISPLAY */}
-                      <td className="p-4 border-r border-gray-700/50 font-bold text-center text-[#eab308]">
-                        <div className="flex items-center justify-center gap-1.5">
-                            <CalendarClock size={14} className="text-[#eab308]/70" />
-                            {expectedDate}
-                        </div>
-                      </td>
-
-                      <td className="p-4 text-center">
-                        <span
-                          className={`inline-flex items-center justify-center border px-2.5 py-1 text-[10px] font-bold tracking-widest rounded uppercase ${statusInfo.color}`}
-                        >
-                          {statusInfo.label}
-                        </span>
-                      </td>
-
-                    </tr>
-                  );
-                })
-              )}
-            </tbody>
-          </table>
-        </div>
-
-        {/* PAGINATION */}
-        {!loading && sortedFiltered.length > 0 && (
-          <div className="flex flex-col sm:flex-row justify-between items-center mt-6 text-gray-400 text-sm gap-4">
-            <div>
-              Showing <span className="text-white font-medium">{startIdx + 1}</span> to{" "}
-              <span className="text-white font-medium">
-                {Math.min(startIdx + itemsPerPage, sortedFiltered.length)}
-              </span>{" "}
-              of <span className="text-white font-medium">{sortedFiltered.length}</span> entries
+        {/* Each payout is presented as a horizontal settlement slip, not a table */}
+        <section className="space-y-3">
+          {loading ? (
+            <div className="flex min-h-[240px] items-center justify-center gap-3 text-sm text-amber-200">
+              <span className="h-4 w-4 animate-spin rounded-full border-2 border-amber-300/30 border-t-amber-300" />
+              Loading withdrawal statement...
             </div>
+          ) : pageItems.length === 0 ? (
+            <div className="border-y border-white/10 py-20 text-center">
+              <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full border border-white/10 text-xl text-slate-500">↗</div>
+              <p className="font-medium text-slate-300">No withdrawal records found</p>
+              <p className="mt-1 text-sm text-slate-500">Try changing the search or status filter.</p>
+            </div>
+          ) : (
+            pageItems.map((group, index) => (
+              <article
+                key={group._id || `${startIdx}-${index}`}
+                className="relative overflow-hidden border border-white/[0.09] bg-[#0d141f] transition hover:border-amber-300/25"
+              >
+                <div className="grid gap-5 p-4 sm:p-5 lg:grid-cols-[170px_1fr_190px] lg:items-center">
+                  <div className="flex items-center justify-between gap-3 lg:block">
+                    <div>
+                      <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-slate-600">Payout date</p>
+                      <p className="mt-1 text-sm font-semibold text-white">{dateLabel(group.createdAt)}</p>
+                      <p className="mt-1 text-[11px] text-slate-500">{dateLabel(group.createdAt, true).split(", ").slice(-1)[0]}</p>
+                    </div>
+                    <span className={`inline-flex rounded-full border px-3 py-1 text-[9px] font-bold uppercase tracking-[0.15em] lg:mt-3 ${statusAppearance(group.status)}`}>
+                      {group.status || "Unknown"}
+                    </span>
+                  </div>
 
-            <div className="flex items-center bg-[#0b1221] rounded border border-gray-700 overflow-hidden">
+                  <div className="grid grid-cols-3 gap-3 border-y border-white/[0.07] py-4 lg:border-x lg:border-y-0 lg:px-5 lg:py-1">
+                    <div>
+                      <p className="text-[9px] font-bold uppercase tracking-[0.16em] text-slate-600">Total</p>
+                      <p className="mt-2 break-all text-base font-semibold text-white sm:text-lg">{money(group.totalGross)}</p>
+                    </div>
+                    <div className="border-l border-white/[0.08] pl-3">
+                      <p className="text-[9px] font-bold uppercase tracking-[0.16em] text-slate-600">USDT</p>
+                      <p className="mt-2 break-all text-base font-semibold text-amber-200 sm:text-lg">{money(group.totalCryptoNet)}</p>
+                    </div>
+                    <div className="border-l border-white/[0.08] pl-3">
+                      <p className="text-[9px] font-bold uppercase tracking-[0.16em] text-slate-600">TopUp</p>
+                      <p className="mt-2 break-all text-base font-semibold text-violet-300 sm:text-lg">{money(group.totalTopupNet)}</p>
+                    </div>
+                  </div>
+
+                  <div className="min-w-0">
+                    <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-slate-600">Destination wallet</p>
+                    <p className="mt-2 break-all font-mono text-[11px] leading-5 text-slate-300">
+                      {group.walletAddress || "Not provided"}
+                    </p>
+                    {group.entries.length > 1 && (
+                      <p className="mt-2 text-[10px] text-slate-500">
+                        Combined {group.entries.length} requests within 5 seconds
+                      </p>
+                    )}
+                  </div>
+                </div>
+                <div className="h-px w-full bg-gradient-to-r from-amber-300/50 via-white/[0.06] to-transparent" />
+              </article>
+            ))
+          )}
+        </section>
+
+        {/* Pagination */}
+        {!loading && filtered.length > 0 && (
+          <footer className="mt-6 flex flex-col gap-4 text-xs text-slate-500 sm:flex-row sm:items-center sm:justify-between">
+            <p>
+              Showing <span className="font-semibold text-white">{startIdx + 1}–{Math.min(startIdx + itemsPerPage, filtered.length)}</span> of{" "}
+              <span className="font-semibold text-white">{filtered.length}</span> records
+            </p>
+            <div className="flex items-center gap-2 self-end sm:self-auto">
               <button
-                onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
-                disabled={currentPage === 1}
-                className={`px-4 py-2 transition-colors ${
-                  currentPage === 1
-                    ? "text-gray-600 bg-transparent cursor-not-allowed"
-                    : "text-[#eab308] hover:bg-[#1a253e]"
-                }`}
+                type="button"
+                onClick={() => setCurrentPage((value) => Math.max(1, value - 1))}
+                disabled={page === 1}
+                className="rounded-md border border-white/10 px-4 py-2 font-semibold text-slate-300 transition hover:border-amber-300/50 hover:text-amber-200 disabled:cursor-not-allowed disabled:opacity-30"
               >
                 Previous
               </button>
-              <div className="px-4 py-2 border-l border-r border-gray-700 bg-[#1a253e] text-[#eab308] font-bold">
-                {currentPage}
-              </div>
+              <span className="min-w-[70px] text-center text-slate-300">{page} / {totalPages}</span>
               <button
-                onClick={() =>
-                  setCurrentPage((p) => Math.min(p + 1, totalPages))
-                }
-                disabled={currentPage === totalPages}
-                className={`px-4 py-2 transition-colors ${
-                  currentPage === totalPages
-                    ? "text-gray-600 bg-transparent cursor-not-allowed"
-                    : "text-[#eab308] hover:bg-[#1a253e]"
-                }`}
+                type="button"
+                onClick={() => setCurrentPage((value) => Math.min(totalPages, value + 1))}
+                disabled={page >= totalPages}
+                className="rounded-md border border-white/10 px-4 py-2 font-semibold text-slate-300 transition hover:border-amber-300/50 hover:text-amber-200 disabled:cursor-not-allowed disabled:opacity-30"
               >
                 Next
               </button>
             </div>
-          </div>
+          </footer>
         )}
       </div>
-    </div>
+    </main>
   );
 }
 

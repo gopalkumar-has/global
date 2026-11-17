@@ -1,30 +1,88 @@
-import React, { useEffect, useState, useMemo } from "react"; 
-import api from "../../api/axios"; 
-import { useAuth } from "../../context/AuthContext"; 
+import React, { useEffect, useMemo, useState } from "react";
+import api from "../../api/axios";
+import { useAuth } from "../../context/AuthContext";
+
+const CREDIT_TYPES = [
+  "deposit",
+  "credit_to_wallet",
+  "credit",
+  "topup",
+  "manual_credit",
+  "fast_track",
+  "fund_transfer_received",
+];
+
+const DEBIT_TYPES = [
+  "withdrawal",
+  "debit_topup",
+  "manual_debit",
+  "package_activation",
+  "fund_transfer_sent",
+];
+
+const amountValue = (value) => {
+  if (value && typeof value === "object") {
+    return Number(value.$numberDecimal ?? value.amount ?? 0);
+  }
+  return Number(value ?? 0);
+};
+
+const formatMoney = (value) =>
+  `$${amountValue(value).toLocaleString("en-US", {
+    minimumFractionDigits: 4,
+    maximumFractionDigits: 4,
+  })}`;
+
+const formatDate = (value) => {
+  if (!value) return "Date unavailable";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "Date unavailable";
+  return date.toLocaleDateString("en-IN", {
+    timeZone: "Asia/Kolkata",
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
+};
+
+const titleCaseType = (type) => {
+  if (!type) return "Transaction";
+  if (type === "manual_credit") return "Deposit";
+  return type.replace(/_/g, " ").replace(/\b\w/g, (letter) => letter.toUpperCase());
+};
 
 const WalletHistoryPage = () => {
   const { user } = useAuth();
   const [transactions, setTransactions] = useState([]);
-  const [balances, setBalances] = useState({ walletBalance: 0, usdtBep20Balance: 0 });
+  const [balances, setBalances] = useState({
+    walletBalance: 0,
+    usdtBep20Balance: 0,
+  });
   const [search, setSearch] = useState("");
+  const [direction, setDirection] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
   const [entriesPerPage, setEntriesPerPage] = useState(10);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchWalletHistory = async () => {
-      if (!user?.userId) return;
+      if (!user?.userId) {
+        setLoading(false);
+        return;
+      }
 
       try {
         setLoading(true);
-        // Tumhare backend route ke hisaab se API call
         const res = await api.get(
           `/wallet/history/${user.userId}?t=${new Date().getTime()}`
         );
-        
-        setTransactions(res.data.history || []);
-        setBalances(res.data.balances || { walletBalance: 0, usdtBep20Balance: 0 });
-
+        setTransactions(Array.isArray(res.data.history) ? res.data.history : []);
+        setBalances(
+          res.data.balances || {
+            walletBalance: 0,
+            usdtBep20Balance: 0,
+          }
+        );
       } catch (err) {
         console.error("Error fetching wallet history:", err);
         setTransactions([]);
@@ -36,196 +94,285 @@ const WalletHistoryPage = () => {
     fetchWalletHistory();
   }, [user?.userId]);
 
-  // Search Logic (Type ya Description ke basis par)
-  const filtered = useMemo(() => {
-    const s = search.toLowerCase();
-    return transactions.filter((tx) =>
-      tx.type?.toLowerCase().includes(s) ||
-      tx.description?.toLowerCase().includes(s) ||
-      String(tx.amount).includes(s)
+  const classified = useMemo(
+    () =>
+      transactions.map((tx) => {
+        const type = String(tx.type || "").toLowerCase();
+        const isCredit = CREDIT_TYPES.includes(type);
+        const isDebit = DEBIT_TYPES.includes(type);
+        return {
+          ...tx,
+          _direction: isCredit ? "credit" : isDebit ? "debit" : "other",
+          _amount: amountValue(tx.amount),
+        };
+      }),
+    [transactions]
+  );
+
+  const totals = useMemo(() => {
+    return classified.reduce(
+      (result, tx) => {
+        if (tx._direction === "credit") result.credit += tx._amount;
+        if (tx._direction === "debit") result.debit += tx._amount;
+        return result;
+      },
+      { credit: 0, debit: 0 }
     );
-  }, [transactions, search]);
+  }, [classified]);
+
+  const filtered = useMemo(() => {
+    const term = search.trim().toLowerCase();
+    return classified.filter((tx) => {
+      const matchesDirection =
+        direction === "all" || tx._direction === direction;
+      const matchesSearch =
+        !term ||
+        String(tx.type || "").toLowerCase().includes(term) ||
+        String(tx.description || "").toLowerCase().includes(term) ||
+        String(tx.amount ?? "").toLowerCase().includes(term) ||
+        String(tx.status || "").toLowerCase().includes(term);
+      return matchesDirection && matchesSearch;
+    });
+  }, [classified, search, direction]);
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [search]);
+  }, [search, direction, entriesPerPage]);
 
-  // Pagination Logic
-  const indexOfLast = currentPage * entriesPerPage;
-  const indexOfFirst = indexOfLast - entriesPerPage;
-  const currentItems = filtered.slice(indexOfFirst, indexOfLast);
-  const totalPages = Math.ceil(filtered.length / entriesPerPage) || 1;
+  const totalPages = Math.max(1, Math.ceil(filtered.length / entriesPerPage));
+  const safePage = Math.min(currentPage, totalPages);
+  const startIndex = (safePage - 1) * entriesPerPage;
+  const visibleItems = filtered.slice(startIndex, startIndex + entriesPerPage);
 
-  const handlePrev = () => currentPage > 1 && setCurrentPage(currentPage - 1);
-  const handleNext = () => currentPage < totalPages && setCurrentPage(currentPage + 1);
-  const handleEntriesChange = (e) => {
-    setEntriesPerPage(Number(e.target.value));
-    setCurrentPage(1);
-  };
-
-  // IST Date Formatter
-  const getISTDateTimeString = (dateString) => {
-    if (!dateString) return '';
-    // Sirf date dikhane ka logic (User correction ledger ke hisaab se time strip karna)
-    return new Date(dateString).toLocaleDateString('en-IN', {
-      timeZone: 'Asia/Kolkata',
-      day: '2-digit', month: 'short', year: 'numeric'
-    });
+  const statusStyle = (status) => {
+    const value = String(status || "success").toLowerCase();
+    if (["success", "completed", "approved"].includes(value)) {
+      return "border-emerald-400/25 bg-emerald-400/10 text-emerald-300";
+    }
+    if (["pending", "processing"].includes(value)) {
+      return "border-amber-300/25 bg-amber-300/10 text-amber-200";
+    }
+    return "border-rose-400/25 bg-rose-400/10 text-rose-300";
   };
 
   return (
-    <div className="w-full min-h-screen bg-[#0b1221] p-4 md:p-8 font-sans pt-24">
-      {/* Balances Top Cards (Optional for Wallet, but looks premium) */}
-      <div className="max-w-7xl mx-auto flex flex-col sm:flex-row gap-4 mb-6">
-        <div className="bg-[#131c31] border border-gray-700 rounded-xl p-5 flex-1 shadow-lg border-l-4 border-l-[#eab308]">
-          <h3 className="text-gray-400 text-xs font-bold uppercase tracking-widest mb-1">Fund Wallet Balance</h3>
-          <p className="text-3xl font-black text-white">${Number(balances.walletBalance).toFixed(4)}</p>
-        </div>
-      </div>
+    <main className="min-h-screen w-full bg-[#070b12] px-4 pb-12 pt-24 font-sans text-white sm:px-6 lg:px-10">
+      <div className="mx-auto max-w-7xl">
+        {/* Editorial page heading */}
+        <header className="relative mb-9 overflow-hidden border-b border-white/10 pb-7">
+          <div className="pointer-events-none absolute -right-10 -top-20 h-64 w-64 rounded-full bg-amber-400/10 blur-3xl" />
+          <div className="relative flex flex-col justify-between gap-5 md:flex-row md:items-end">
+            <div>
+              <div className="mb-3 flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.32em] text-amber-300">
+                <span className="h-px w-8 bg-amber-300" />
+                Global Wealth / Account
+              </div>
+              <h1 className="text-3xl font-semibold tracking-tight sm:text-5xl">
+                Wallet <span className="font-light text-amber-300">Journal</span>
+              </h1>
+              <p className="mt-3 max-w-xl text-sm leading-6 text-slate-400">
+                A clear record of every movement in your fund wallet, from incoming credits to outgoing debits.
+              </p>
+            </div>
+            <div className="relative min-w-[210px] border-l-2 border-amber-300 pl-4">
+              <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-slate-500">
+                Current fund wallet
+              </p>
+              <p className="mt-1 text-3xl font-semibold tracking-tight text-white sm:text-4xl">
+                {formatMoney(balances.walletBalance)}
+              </p>
+              <p className="mt-2 text-xs text-slate-500">Available balance</p>
+            </div>
+          </div>
+        </header>
 
-      {/* Inner Card Container with Gold Top Border */}
-      <div className="max-w-7xl mx-auto bg-[#131c31] rounded-xl border-t-[3px] border-[#eab308] shadow-2xl p-4 sm:p-6">
-        
-        {/* Header Title */}
-        <h2 className="text-2xl sm:text-3xl text-[#eab308] font-bold mb-6 tracking-wide">
-          Wallet History
-        </h2>
+        {/* Transaction flow summary — deliberately typographic, not repeated cards */}
+        <section className="mb-10 grid gap-6 border-b border-white/10 pb-8 sm:grid-cols-3">
+          <div className="sm:pr-5">
+            <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-slate-500">Total recorded credits</p>
+            <p className="mt-2 text-2xl font-semibold text-emerald-300">{formatMoney(totals.credit)}</p>
+            <div className="mt-3 flex items-center gap-2 text-xs text-slate-500">
+              <span className="text-emerald-300">↗</span> Incoming wallet movements
+            </div>
+          </div>
+          <div className="border-y border-white/10 py-5 sm:border-x sm:border-y-0 sm:px-6 sm:py-0">
+            <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-slate-500">Total recorded debits</p>
+            <p className="mt-2 text-2xl font-semibold text-rose-300">{formatMoney(totals.debit)}</p>
+            <div className="mt-3 flex items-center gap-2 text-xs text-slate-500">
+              <span className="text-rose-300">↘</span> Outgoing wallet movements
+            </div>
+          </div>
+          <div className="sm:pl-6">
+            <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-slate-500">Journal entries</p>
+            <p className="mt-2 text-2xl font-semibold text-amber-200">{transactions.length.toLocaleString("en-US")}</p>
+            <div className="mt-3 flex items-center gap-2 text-xs text-slate-500">
+              <span className="text-amber-300">◈</span> All transactions received
+            </div>
+          </div>
+        </section>
 
-        {/* Filters (Entries & Search) */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4 text-gray-300 text-sm">
-          
-          <div className="flex items-center gap-2">
-            <span>Show</span>
+        {/* Controls */}
+        <section className="mb-6 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+          <div>
+            <p className="text-[10px] font-bold uppercase tracking-[0.25em] text-amber-300">Activity record</p>
+            <h2 className="mt-1 text-xl font-semibold text-white">Transaction timeline</h2>
+            <p className="mt-1 text-xs text-slate-500">Dates are displayed in Indian Standard Time (IST).</p>
+          </div>
+          <div className="flex w-full flex-col gap-3 sm:flex-row lg:w-auto">
+            <div className="flex rounded-lg border border-white/10 bg-white/[0.03] p-1">
+              {[
+                ["all", "All"],
+                ["credit", "Credits"],
+                ["debit", "Debits"],
+              ].map(([value, label]) => (
+                <button
+                  key={value}
+                  type="button"
+                  onClick={() => setDirection(value)}
+                  className={`rounded-md px-4 py-2 text-xs font-semibold transition ${
+                    direction === value
+                      ? "bg-amber-300 text-[#17130a]"
+                      : "text-slate-400 hover:text-white"
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+            <label className="relative block min-w-0 flex-1 sm:min-w-[250px]">
+              <span className="sr-only">Search transactions</span>
+              <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-500">⌕</span>
+              <input
+                type="search"
+                value={search}
+                onChange={(event) => setSearch(event.target.value)}
+                placeholder="Search type, details, status..."
+                className="w-full rounded-lg border border-white/10 bg-[#0d1420] py-3 pl-9 pr-4 text-sm text-white outline-none transition placeholder:text-slate-600 focus:border-amber-300/60"
+              />
+            </label>
+          </div>
+        </section>
+
+        {/* Timeline ledger */}
+        <section className="overflow-hidden border-y border-white/10">
+          <div className="hidden grid-cols-[minmax(0,1.5fr)_minmax(0,2fr)_130px_150px] gap-4 border-b border-white/10 bg-white/[0.025] px-5 py-3 text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500 md:grid">
+            <span>Transaction</span>
+            <span>Description</span>
+            <span>Status</span>
+            <span className="text-right">Amount / Date</span>
+          </div>
+
+          {loading ? (
+            <div className="flex min-h-[230px] items-center justify-center gap-3 text-sm text-amber-200">
+              <span className="h-4 w-4 animate-spin rounded-full border-2 border-amber-300/30 border-t-amber-300" />
+              Loading wallet activity...
+            </div>
+          ) : visibleItems.length === 0 ? (
+            <div className="py-20 text-center">
+              <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full border border-white/10 text-xl text-slate-500">⌕</div>
+              <p className="font-medium text-slate-300">No matching transactions</p>
+              <p className="mt-1 text-sm text-slate-500">Try another search term or activity filter.</p>
+            </div>
+          ) : (
+            <div>
+              {visibleItems.map((tx, index) => {
+                const isCredit = tx._direction === "credit";
+                const isDebit = tx._direction === "debit";
+                const amountTone = isCredit
+                  ? "text-emerald-300"
+                  : isDebit
+                  ? "text-rose-300"
+                  : "text-white";
+                const sign = isCredit ? "+" : isDebit ? "−" : "";
+                return (
+                  <article
+                    key={tx._id || `${startIndex}-${index}`}
+                    className="group grid gap-3 border-b border-white/[0.07] px-4 py-5 transition hover:bg-white/[0.025] sm:px-5 md:grid-cols-[minmax(0,1.5fr)_minmax(0,2fr)_130px_150px] md:items-center md:gap-4"
+                  >
+                    <div className="flex min-w-0 items-center gap-3">
+                      <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full border text-lg ${
+                        isCredit
+                          ? "border-emerald-400/25 bg-emerald-400/10 text-emerald-300"
+                          : isDebit
+                          ? "border-rose-400/25 bg-rose-400/10 text-rose-300"
+                          : "border-white/10 bg-white/[0.04] text-slate-300"
+                      }`}>
+                        {isCredit ? "↙" : isDebit ? "↗" : "◇"}
+                      </div>
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-semibold text-white">{titleCaseType(tx.type)}</p>
+                        <p className="mt-1 text-[11px] text-slate-500">Entry #{startIndex + index + 1}</p>
+                      </div>
+                    </div>
+
+                    <div className="min-w-0 md:py-1">
+                      <p className="break-words text-sm leading-5 text-slate-300">{tx.description || "—"}</p>
+                      <p className="mt-1 text-[11px] text-slate-500 md:hidden">{formatDate(tx.createdAt || tx.date)} · IST</p>
+                    </div>
+
+                    <div>
+                      <span className={`inline-flex rounded-full border px-2.5 py-1 text-[9px] font-bold uppercase tracking-[0.16em] ${statusStyle(tx.status)}`}>
+                        {tx.status || "Success"}
+                      </span>
+                    </div>
+
+                    <div className="flex items-end justify-between gap-3 md:block md:text-right">
+                      <span className="text-[10px] uppercase tracking-[0.15em] text-slate-600 md:hidden">Amount</span>
+                      <div>
+                        <p className={`text-base font-semibold tabular-nums ${amountTone}`}>
+                          {sign}{formatMoney(tx.amount)}
+                        </p>
+                        <p className="mt-1 hidden text-[11px] text-slate-500 md:block">{formatDate(tx.createdAt || tx.date)} · IST</p>
+                      </div>
+                    </div>
+                  </article>
+                );
+              })}
+            </div>
+          )}
+        </section>
+
+        {/* Pagination */}
+        <footer className="mt-5 flex flex-col gap-4 text-xs text-slate-500 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex flex-wrap items-center gap-2">
+            <span>Rows per page</span>
             <select
               value={entriesPerPage}
-              onChange={handleEntriesChange}
-              className="bg-[#0b1221] border border-gray-700 text-[#eab308] rounded px-3 py-1.5 focus:outline-none focus:border-[#eab308] transition-colors"
+              onChange={(event) => setEntriesPerPage(Number(event.target.value))}
+              className="rounded-md border border-white/10 bg-[#0d1420] px-2.5 py-2 text-white outline-none focus:border-amber-300/60"
             >
-              <option value={10}>10</option>
-              <option value={25}>25</option>
-              <option value={50}>50</option>
-              <option value={100}>100</option>
+              {[10, 25, 50, 100].map((count) => (
+                <option key={count} value={count}>{count}</option>
+              ))}
             </select>
-            <span>entries</span>
+            <span className="ml-1">
+              Showing {filtered.length ? startIndex + 1 : 0}–{Math.min(startIndex + entriesPerPage, filtered.length)} of {filtered.length}
+            </span>
           </div>
-
-          <div className="flex items-center gap-2 w-full sm:w-auto">
-            <span>Search:</span>
-            <input
-              type="text"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="bg-[#0b1221] border border-gray-700 text-gray-200 rounded px-3 py-1.5 w-full sm:w-64 focus:outline-none focus:border-[#eab308] transition-colors placeholder-gray-500"
-              placeholder="Search by type or description..."
-            />
-          </div>
-        </div>
-
-        {/* Table Container */}
-        <div className="overflow-x-auto border border-gray-700 rounded-lg">
-          <table className="w-full text-left whitespace-nowrap border-collapse">
-            <thead className="text-[#eab308] bg-[#1a253e] text-sm border-b border-gray-700">
-              <tr>
-                <th className="p-4 border-r border-gray-700/50 font-bold"># <span className="text-[10px] text-gray-500 ml-1">♦</span></th>
-                <th className="p-4 border-r border-gray-700/50 font-bold">Transaction Type <span className="text-[10px] text-gray-500 ml-1">♦</span></th>
-                <th className="p-4 border-r border-gray-700/50 font-bold">Description <span className="text-[10px] text-gray-500 ml-1">♦</span></th>
-                <th className="p-4 border-r border-gray-700/50 font-bold">Status <span className="text-[10px] text-gray-500 ml-1">♦</span></th>
-                <th className="p-4 border-r border-gray-700/50 font-bold text-right">Amount <span className="text-[10px] text-gray-500 ml-1">♦</span></th>
-                <th className="p-4 font-bold">Date (IST)</th>
-              </tr>
-            </thead>
-
-            <tbody className="text-gray-300 text-sm">
-              {loading ? (
-                <tr>
-                  <td colSpan="6" className="text-center py-8 text-[#eab308]">
-                    Loading Data...
-                  </td>
-                </tr>
-              ) : currentItems.length === 0 ? (
-                <tr>
-                  <td colSpan="6" className="text-center py-8 text-gray-500">
-                    No matching records found
-                  </td>
-                </tr>
-              ) : (
-                currentItems.map((tx, index) => {
-                  // 🔥 FIX: Credit/Debit UI Logic mein package_activation aur naye types add kiye hain
-                  const isCredit = ['deposit', 'credit_to_wallet', 'credit', 'topup', 'manual_credit', 'fast_track', 'fund_transfer_received'].includes(tx.type);
-                  const isDebit = ['withdrawal', 'debit_topup', 'manual_debit', 'package_activation', 'fund_transfer_sent'].includes(tx.type);
-                  
-                  let amountColor = 'text-white';
-                  let prefix = '';
-
-                  if (isCredit) { amountColor = 'text-green-400'; prefix = '+'; }
-                  else if (isDebit) { amountColor = 'text-red-400'; prefix = '-'; }
-
-                  return (
-                    <tr key={tx._id || index} className="border-b border-gray-700 hover:bg-[#1a253e] transition-colors">
-                      <td className="p-4 border-r border-gray-700/50">{indexOfFirst + index + 1}</td>
-                      <td className="p-4 border-r border-gray-700/50 capitalize font-medium text-white">
-                        {/* 🔥 FIX: Agar type manual_credit hai toh direct 'Deposit' dikhao, warna underline hata kar normally dikhao */}
-                        {tx.type 
-                          ? (tx.type === 'manual_credit' ? 'Deposit' : tx.type.replace(/_/g, ' ')) 
-                          : 'Transaction'}
-                      </td>
-                      <td className="p-4 border-r border-gray-700/50 truncate max-w-xs" title={tx.description}>
-                        {tx.description || "-"}
-                      </td>
-                      <td className="p-4 border-r border-gray-700/50 capitalize font-medium">
-                        <span className={`px-2 py-1 rounded text-[10px] font-black uppercase tracking-widest ${
-                          tx.status === 'success' || tx.status === 'completed' 
-                            ? 'bg-green-500/10 text-green-400' 
-                            : tx.status === 'pending' 
-                            ? 'bg-yellow-500/10 text-yellow-400'
-                            : 'bg-red-500/10 text-red-400'
-                        }`}>
-                          {tx.status || 'Success'}
-                        </span>
-                      </td>
-                      <td className={`p-4 border-r border-gray-700/50 font-bold text-right ${amountColor}`}>
-                        {prefix}${Number(tx.amount || 0).toFixed(4)}
-                      </td>
-                      <td className="p-4 text-gray-400 text-xs">
-                        {getISTDateTimeString(tx.createdAt || tx.date)}
-                      </td>
-                    </tr>
-                  );
-                })
-              )}
-            </tbody>
-          </table>
-        </div>
-
-        {/* Pagination Footer */}
-        <div className="flex flex-col sm:flex-row justify-between items-center mt-6 text-gray-400 text-sm gap-4">
-          <div>
-            Showing <span className="text-white font-medium">{filtered.length === 0 ? 0 : indexOfFirst + 1}</span> to <span className="text-white font-medium">{Math.min(indexOfLast, filtered.length)}</span> of <span className="text-white font-medium">{filtered.length}</span> entries
-          </div>
-          
-          <div className="flex items-center bg-[#0b1221] rounded border border-gray-700 overflow-hidden">
+          <div className="flex items-center gap-2 self-end sm:self-auto">
             <button
-              onClick={handlePrev}
-              disabled={currentPage === 1}
-              className={`px-4 py-2 transition-colors ${currentPage === 1 ? 'text-gray-600 bg-transparent cursor-not-allowed' : 'text-[#eab308] hover:bg-[#1a253e]'}`}
+              type="button"
+              onClick={() => setCurrentPage((page) => Math.max(1, page - 1))}
+              disabled={safePage === 1}
+              className="rounded-md border border-white/10 px-4 py-2 font-semibold text-slate-300 transition hover:border-amber-300/50 hover:text-amber-200 disabled:cursor-not-allowed disabled:opacity-30"
             >
               Previous
             </button>
-            <div className="px-4 py-2 border-l border-r border-gray-700 bg-[#1a253e] text-[#eab308] font-bold">
-              {currentPage}
-            </div>
+            <span className="min-w-[72px] text-center text-slate-300">
+              {safePage} / {totalPages}
+            </span>
             <button
-              onClick={handleNext}
-              disabled={currentPage === totalPages || totalPages === 0}
-              className={`px-4 py-2 transition-colors ${currentPage === totalPages || totalPages === 0 ? 'text-gray-600 bg-transparent cursor-not-allowed' : 'text-[#eab308] hover:bg-[#1a253e]'}`}
+              type="button"
+              onClick={() => setCurrentPage((page) => Math.min(totalPages, page + 1))}
+              disabled={safePage >= totalPages}
+              className="rounded-md border border-white/10 px-4 py-2 font-semibold text-slate-300 transition hover:border-amber-300/50 hover:text-amber-200 disabled:cursor-not-allowed disabled:opacity-30"
             >
               Next
             </button>
           </div>
-        </div>
-
+        </footer>
       </div>
-    </div>
+    </main>
   );
 };
 

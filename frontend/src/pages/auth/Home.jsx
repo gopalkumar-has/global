@@ -1,870 +1,485 @@
-// import React, { useState, useEffect, useRef } from 'react';
-// import { useNavigate, Link } from 'react-router-dom';
-// import { 
-//   ArrowRight, Zap, Layers, 
-//   Network, ShieldCheck, 
-//   Globe2, ChevronDown, 
-//   Users, DollarSign,
-//   TrendingUp, Activity, BarChart3, Lock
-// } from 'lucide-react';
+import React, { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
+import {
+  ArrowDownRight,
+  ArrowRight,
+  ArrowUpRight,
+  BadgeCheck,
+  ChevronDown,
+  CircleHelp,
+  Globe2,
+  Layers3,
+  LockKeyhole,
+  Menu,
+  MoveUpRight,
+  Network,
+  ShieldCheck,
+  Sparkles,
+  WalletCards,
+  X,
+} from "lucide-react";
 
-// const AnimatedCounter = ({ end, duration = 2000, prefix = "", suffix = "", decimals = 0 }) => {
-//   const [count, setCount] = useState(0);
-//   const [isVisible, setIsVisible] = useState(false);
-//   const counterRef = useRef(null);
-
-//   useEffect(() => {
-//     const observer = new IntersectionObserver(
-//       ([entry]) => { if (entry.isIntersecting) setIsVisible(true); },
-//       { threshold: 0.5 }
-//     );
-//     if (counterRef.current) observer.observe(counterRef.current);
-//     return () => observer.disconnect();
-//   }, []);
-
-//   useEffect(() => {
-//     if (!isVisible) return;
-//     let startTimestamp = null;
-//     const step = (timestamp) => {
-//       if (!startTimestamp) startTimestamp = timestamp;
-//       const progress = Math.min((timestamp - startTimestamp) / duration, 1);
-//       const easeOutQuart = 1 - Math.pow(1 - progress, 4);
-//       setCount(easeOutQuart * end);
-//       if (progress < 1) window.requestAnimationFrame(step);
-//     };
-//     window.requestAnimationFrame(step);
-//   }, [isVisible, end, duration]);
-
-//   const formattedNumber = count.toFixed(decimals).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-//   return <span ref={counterRef}>{prefix}{formattedNumber}{suffix}</span>;
-// };
-
-// const packagePlan = [
-//   { sr: 1, amount: "$10", cycle: "25 Days", dailyRoi: "5%", totalReturn: "$12.50" },
-//   { sr: 2, amount: "$50", cycle: "25 Days", dailyRoi: "5%", totalReturn: "$62.50" },
-//   { sr: 3, amount: "$100", cycle: "25 Days", dailyRoi: "5%", totalReturn: "$125.00" },
-//   { sr: 4, amount: "$250", cycle: "25 Days", dailyRoi: "5%", totalReturn: "$312.50" },
-//   { sr: 5, amount: "$500", cycle: "25 Days", dailyRoi: "5%", totalReturn: "$625.00" },
-//   { sr: 6, amount: "$1,000", cycle: "25 Days", dailyRoi: "5%", totalReturn: "$1,250.00" }
-// ];
-
-// const faqData = [
-//   { q: "What is World Finance 24?", a: "World Finance 24 is a secure decentralized crypto platform offering transparent investment processes, daily ROI through crypto trading, and network referral bonuses." },
-//   { q: "How does the system generate profits?", a: "Our system pools deposited funds into high-frequency crypto trading algorithms, liquidity pools, and arbitrage opportunities across global exchanges to generate stable daily profits for our investors." },
-//   { q: "How do I activate my package?", a: "Deposit USDT (BEP-20) into your wallet balance. Minimum upgrade package starts at $30. Once funds are received, activate your investment package securely from the dashboard." },
-//   { q: "What is the daily ROI return?", a: "Activated investment packages yield 5% daily returns in USD over a structured 25-day cycle." },
-//   { q: "What are the withdrawal rules?", a: "Withdrawals are processed daily between 10:00 AM - 12:00 PM (IST). A minimum withdrawal limit of $1-$2 applies, and an active package is required." }
-// ];
-
-// const Home = () => {
-//   const navigate = useNavigate();
-//   const [scrolled, setScrolled] = useState(false);
-//   const [openFaq, setOpenFaq] = useState(null);
-
-//   useEffect(() => {
-//     const handleScroll = () => setScrolled(window.scrollY > 50);
-//     window.addEventListener('scroll', handleScroll);
-//     return () => window.removeEventListener('scroll', handleScroll);
-//   }, []);
-
-//   const toggleFaq = (index) => {
-//     setOpenFaq(openFaq === index ? null : index);
-//   };
-
-//   return (
-//     <div className="min-h-screen bg-[#0b101e] text-gray-300 font-sans overflow-x-hidden relative selection:bg-[#e4c568]/30 selection:text-[#e4c568]">
-      
-//       <style>{`
-//         .glass-header {
-//           background: rgba(11, 16, 30, 0.85);
-//           backdrop-filter: blur(12px);
-//           border-bottom: 1px solid rgba(228, 197, 104, 0.1);
-//         }
-//         .text-gold-gradient {
-//           background: linear-gradient(135deg, #e4c568, #d4af37, #f3e5ab);
-//           -webkit-background-clip: text;
-//           -webkit-text-fill-color: transparent;
-//         }
-//         .bg-gold-gradient {
-//           background: linear-gradient(135deg, #e4c568, #d4af37);
-//         }
-//       `}</style>
-
-//       {/* --- TOP HEADER NAVBAR --- */}
-//       <nav className={`fixed top-0 w-full z-50 transition-all duration-300 ${scrolled ? 'glass-header py-3 shadow-[0_4px_30px_rgba(0,0,0,0.5)]' : 'bg-transparent py-5'}`}>
-//         <div className="max-w-7xl mx-auto px-4 sm:px-6 flex justify-between items-center">
-//           <Link to="/" className="flex items-center gap-2 no-underline group">
-//             <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-[#131927] border border-[#e4c568]/50 flex items-center justify-center group-hover:border-[#e4c568] transition-colors shadow-[0_0_10px_rgba(228,197,104,0.2)]">
-//                <Globe2 className="text-[#e4c568]" size={20} />
-//             </div>
-//             <span className="text-lg sm:text-xl font-black tracking-tight text-white flex items-center">
-//               WORLD<span className="text-[#e4c568]">FINANCE24</span>
-//             </span>
-//           </Link>
-          
-//           <div className="hidden lg:flex items-center gap-8 font-semibold text-sm text-gray-300">
-//             <a href="#" className="hover:text-[#e4c568] transition-colors">Home</a>
-//             <a href="#about" className="hover:text-[#e4c568] transition-colors">Ecosystem</a>
-//             <a href="#packages" className="hover:text-[#e4c568] transition-colors">Packages</a>
-//             <a href="#faq" className="hover:text-[#e4c568] transition-colors">FAQ</a>
-//             <Link to="/login" className="hover:text-[#e4c568] transition-colors">Login</Link>
-//           </div>
-          
-//           <div className="flex gap-3">
-//             <Link to="/login" className="hidden sm:flex bg-[#131927] border border-[#e4c568]/30 hover:border-[#e4c568] text-white font-bold px-5 py-2.5 rounded transition text-sm items-center justify-center">
-//               Login
-//             </Link>
-//             <Link to="/register" className="bg-gold-gradient hover:scale-105 text-black font-extrabold px-5 sm:px-6 py-2.5 rounded transition-transform text-sm shadow-[0_0_15px_rgba(228,197,104,0.3)]">
-//               Register
-//             </Link>
-//           </div>
-//         </div>
-//       </nav>
-
-//       {/* --- HERO SECTION --- */}
-//       <section className="relative pt-32 pb-20 sm:pb-24 px-4 sm:px-6 bg-[#0b101e] min-h-[85vh] flex items-center overflow-hidden">
-//         {/* Background Gradients */}
-//         <div className="absolute top-[-10%] left-[-10%] w-[50vw] h-[50vw] bg-[#e4c568]/5 blur-[120px] rounded-full pointer-events-none"></div>
-//         <div className="absolute bottom-[-10%] right-[-10%] w-[40vw] h-[40vw] bg-blue-500/5 blur-[120px] rounded-full pointer-events-none"></div>
-
-//         <div className="max-w-7xl mx-auto w-full grid grid-cols-1 lg:grid-cols-2 gap-12 items-center relative z-10">
-//           <div className="text-center lg:text-left">
-//             <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#131927] border border-[#e4c568]/30 text-[#e4c568] text-xs font-bold tracking-wide mb-6">
-//               <Activity size={14} /> LIVE USDT (BEP-20) DEPOSITS & WITHDRAWALS
-//             </div>
-//             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black mb-6 leading-tight text-white">
-//               MASTER YOUR <br />
-//               <span className="text-gold-gradient">CRYPTO WEALTH</span>
-//             </h1>
-//             <p className="text-gray-400 text-base sm:text-lg mb-8 max-w-lg mx-auto lg:mx-0 leading-relaxed">
-//               Join worldfinance24 to unlock daily ROI through automated crypto trading and powerful multi-level referral networks.
-//             </p>
-//             <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
-//               <Link to="/register" className="bg-gold-gradient text-black font-black px-8 py-3.5 rounded transition shadow-[0_0_20px_rgba(228,197,104,0.4)] hover:shadow-[0_0_30px_rgba(228,197,104,0.6)] hover:-translate-y-1 text-center uppercase tracking-wider text-sm">
-//                 Start Earning
-//               </Link>
-//               <Link to="/login" className="bg-[#161c2d] hover:bg-[#1e2536] border border-[#2d3748] text-white font-bold px-8 py-3.5 rounded transition text-center uppercase tracking-wider text-sm">
-//                 Member Dashboard
-//               </Link>
-//             </div>
-//           </div>
-
-//           {/* Right Side Visual */}
-//           <div className="hidden lg:block relative">
-//             <div className="absolute inset-0 bg-gradient-to-tr from-[#e4c568]/10 to-transparent rounded-full blur-[80px]"></div>
-//             <div className="bg-[#131927] border border-[#2d3748] p-6 rounded-2xl shadow-[0_0_30px_rgba(0,0,0,0.8)] relative z-10">
-//               <div className="flex justify-between items-center mb-6 border-b border-[#2d3748] pb-4">
-//                 <span className="text-white font-bold flex items-center gap-2"><TrendingUp className="text-[#00ff88]" /> Platform Stats</span>
-//                 <span className="text-[#e4c568] text-xs font-bold bg-[#e4c568]/10 px-3 py-1 rounded">UPDATED LIVE</span>
-//               </div>
-//               <div className="space-y-6">
-//                 <div>
-//                   <p className="text-gray-500 text-sm font-semibold mb-1">Total Active Traders</p>
-//                   <p className="text-3xl font-black text-white"><AnimatedCounter end={12540} prefix="" suffix="+" /></p>
-//                 </div>
-//                 <div>
-//                   <p className="text-gray-500 text-sm font-semibold mb-1">Total Volume Traded</p>
-//                   <p className="text-3xl font-black text-[#00ff88]"><AnimatedCounter end={458} prefix="$" suffix="K+" decimals={1} /></p>
-//                 </div>
-//                 <div>
-//                   <p className="text-gray-500 text-sm font-semibold mb-1">Daily Payouts</p>
-//                   <p className="text-3xl font-black text-[#e4c568]"><AnimatedCounter end={5} prefix="" suffix="%" decimals={0} /></p>
-//                 </div>
-//               </div>
-//             </div>
-//           </div>
-//         </div>
-//       </section>
-
-//       {/* --- FEATURE BOXES BAR --- */}
-//       <div className="bg-[#0f1423] border-y border-[#2d3748] py-6 sm:py-8 relative z-20">
-//         <div className="max-w-7xl mx-auto px-4 sm:px-6 grid grid-cols-1 sm:grid-cols-3 gap-6">
-//           <div className="flex items-center gap-4 bg-[#131927] p-5 rounded-xl border border-[#2d3748] hover:border-[#e4c568]/50 transition-colors">
-//             <ShieldCheck className="text-[#e4c568] shrink-0" size={32} />
-//             <div>
-//               <h4 className="font-bold text-white text-[15px]">Secure USDT Ecosystem</h4>
-//               <p className="text-gray-400 text-xs mt-1">100% transparent BEP-20 transactions.</p>
-//             </div>
-//           </div>
-//           <div className="flex items-center gap-4 bg-[#131927] p-5 rounded-xl border border-[#2d3748] hover:border-[#e4c568]/50 transition-colors">
-//             <TrendingUp className="text-[#e4c568] shrink-0" size={32} />
-//             <div>
-//               <h4 className="font-bold text-white text-[15px]">5% Daily Trading ROI</h4>
-//               <p className="text-gray-400 text-xs mt-1">Consistent profits over a 25-day cycle.</p>
-//             </div>
-//           </div>
-//           <div className="flex items-center gap-4 bg-[#131927] p-5 rounded-xl border border-[#2d3748] hover:border-[#e4c568]/50 transition-colors">
-//             <Network className="text-[#e4c568] shrink-0" size={32} />
-//             <div>
-//               <h4 className="font-bold text-white text-[15px]">MLM Network Bonus</h4>
-//               <p className="text-gray-400 text-xs mt-1">Earn massive rewards by building your team.</p>
-//             </div>
-//           </div>
-//         </div>
-//       </div>
-
-//       <main className="relative z-10">
-        
-//         {/* --- EARNING ECOSYSTEM (Replaced Calculator) --- */}
-//         <section className="py-20 px-4 sm:px-6 max-w-7xl mx-auto" id="about">
-//           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-            
-//             {/* Left Content */}
-//             <div>
-//               <p className="text-[#e4c568] font-black text-sm tracking-widest uppercase mb-2">How We Generate Value</p>
-//               <h2 className="text-3xl sm:text-4xl font-black mb-6 text-white leading-tight">
-//                 The Engine Behind Your <br className="hidden sm:block" />
-//                 <span className="text-gold-gradient">Daily 5% Returns</span>
-//               </h2>
-//               <p className="text-gray-400 text-justify mb-6 leading-relaxed text-sm sm:text-base">
-//                  worldfinance24 utilizes your deposits as liquidity for our high-frequency crypto trading algorithms and market arbitrage bots. By trading in high-volume markets, our system generates consistent profit margins.
-//               </p>
-//               <p className="text-gray-400 text-justify mb-8 leading-relaxed text-sm sm:text-base">
-//                 A portion of these profits is distributed back to our investors as a guaranteed <strong>5% Daily ROI</strong>, while the rest sustains the platform and funds our lucrative multi-level referral network.
-//               </p>
-
-//               <div className="space-y-4">
-//                 <div className="bg-[#131927] p-4 rounded-xl border border-[#2d3748] flex gap-4 items-center">
-//                   <div className="bg-[#1e2536] p-3 rounded-lg text-[#00ff88] border border-[#2d3748]"><BarChart3 size={24} /></div>
-//                   <div>
-//                     <h3 className="font-bold text-white text-base">Algorithmic Crypto Trading</h3>
-//                     <p className="text-gray-500 text-xs mt-1">24/7 automated trades across Binance & KuCoin.</p>
-//                   </div>
-//                 </div>
-//                 <div className="bg-[#131927] p-4 rounded-xl border border-[#2d3748] flex gap-4 items-center">
-//                   <div className="bg-[#1e2536] p-3 rounded-lg text-[#e4c568] border border-[#2d3748]"><Layers size={24} /></div>
-//                   <div>
-//                     <h3 className="font-bold text-white text-base">Liquidity Pooling</h3>
-//                     <p className="text-gray-500 text-xs mt-1">Earning fees through decentralized exchange liquidity.</p>
-//                   </div>
-//                 </div>
-//               </div>
-//             </div>
-
-//             {/* Right Side: Earning Steps */}
-//             <div>
-//               <div className="bg-[#131927] border border-[#2d3748] rounded-2xl shadow-xl p-6 sm:p-8 relative overflow-hidden">
-//                 <div className="absolute top-0 right-0 w-32 h-32 bg-[#e4c568]/10 blur-[50px] rounded-full"></div>
-//                 <h3 className="text-xl sm:text-2xl font-bold mb-8 text-white border-b border-[#2d3748] pb-4">
-//                   Start Earning in 3 Simple Steps
-//                 </h3>
-                
-//                 <div className="space-y-8 relative before:absolute before:inset-0 before:ml-[1.1rem] before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-[#2d3748] before:to-transparent">
-                  
-//                   {/* Step 1 */}
-//                   <div className="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group is-active">
-//                     <div className="flex items-center justify-center w-9 h-9 rounded-full border-2 border-[#e4c568] bg-[#161c2d] text-[#e4c568] font-bold shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 shadow-[0_0_10px_rgba(228,197,104,0.3)] z-10">
-//                       1
-//                     </div>
-//                     <div className="w-[calc(100%-3rem)] md:w-[calc(50%-2.5rem)] bg-[#1e2536] p-4 rounded-xl border border-[#2d3748] shadow-sm">
-//                       <div className="flex items-center gap-2 mb-1">
-//                         <DollarSign size={16} className="text-[#e4c568]"/>
-//                         <h4 className="font-bold text-white text-sm">Deposit USDT</h4>
-//                       </div>
-//                       <p className="text-xs text-gray-400">Add funds to your wallet using the secure BEP-20 network.</p>
-//                     </div>
-//                   </div>
-
-//                   {/* Step 2 */}
-//                   <div className="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group is-active">
-//                     <div className="flex items-center justify-center w-9 h-9 rounded-full border-2 border-[#e4c568] bg-[#161c2d] text-[#e4c568] font-bold shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 shadow-[0_0_10px_rgba(228,197,104,0.3)] z-10">
-//                       2
-//                     </div>
-//                     <div className="w-[calc(100%-3rem)] md:w-[calc(50%-2.5rem)] bg-[#1e2536] p-4 rounded-xl border border-[#2d3748] shadow-sm">
-//                       <div className="flex items-center gap-2 mb-1">
-//                         <Lock size={16} className="text-[#e4c568]"/>
-//                         <h4 className="font-bold text-white text-sm">Activate Package</h4>
-//                       </div>
-//                       <p className="text-xs text-gray-400">Upgrade your account (Min $30) to unlock earning potentials.</p>
-//                     </div>
-//                   </div>
-
-//                   {/* Step 3 */}
-//                   <div className="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group is-active">
-//                     <div className="flex items-center justify-center w-9 h-9 rounded-full border-2 border-[#e4c568] bg-[#161c2d] text-[#e4c568] font-bold shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 shadow-[0_0_10px_rgba(228,197,104,0.3)] z-10">
-//                       3
-//                     </div>
-//                     <div className="w-[calc(100%-3rem)] md:w-[calc(50%-2.5rem)] bg-[#1e2536] p-4 rounded-xl border border-[#2d3748] shadow-sm">
-//                       <div className="flex items-center gap-2 mb-1">
-//                         <TrendingUp size={16} className="text-[#00ff88]"/>
-//                         <h4 className="font-bold text-white text-sm">Earn & Withdraw</h4>
-//                       </div>
-//                       <p className="text-xs text-gray-400">Get 5% ROI daily. Withdraw directly to your crypto wallet.</p>
-//                     </div>
-//                   </div>
-
-//                 </div>
-//               </div>
-//             </div>
-
-//           </div>
-//         </section>
-
-//         {/* --- INVESTMENT PACKAGE TABLE --- */}
-//         <section className="py-20 px-4 sm:px-6 max-w-5xl mx-auto" id="packages">
-//           <div className="text-center mb-12">
-//             <h2 className="text-3xl sm:text-4xl font-black mb-3 text-white"> <span className="text-gold-gradient">Packages</span></h2>
-//             <p className="text-[#e4c568] font-bold bg-[#131927] border border-[#2d3748] inline-block px-5 py-2 rounded-full shadow-sm text-sm sm:text-base">
-//               Guaranteed Daily ROI: <span className="text-white font-black">5% for 25 Days</span>
-//             </p>
-//           </div>
-
-//           <div className="bg-[#131927] rounded-xl shadow-[0_0_30px_rgba(0,0,0,0.5)] border border-[#2d3748] overflow-hidden">
-//             <div className="overflow-x-auto custom-scrollbar">
-//               <table className="w-full text-left border-collapse whitespace-nowrap">
-//                 <thead>
-//                   <tr className="bg-[#1e2536] border-b border-[#2d3748]">
-//                     <th className="p-4 sm:p-5 font-black text-center text-[#e4c568] text-xs sm:text-sm uppercase tracking-wider">Sr.</th>
-//                     <th className="p-4 sm:p-5 font-black text-center text-[#e4c568] text-xs sm:text-sm uppercase tracking-wider">Package Amount</th>
-//                     <th className="p-4 sm:p-5 font-black text-center text-[#e4c568] text-xs sm:text-sm uppercase tracking-wider">Cycle Duration</th>
-//                     <th className="p-4 sm:p-5 font-black text-center text-[#e4c568] text-xs sm:text-sm uppercase tracking-wider">Daily ROI</th>
-//                     <th className="p-4 sm:p-5 font-black text-right text-[#e4c568] text-xs sm:text-sm uppercase tracking-wider">Total Return</th>
-//                   </tr>
-//                 </thead>
-//                 <tbody>
-//                   {packagePlan.map((row, idx) => (
-//                     <tr key={idx} className="border-b border-[#2d3748] hover:bg-[#161c2d] transition-colors">
-//                       <td className="p-4 sm:p-5 text-center text-gray-400 font-bold">{row.sr}</td>
-//                       <td className="p-4 sm:p-5 text-center text-white font-black text-sm sm:text-base">{row.amount}</td>
-//                       <td className="p-4 sm:p-5 text-center text-gray-400 font-bold">{row.cycle}</td>
-//                       <td className="p-4 sm:p-5 text-center text-[#00ff88] font-bold">{row.dailyRoi}</td>
-//                       <td className="p-4 sm:p-5 text-right text-[#e4c568] font-black text-base sm:text-lg">{row.totalReturn}</td>
-//                     </tr>
-//                   ))}
-//                 </tbody>
-//               </table>
-//             </div>
-//           </div>
-//           <div className="text-center mt-6">
-//              <p className="text-xs text-gray-500">* Minimum upgrade required to access Fund Transfer & Withdrawals is $30.</p>
-//           </div>
-//         </section>
-
-//         {/* --- FAQ SECTION --- */}
-//         <section className="py-20 px-4 sm:px-6 max-w-4xl mx-auto" id="faq">
-//           <div className="text-center mb-14">
-//             <h2 className="text-3xl sm:text-4xl font-black mb-4 text-white">Frequently Asked <span className="text-gold-gradient">Questions</span></h2>
-//             <p className="text-gray-400 text-sm sm:text-base">Everything you need to know about worldfinance24.</p>
-//           </div>
-//           <div className="space-y-4">
-//             {faqData.map((faq, index) => (
-//               <div key={index} className="bg-[#131927] border border-[#2d3748] rounded-xl overflow-hidden shadow-sm">
-//                 <button
-//                   onClick={() => toggleFaq(index)}
-//                   className="w-full px-5 sm:px-6 py-4 text-left flex justify-between items-center focus:outline-none hover:bg-[#1e2536] transition-colors"
-//                 >
-//                   <span className="font-bold text-gray-200 text-sm sm:text-base">{faq.q}</span>
-//                   <div className={`shrink-0 w-7 h-7 flex items-center justify-center rounded-full bg-[#161c2d] border border-[#2d3748] transition-transform duration-300 ${openFaq === index ? 'rotate-180 border-[#e4c568]' : ''}`}>
-//                     <ChevronDown className={openFaq === index ? "text-[#e4c568]" : "text-gray-400"} size={16} strokeWidth={3} />
-//                   </div>
-//                 </button>
-//                 <div className={`transition-all duration-300 ease-in-out ${openFaq === index ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0 overflow-hidden'}`}>
-//                   <div className="px-5 sm:px-6 pb-4 pt-2 border-t border-[#2d3748] bg-[#0b101e]">
-//                     <p className="text-gray-400 text-sm leading-relaxed">{faq.a}</p>
-//                   </div>
-//                 </div>
-//               </div>
-//             ))}
-//           </div>
-//         </section>
-
-//         {/* --- CALL TO ACTION --- */}
-//         <section className="py-20 px-4 sm:px-6 bg-gold-gradient text-black text-center relative overflow-hidden">
-//           <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10"></div>
-//           <div className="max-w-4xl mx-auto relative z-10">
-//             <h2 className="text-3xl sm:text-4xl font-black mb-4 uppercase tracking-wide">Start Your Trading Journey Today</h2>
-//             <p className="text-black/80 font-bold text-sm sm:text-lg mb-8 max-w-xl mx-auto">
-//               Join worldfinance24 now to unlock daily crypto ROI and build a powerful global network.
-//             </p>
-//             <Link to="/register" className="bg-[#0b101e] text-[#e4c568] font-black px-8 py-4 rounded-lg shadow-2xl hover:bg-[#131927] hover:scale-105 inline-block transition-all text-sm sm:text-base uppercase tracking-widest border border-[#e4c568]/30">
-//               Create Free Account
-//             </Link>
-//           </div>
-//         </section>
-
-//       </main>
-
-//       {/* --- FOOTER --- */}
-//       <footer className="bg-[#0b101e] border-t border-[#2d3748] text-gray-400 py-12 px-4 sm:px-6 relative z-10">
-//         <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
-//           <div className="col-span-1 md:col-span-2">
-//             <div className="flex items-center gap-2 mb-4">
-//               <Globe2 className="text-[#e4c568]" size={24} />
-//               <span className="text-xl font-black tracking-tight text-white">WORLD<span className="text-[#e4c568]">FINANCE24</span></span>
-//             </div>
-//             <p className="text-sm leading-relaxed mb-4 max-w-sm">
-//               Premium decentralized crypto trading. Empowering users with automated ROI and transparent BEP-20 technology.
-//             </p>
-//           </div>
-          
-//           <div>
-//             <h3 className="text-white font-bold text-lg mb-4 border-b border-[#2d3748] pb-2 inline-block">Quick Links</h3>
-//             <ul className="space-y-2 text-sm font-medium">
-//               <li><a href="#" className="hover:text-[#e4c568] transition-colors">Home</a></li>
-//               <li><a href="#about" className="hover:text-[#e4c568] transition-colors">Ecosystem</a></li>
-//               <li><a href="#packages" className="hover:text-[#e4c568] transition-colors">Packages</a></li>
-//               <li><Link to="/login" className="hover:text-[#e4c568] transition-colors">Member Login</Link></li>
-//             </ul>
-//           </div>
-          
-//           <div>
-//             <h3 className="text-white font-bold text-lg mb-4 border-b border-[#2d3748] pb-2 inline-block">Support Info</h3>
-//             <p className="text-sm mb-2 font-medium">Email: <span className="text-[#e4c568]">support@worldfinance24.online</span></p>
-//             <p className="text-sm font-medium">Mon - Sat: 10:00 AM - 6:00 PM</p>
-//             <p className="text-xs text-gray-500 mt-4">* Withdrawals processed daily between 10 AM to 12 PM.</p>
-//           </div>
-//         </div>
-//         <div className="max-w-7xl mx-auto border-t border-[#2d3748] pt-6 flex flex-col md:flex-row justify-between items-center text-xs">
-//           <p>&copy; {new Date().getFullYear()} worldfinance24. All Rights Reserved.</p>
-//           <p className="mt-2 md:mt-0 text-gray-500">Secured via 256-Bit SSL Encryption.</p>
-//         </div>
-//       </footer>
-
-//     </div>
-//   );
-// };
-
-// export default Home;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { 
-  ArrowRight, Zap, Layers, 
-  Network, ShieldCheck, 
-  Globe2, ChevronDown, 
-  Users, DollarSign,
-  TrendingUp, Activity, BarChart3, Lock, Star
-} from 'lucide-react';
-
-const AnimatedCounter = ({ end, duration = 2000, prefix = "", suffix = "", decimals = 0 }) => {
-  const [count, setCount] = useState(0);
-  const [isVisible, setIsVisible] = useState(false);
-  const counterRef = useRef(null);
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => { if (entry.isIntersecting) setIsVisible(true); },
-      { threshold: 0.5 }
-    );
-    if (counterRef.current) observer.observe(counterRef.current);
-    return () => observer.disconnect();
-  }, []);
-
-  useEffect(() => {
-    if (!isVisible) return;
-    let startTimestamp = null;
-    const step = (timestamp) => {
-      if (!startTimestamp) startTimestamp = timestamp;
-      const progress = Math.min((timestamp - startTimestamp) / duration, 1);
-      const easeOutQuart = 1 - Math.pow(1 - progress, 4);
-      setCount(easeOutQuart * end);
-      if (progress < 1) window.requestAnimationFrame(step);
-    };
-    window.requestAnimationFrame(step);
-  }, [isVisible, end, duration]);
-
-  const formattedNumber = count.toFixed(decimals).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-  return <span ref={counterRef}>{prefix}{formattedNumber}{suffix}</span>;
-};
-
-// 🔥 Naya FAQ data bina specific numbers ke
-const faqData = [
-  { q: "What is World Finance 24?", a: "World Finance 24 is a secure decentralized crypto platform offering transparent investment processes, daily ROI through crypto trading, and network referral bonuses." },
-  { q: "How does the system generate profits?", a: "Our system pools deposited funds into high-frequency crypto trading algorithms, liquidity pools, and arbitrage opportunities across global exchanges to generate stable daily profits for our investors." },
-  { q: "How do I activate my package?", a: "Deposit USDT (BEP-20) into your wallet balance. Once funds are received, you can explore and activate your preferred investment package securely from the dashboard." },
-  { q: "What is the daily ROI return?", a: "Activated investment packages yield consistent daily returns in USD based on the specific plan you choose from your dashboard." },
-  { q: "What are the withdrawal rules?", a: "Withdrawals are processed daily between 10:00 AM - 12:00 PM (IST). An active package is required to place a withdrawal request." }
+const questions = [
+  {
+    q: "What can I do on Global Wealth?",
+    a: "Global Wealth brings member access and platform information into one place. Sign in to view the tools and services currently enabled for your account.",
+  },
+  {
+    q: "How do I join?",
+    a: "Use the Create Account link and complete the registration steps shown on the website. Keep your login details private and use accurate information.",
+  },
+  {
+    q: "I already have an account. Where do I sign in?",
+    a: "Choose Member Login and enter your registered User ID and password. If you have trouble signing in, use the password recovery link.",
+  },
+  {
+    q: "How should I handle digital-asset transfers?",
+    a: "Before sending anything, verify the asset, network and destination address shown in your authenticated account. Transfers sent to an incorrect address or network may not be recoverable.",
+  },
+  {
+    q: "Are returns guaranteed?",
+    a: "No. Digital assets and related activities carry risk, including the possible loss of the amount committed. No profit or return is guaranteed. Read all terms and risk disclosures before participating.",
+  },
 ];
 
-const Home = () => {
-  const navigate = useNavigate();
-  const [scrolled, setScrolled] = useState(false);
-  const [openFaq, setOpenFaq] = useState(null);
+const pillars = [
+  {
+    icon: Globe2,
+    index: "01 / GLOBAL",
+    title: "One connected destination",
+    body: "Move between platform information and your member tools through a single, clear experience.",
+  },
+  {
+    icon: Network,
+    index: "02 / COMMUNITY",
+    title: "Built around connection",
+    body: "Find the community and network features that are available within your member account.",
+  },
+  {
+    icon: Layers3,
+    index: "03 / CLARITY",
+    title: "A simpler overview",
+    body: "A considered layout helps you locate account areas and review the information presented.",
+  },
+];
+
+function Logo() {
+  return (
+    <Link className="gwm-logo" to="/" aria-label="Global Wealth home">
+      <img src="/global-wealth-logo.png" alt="Global Wealth" />
+    </Link>
+  );
+}
+
+export default function Home() {
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [activeFaq, setActiveFaq] = useState(0);
+  const [compactHeader, setCompactHeader] = useState(false);
 
   useEffect(() => {
-    const handleScroll = () => setScrolled(window.scrollY > 50);
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+    const update = () => setCompactHeader(window.scrollY > 24);
+    update();
+    window.addEventListener("scroll", update, { passive: true });
+    return () => window.removeEventListener("scroll", update);
   }, []);
 
-  const toggleFaq = (index) => {
-    setOpenFaq(openFaq === index ? null : index);
-  };
+  useEffect(() => {
+    const oldTitle = document.title;
+    document.title = "Global Wealth — Beyond Boundaries";
+    return () => { document.title = oldTitle; };
+  }, []);
+
+  const closeMenu = () => setMenuOpen(false);
 
   return (
-    <div className="min-h-screen bg-[#0b101e] text-gray-300 font-sans overflow-x-hidden relative selection:bg-[#e4c568]/30 selection:text-[#e4c568]">
-      
+    <div className="gwm-page">
       <style>{`
-        .glass-header {
-          background: rgba(11, 16, 30, 0.85);
-          backdrop-filter: blur(12px);
-          border-bottom: 1px solid rgba(228, 197, 104, 0.1);
+        @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap');
+        .gwm-page{
+          --black:#030403;--black2:#090a07;--gold:#d8ad4b;--gold2:#f8e5a8;
+          --gold3:#b9872c;--paper:#f4d98a;--muted:#a9a18d;--line:rgba(222,181,87,.22);
+          min-height:100vh;background:var(--black);color:#f7f0df;
+          font-family:'DM Sans',sans-serif;overflow:hidden;position:relative;
         }
-        .text-gold-gradient {
-          background: linear-gradient(135deg, #e4c568, #d4af37, #f3e5ab);
-          -webkit-background-clip: text;
-          -webkit-text-fill-color: transparent;
+        .gwm-page *{box-sizing:border-box}
+        .gwm-page a{text-decoration:none}
+        .gwm-wrap{width:min(1240px,calc(100% - 64px));margin:0 auto}
+        .gwm-gold-text{color:var(--gold2)}
+        .gwm-kicker{display:flex;align-items:center;gap:12px;color:var(--gold);font-size:10px;font-weight:800;letter-spacing:.23em;text-transform:uppercase}
+        .gwm-kicker:before{content:"";width:31px;height:1px;background:var(--gold)}
+        .gwm-header{position:fixed;z-index:99;top:0;left:0;right:0;padding:19px 0;border-bottom:1px solid transparent;transition:background .25s,padding .25s,border-color .25s}
+        .gwm-header.is-compact{padding:10px 0;background:rgba(3,4,3,.94);border-color:var(--line);backdrop-filter:blur(18px)}
+        .gwm-nav{display:flex;align-items:center;justify-content:space-between;gap:25px}
+        .gwm-logo{display:block;flex:none}
+        .gwm-logo img{display:block;width:213px;max-height:65px;object-fit:contain}
+        .gwm-links{display:flex;align-items:center;gap:28px}
+        .gwm-links a{color:#d1c7ad;font-size:12px;font-weight:700;transition:color .2s}
+        .gwm-links a:hover{color:var(--gold2)}
+        .gwm-nav-actions{display:flex;gap:10px;align-items:center}
+        .gwm-btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:48px;padding:0 21px;border-radius:4px;font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;transition:transform .2s,filter .2s,background .2s}
+        .gwm-btn:hover{transform:translateY(-2px);filter:brightness(1.08)}
+        .gwm-btn-gold{color:#100d05;background:linear-gradient(115deg,#fff0b5 0%,#e4bf66 40%,#c39134 100%);box-shadow:0 9px 30px rgba(210,166,70,.18)}
+        .gwm-btn-outline{color:var(--gold2);border:1px solid rgba(225,188,99,.55);background:transparent}
+        .gwm-toggle{display:none;width:43px;height:43px;align-items:center;justify-content:center;color:var(--gold2);border:1px solid var(--line);background:#0c0d09;border-radius:4px}
+        .gwm-mobile{display:none}
+
+        /* New editorial hero */
+        .gwm-hero{min-height:790px;padding:155px 0 90px;position:relative;display:flex;align-items:center}
+        .gwm-hero:before{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(3,4,3,.96) 0%,rgba(3,4,3,.88) 47%,rgba(3,4,3,.2) 100%),url('/global-wealth-logo.png') no-repeat 112% 52%/min(900px,75vw) auto;opacity:.15;filter:grayscale(1);pointer-events:none}
+        .gwm-hero:after{content:"";position:absolute;left:0;right:0;bottom:0;height:1px;background:linear-gradient(90deg,transparent,var(--gold),transparent);opacity:.6}
+        .gwm-hero-layout{position:relative;z-index:1;display:grid;grid-template-columns:1.05fr .95fr;align-items:center;gap:52px}
+        .gwm-hero-copy{max-width:680px}
+        .gwm-hero h1{margin:25px 0 22px;font:700 clamp(54px,7.5vw,96px)/.98 'Space Grotesk',sans-serif;letter-spacing:-.075em;color:#fff1c4}
+        .gwm-hero h1 span{display:block;color:var(--gold);text-shadow:0 8px 45px rgba(216,173,75,.15)}
+        .gwm-lead{max-width:535px;color:#b9b09b;font-size:15px;line-height:1.95}
+        .gwm-hero-ctas{display:flex;flex-wrap:wrap;gap:12px;margin-top:32px}
+        .gwm-risk-note{max-width:560px;margin-top:24px;color:#777363;font-size:10px;line-height:1.8}
+        .gwm-hero-visual{position:relative;min-height:465px;display:flex;align-items:center;justify-content:center}
+        .gwm-gold-disc{position:absolute;width:min(430px,90%);aspect-ratio:1;border-radius:50%;background:radial-gradient(circle at 34% 27%,#fff0b4 0%,#e4bd62 17%,#c18d2f 43%,#5a3e12 69%,#120e05 75%);box-shadow:0 0 100px rgba(207,159,55,.22),inset -20px -30px 50px rgba(0,0,0,.38)}
+        .gwm-gold-disc:before{content:"";position:absolute;inset:13px;border:1px solid rgba(255,241,193,.55);border-radius:50%}
+        .gwm-gold-disc:after{content:"";position:absolute;inset:-22px;border:1px solid rgba(218,174,74,.24);border-radius:50%;box-shadow:0 0 0 18px rgba(218,174,74,.025)}
+        .gwm-hero-logo{position:relative;z-index:2;width:min(480px,108%);padding:17px 12px;background:rgba(0,0,0,.48);border:1px solid rgba(255,232,166,.32);box-shadow:0 28px 70px rgba(0,0,0,.58);transform:rotate(-3deg)}
+        .gwm-hero-logo img{width:100%;display:block}
+        .gwm-visual-label{position:absolute;z-index:3;right:-5px;bottom:28px;padding:13px 17px;background:#080906;border-left:3px solid var(--gold);color:#f5dfa0;font-size:10px;font-weight:800;letter-spacing:.16em;text-transform:uppercase}
+        .gwm-vertical-word{position:absolute;right:-14px;top:50%;transform:translateY(-50%);writing-mode:vertical-rl;color:rgba(239,205,125,.32);font:700 10px 'Space Grotesk';letter-spacing:.38em}
+
+        /* Gold marquee */
+        .gwm-marquee{overflow:hidden;background:linear-gradient(100deg,#bd8b30,#f2d78c 42%,#c49338);color:#120e04}
+        .gwm-marquee-inner{display:flex;justify-content:space-around;align-items:center;gap:30px;padding:17px 20px;white-space:nowrap;font:700 10px 'Space Grotesk';letter-spacing:.2em;text-transform:uppercase}
+        .gwm-marquee-inner span{display:flex;align-items:center;gap:12px}
+        .gwm-marquee-inner svg{width:14px;height:14px}
+
+        /* Gold feature panels */
+        .gwm-section{padding:112px 0}
+        .gwm-section-heading{max-width:770px;margin-bottom:52px}
+        .gwm-section-heading h2{margin:18px 0 15px;font:700 clamp(38px,5vw,64px)/1.02 'Space Grotesk';letter-spacing:-.065em;color:#fff0c0}
+        .gwm-section-heading p{max-width:610px;color:#a9a18d;font-size:14px;line-height:1.9}
+        .gwm-pillar-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:17px}
+        .gwm-pillar{min-height:310px;padding:28px 27px 25px;background:linear-gradient(145deg,#f4d98a 0%,#d9ad4b 54%,#a97824 100%);color:#171105;position:relative;overflow:hidden;transition:transform .25s,box-shadow .25s}
+        .gwm-pillar:hover{transform:translateY(-7px);box-shadow:0 22px 48px rgba(204,157,55,.16)}
+        .gwm-pillar:after{content:"";position:absolute;width:190px;height:190px;right:-105px;bottom:-110px;border:1px solid rgba(36,24,3,.24);border-radius:50%;box-shadow:0 0 0 19px rgba(36,24,3,.05),0 0 0 40px rgba(36,24,3,.04)}
+        .gwm-pillar-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:49px}
+        .gwm-pillar-icon{width:49px;height:49px;display:grid;place-items:center;border:1px solid rgba(27,19,5,.32);background:rgba(255,248,217,.24)}
+        .gwm-pillar-index{font-size:9px;font-weight:800;letter-spacing:.16em}
+        .gwm-pillar h3{max-width:270px;margin:0 0 12px;font:700 23px/1.12 'Space Grotesk';letter-spacing:-.045em}
+        .gwm-pillar p{max-width:300px;margin:0;color:#45320d;font-size:12px;line-height:1.85}
+        .gwm-pillar-arrow{position:absolute;right:25px;bottom:22px}
+
+        /* Feature story */
+        .gwm-story{padding:0 0 110px}
+        .gwm-story-panel{display:grid;grid-template-columns:.9fr 1.1fr;min-height:420px;border:1px solid var(--line);background:#090a07}
+        .gwm-story-left{padding:55px 48px;display:flex;flex-direction:column;justify-content:center}
+        .gwm-story-left h2{margin:17px 0;font:700 clamp(35px,4vw,53px)/1.04 'Space Grotesk';letter-spacing:-.06em;color:var(--gold2)}
+        .gwm-story-left p{max-width:390px;color:#aaa18c;font-size:13px;line-height:1.9}
+        .gwm-story-right{padding:35px;background:linear-gradient(135deg,#f4df9e,#d4a644 52%,#9d6c1d);color:#161004;display:flex;flex-direction:column;justify-content:center;gap:13px}
+        .gwm-step{display:grid;grid-template-columns:48px 1fr auto;align-items:center;gap:16px;padding:19px 17px;border-bottom:1px solid rgba(37,25,4,.22)}
+        .gwm-step:last-child{border-bottom:0}
+        .gwm-step-icon{width:43px;height:43px;display:grid;place-items:center;border:1px solid rgba(30,21,4,.32)}
+        .gwm-step h3{margin:0 0 5px;font:700 15px 'Space Grotesk'}
+        .gwm-step p{margin:0;color:#594216;font-size:11px;line-height:1.65}
+        .gwm-step-no{font:700 11px 'Space Grotesk';opacity:.6}
+
+        /* CTA */
+        .gwm-cta{padding:0 0 112px}
+        .gwm-cta-box{position:relative;overflow:hidden;padding:55px 58px;background:linear-gradient(110deg,#f7e4a9,#dfb956 55%,#b98227);color:#120e04}
+        .gwm-cta-box:after{content:"GW";position:absolute;right:20px;top:50%;transform:translateY(-55%);font:700 190px/.8 'Space Grotesk';letter-spacing:-.12em;color:rgba(45,29,3,.08);pointer-events:none}
+        .gwm-cta-content{position:relative;z-index:1;display:flex;align-items:center;justify-content:space-between;gap:35px}
+        .gwm-cta h2{max-width:680px;margin:14px 0 10px;font:700 clamp(34px,4.6vw,57px)/1.02 'Space Grotesk';letter-spacing:-.065em}
+        .gwm-cta p{max-width:600px;margin:0;color:#49350f;font-size:12px;line-height:1.85}
+        .gwm-cta .gwm-kicker{color:#3e2a08}
+        .gwm-cta .gwm-kicker:before{background:#3e2a08}
+        .gwm-cta .gwm-btn{flex:none;background:#090a07;color:#f6df9c}
+
+        /* FAQ + footer */
+        .gwm-faq-layout{display:grid;grid-template-columns:.75fr 1.25fr;gap:65px}
+        .gwm-faq-title h2{margin:17px 0;font:700 clamp(38px,4.5vw,57px)/1.02 'Space Grotesk';letter-spacing:-.06em;color:#f4dfa0}
+        .gwm-faq-title p{color:#a9a18d;font-size:13px;line-height:1.9}
+        .gwm-faq-item{border-top:1px solid var(--line)}
+        .gwm-faq-item:last-child{border-bottom:1px solid var(--line)}
+        .gwm-faq-q{width:100%;display:flex;justify-content:space-between;align-items:center;gap:18px;padding:20px 0;border:0;background:none;color:#f1e6ca;text-align:left;font:700 14px 'DM Sans';cursor:pointer}
+        .gwm-faq-q svg{color:var(--gold);flex:none;transition:transform .2s}
+        .gwm-faq-q[aria-expanded="true"] svg{transform:rotate(180deg)}
+        .gwm-faq-a{padding:0 36px 20px 0;color:#aaa18c;font-size:12px;line-height:1.9}
+        .gwm-footer{padding:55px 0 23px;background:#080906;border-top:1px solid var(--line)}
+        .gwm-footer-grid{display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:45px;padding-bottom:37px}
+        .gwm-footer-about{max-width:390px;margin:17px 0 0;color:#8e8878;font-size:11px;line-height:1.9}
+        .gwm-footer h4{margin:5px 0 17px;color:var(--gold2);font:700 10px 'Space Grotesk';letter-spacing:.2em}
+        .gwm-footer-links{display:grid;gap:13px}
+        .gwm-footer-links a{color:#aaa18d;font-size:11px}
+        .gwm-footer-links a:hover{color:var(--gold2)}
+        .gwm-footer-bottom{display:flex;justify-content:space-between;gap:15px;padding-top:20px;border-top:1px solid rgba(222,181,87,.12);color:#716b5d;font-size:9px}
+        @media(max-width:980px){
+          .gwm-links{gap:16px}.gwm-logo img{width:180px}
+          .gwm-hero-layout{gap:25px}.gwm-hero h1{font-size:clamp(54px,7vw,76px)}
+          .gwm-story-left{padding:38px 30px}.gwm-faq-layout{gap:35px}
         }
-        .bg-gold-gradient {
-          background: linear-gradient(135deg, #e4c568, #d4af37);
+        @media(max-width:760px){
+          .gwm-wrap{width:calc(100% - 36px)}
+          .gwm-header{padding:10px 0}.gwm-logo img{width:170px;max-height:55px}
+          .gwm-links,.gwm-nav-actions{display:none}.gwm-toggle{display:flex}
+          .gwm-mobile{position:absolute;display:grid;gap:4px;top:calc(100% + 8px);left:18px;right:18px;padding:12px;background:#0b0c08;border:1px solid var(--line);box-shadow:0 20px 45px rgba(0,0,0,.55)}
+          .gwm-mobile>a{padding:12px;color:#f0e4c6;font-size:12px;font-weight:700}
+          .gwm-mobile-ctas{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:5px}
+          .gwm-mobile-ctas .gwm-btn{padding:0 8px;font-size:9px}
+          .gwm-hero{min-height:0;padding:125px 0 70px}
+          .gwm-hero-layout{grid-template-columns:1fr;text-align:center;gap:15px}
+          .gwm-kicker{justify-content:center}
+          .gwm-hero h1{font-size:clamp(49px,12vw,76px);margin:22px 0 18px}
+          .gwm-lead{margin:0 auto;font-size:13px}
+          .gwm-hero-ctas{justify-content:center}
+          .gwm-risk-note{margin:20px auto 0}
+          .gwm-hero-visual{min-height:350px;margin-top:5px}
+          .gwm-gold-disc{width:min(310px,80vw)}
+          .gwm-hero-logo{width:min(390px,100%)}
+          .gwm-visual-label{right:0;bottom:13px}
+          .gwm-vertical-word{right:0}
+          .gwm-marquee-inner{justify-content:flex-start;overflow:hidden;padding:15px 18px;font-size:9px}
+          .gwm-section{padding:78px 0}
+          .gwm-section-heading{margin-bottom:30px}
+          .gwm-section-heading h2{font-size:43px}
+          .gwm-pillar-grid{grid-template-columns:1fr;gap:12px}
+          .gwm-pillar{min-height:245px;padding:24px}
+          .gwm-pillar-top{margin-bottom:31px}
+          .gwm-story{padding-bottom:78px}
+          .gwm-story-panel{grid-template-columns:1fr}
+          .gwm-story-left{padding:35px 25px}
+          .gwm-story-right{padding:18px 12px}
+          .gwm-step{grid-template-columns:42px 1fr auto;padding:16px 10px;gap:12px}
+          .gwm-cta{padding-bottom:78px}
+          .gwm-cta-box{padding:34px 24px}
+          .gwm-cta-content{align-items:flex-start;flex-direction:column;gap:22px}
+          .gwm-cta-box:after{font-size:120px;right:8px}
+          .gwm-faq-layout{grid-template-columns:1fr;gap:26px}
+          .gwm-faq-title{text-align:center}
+          .gwm-faq-title .gwm-kicker{justify-content:center}
+          .gwm-faq-title h2{font-size:43px}
+          .gwm-footer-grid{grid-template-columns:1fr 1fr;gap:30px 18px}
+          .gwm-footer-grid>div:first-child{grid-column:1/-1}
+          .gwm-footer-bottom{flex-direction:column;text-align:center}
+        }
+        @media(max-width:390px){
+          .gwm-wrap{width:calc(100% - 30px)}
+          .gwm-logo img{width:154px}
+          .gwm-hero h1{font-size:46px}
+          .gwm-hero-ctas{display:grid;grid-template-columns:1fr}
+          .gwm-hero-ctas .gwm-btn{width:100%}
+          .gwm-footer-grid{grid-template-columns:1fr}
+          .gwm-footer-grid>div:first-child{grid-column:auto}
+        }
+        @media(prefers-reduced-motion:reduce){
+          .gwm-page *,.gwm-page *:before,.gwm-page *:after{transition-duration:.01ms!important;animation-duration:.01ms!important;scroll-behavior:auto!important}
         }
       `}</style>
 
-      {/* --- TOP HEADER NAVBAR --- */}
-      <nav className={`fixed top-0 w-full z-50 transition-all duration-300 ${scrolled ? 'glass-header py-3 shadow-[0_4px_30px_rgba(0,0,0,0.5)]' : 'bg-transparent py-5'}`}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 flex justify-between items-center">
-          <Link to="/" className="flex items-center gap-2 no-underline group">
-            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-[#131927] border border-[#e4c568]/50 flex items-center justify-center group-hover:border-[#e4c568] transition-colors shadow-[0_0_10px_rgba(228,197,104,0.2)]">
-               <Globe2 className="text-[#e4c568]" size={20} />
-            </div>
-            <span className="text-lg sm:text-xl font-black tracking-tight text-white flex items-center">
-              WORLD<span className="text-[#e4c568]">FINANCE24</span>
-            </span>
-          </Link>
-          
-          <div className="hidden lg:flex items-center gap-8 font-semibold text-sm text-gray-300">
-            <a href="#" className="hover:text-[#e4c568] transition-colors">Home</a>
-            <a href="#about" className="hover:text-[#e4c568] transition-colors">Ecosystem</a>
-            <a href="#packages" className="hover:text-[#e4c568] transition-colors">Packages</a>
-            <a href="#faq" className="hover:text-[#e4c568] transition-colors">FAQ</a>
-            <Link to="/login" className="hover:text-[#e4c568] transition-colors">Login</Link>
+      <header className={`gwm-header ${compactHeader ? "is-compact" : ""}`}>
+        <div className="gwm-wrap gwm-nav">
+          <Logo />
+          <nav className="gwm-links" aria-label="Main navigation">
+            <a href="#top">Home</a>
+            <a href="#platform">Platform</a>
+            <a href="#journey">Your Journey</a>
+            <a href="#questions">Questions</a>
+          </nav>
+          <div className="gwm-nav-actions">
+            <Link to="/login" className="gwm-btn gwm-btn-outline">Sign In</Link>
+            <Link to="/register" className="gwm-btn gwm-btn-gold">Join Now <ArrowUpRight size={15}/></Link>
           </div>
-          
-          <div className="flex gap-3">
-            <Link to="/login" className="hidden sm:flex bg-[#131927] border border-[#e4c568]/30 hover:border-[#e4c568] text-white font-bold px-5 py-2.5 rounded transition text-sm items-center justify-center">
-              Login
-            </Link>
-            <Link to="/register" className="bg-gold-gradient hover:scale-105 text-black font-extrabold px-5 sm:px-6 py-2.5 rounded transition-transform text-sm shadow-[0_0_15px_rgba(228,197,104,0.3)]">
-              Register
-            </Link>
+          <button className="gwm-toggle" type="button" aria-label={menuOpen ? "Close menu" : "Open menu"} aria-expanded={menuOpen} onClick={() => setMenuOpen(v => !v)}>
+            {menuOpen ? <X size={20}/> : <Menu size={20}/>}
+          </button>
+          {menuOpen && (
+            <nav className="gwm-mobile" aria-label="Mobile navigation">
+              <a href="#top" onClick={closeMenu}>Home</a>
+              <a href="#platform" onClick={closeMenu}>Platform</a>
+              <a href="#journey" onClick={closeMenu}>Your Journey</a>
+              <a href="#questions" onClick={closeMenu}>Questions</a>
+              <div className="gwm-mobile-ctas">
+                <Link to="/login" className="gwm-btn gwm-btn-outline" onClick={closeMenu}>Sign In</Link>
+                <Link to="/register" className="gwm-btn gwm-btn-gold" onClick={closeMenu}>Join Now</Link>
+              </div>
+            </nav>
+          )}
+        </div>
+      </header>
+
+      <main id="top">
+        <section className="gwm-hero">
+          <div className="gwm-wrap gwm-hero-layout">
+            <div className="gwm-hero-copy">
+              <div className="gwm-kicker">A new perspective on global connection</div>
+              <h1>BEYOND<br/>BOUNDARIES<span>BEYOND LIMITS.</span></h1>
+              <p className="gwm-lead">
+                Step into Global Wealth — a digital destination shaped around
+                access, connection and a more considered way to explore your
+                member experience.
+              </p>
+              <div className="gwm-hero-ctas">
+                <Link to="/register" className="gwm-btn gwm-btn-gold">Become a Member <MoveUpRight size={16}/></Link>
+                <Link to="/login" className="gwm-btn gwm-btn-outline">Enter Your Account <ArrowRight size={16}/></Link>
+              </div>
+              <p className="gwm-risk-note">
+                Global Wealth does not guarantee profits or investment returns. Digital assets
+                and related activities involve risk, including possible loss. Review applicable
+                terms and risk information before participating.
+              </p>
+            </div>
+            <div className="gwm-hero-visual">
+              <div className="gwm-gold-disc"/>
+              <div className="gwm-hero-logo">
+                <img src="/global-wealth-logo.png" alt="Global Wealth gold bull emblem"/>
+              </div>
+              <div className="gwm-visual-label">Strength · Vision · Progress</div>
+              <div className="gwm-vertical-word">GLOBAL WEALTH / ESTABLISH YOUR DIRECTION</div>
+            </div>
+          </div>
+        </section>
+
+        <div className="gwm-marquee" aria-label="Global Wealth values">
+          <div className="gwm-marquee-inner">
+            <span><Sparkles/> GLOBAL VISION</span>
+            <span><Globe2/> CONNECTED EXPERIENCE</span>
+            <span><BadgeCheck/> MEMBER FIRST</span>
+            <span><LockKeyhole/> ACCOUNT AWARENESS</span>
           </div>
         </div>
-      </nav>
 
-      {/* --- HERO SECTION --- */}
-      <section className="relative pt-32 pb-20 sm:pb-24 px-4 sm:px-6 bg-[#0b101e] min-h-[85vh] flex items-center overflow-hidden">
-        <div className="absolute top-[-10%] left-[-10%] w-[50vw] h-[50vw] bg-[#e4c568]/5 blur-[120px] rounded-full pointer-events-none"></div>
-        <div className="absolute bottom-[-10%] right-[-10%] w-[40vw] h-[40vw] bg-blue-500/5 blur-[120px] rounded-full pointer-events-none"></div>
-
-        <div className="max-w-7xl mx-auto w-full grid grid-cols-1 lg:grid-cols-2 gap-12 items-center relative z-10">
-          <div className="text-center lg:text-left">
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#131927] border border-[#e4c568]/30 text-[#e4c568] text-xs font-bold tracking-wide mb-6">
-              <Activity size={14} /> LIVE USDT (BEP-20) DEPOSITS & WITHDRAWALS
+        <section className="gwm-section" id="platform">
+          <div className="gwm-wrap">
+            <div className="gwm-section-heading">
+              <div className="gwm-kicker">The platform</div>
+              <h2>MADE TO MOVE<br/><span className="gwm-gold-text">WITH YOUR WORLD.</span></h2>
+              <p>
+                A clear digital environment for exploring platform information,
+                reaching your member area and discovering the features available
+                to your account.
+              </p>
             </div>
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black mb-6 leading-tight text-white">
-              MASTER YOUR <br />
-              <span className="text-gold-gradient">CRYPTO WEALTH</span>
-            </h1>
-            <p className="text-gray-400 text-base sm:text-lg mb-8 max-w-lg mx-auto lg:mx-0 leading-relaxed">
-              Join worldfinance24 to unlock stable daily ROI through automated crypto trading and powerful multi-level referral networks.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
-              <Link to="/register" className="bg-gold-gradient text-black font-black px-8 py-3.5 rounded transition shadow-[0_0_20px_rgba(228,197,104,0.4)] hover:shadow-[0_0_30px_rgba(228,197,104,0.6)] hover:-translate-y-1 text-center uppercase tracking-wider text-sm">
-                Start Earning
-              </Link>
-              <Link to="/login" className="bg-[#161c2d] hover:bg-[#1e2536] border border-[#2d3748] text-white font-bold px-8 py-3.5 rounded transition text-center uppercase tracking-wider text-sm">
-                Member Dashboard
-              </Link>
-            </div>
-          </div>
-
-          <div className="hidden lg:block relative">
-            <div className="absolute inset-0 bg-gradient-to-tr from-[#e4c568]/10 to-transparent rounded-full blur-[80px]"></div>
-            <div className="bg-[#131927] border border-[#2d3748] p-6 rounded-2xl shadow-[0_0_30px_rgba(0,0,0,0.8)] relative z-10">
-              <div className="flex justify-between items-center mb-6 border-b border-[#2d3748] pb-4">
-                <span className="text-white font-bold flex items-center gap-2"><TrendingUp className="text-[#00ff88]" /> Platform Stats</span>
-                <span className="text-[#e4c568] text-xs font-bold bg-[#e4c568]/10 px-3 py-1 rounded">UPDATED LIVE</span>
-              </div>
-              <div className="space-y-6">
-                <div>
-                  <p className="text-gray-500 text-sm font-semibold mb-1">Total Active Traders</p>
-                  <p className="text-3xl font-black text-white"><AnimatedCounter end={12540} prefix="" suffix="+" /></p>
-                </div>
-                <div>
-                  <p className="text-gray-500 text-sm font-semibold mb-1">Total Volume Traded</p>
-                  <p className="text-3xl font-black text-[#00ff88]"><AnimatedCounter end={458} prefix="$" suffix="K+" decimals={1} /></p>
-                </div>
-                <div>
-                  <p className="text-gray-500 text-sm font-semibold mb-1">Active Global Markets</p>
-                  <p className="text-3xl font-black text-[#e4c568]"><AnimatedCounter end={40} prefix="" suffix="+" decimals={0} /></p>
-                </div>
-              </div>
+            <div className="gwm-pillar-grid">
+              {pillars.map((item) => {
+                const Icon = item.icon;
+                return (
+                  <article className="gwm-pillar" key={item.index}>
+                    <div className="gwm-pillar-top">
+                      <div className="gwm-pillar-icon"><Icon size={23}/></div>
+                      <span className="gwm-pillar-index">{item.index}</span>
+                    </div>
+                    <h3>{item.title}</h3>
+                    <p>{item.body}</p>
+                    <ArrowUpRight className="gwm-pillar-arrow" size={20}/>
+                  </article>
+                );
+              })}
             </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-     
+        <section className="gwm-story" id="journey">
+          <div className="gwm-wrap">
+            <div className="gwm-story-panel">
+              <div className="gwm-story-left">
+                <div className="gwm-kicker">Start with confidence</div>
+                <h2>YOUR NEXT CHAPTER STARTS HERE.</h2>
+                <p>
+                  Take a moment to understand the platform, review the information
+                  available to you and keep your account details protected at every step.
+                </p>
+                <div style={{marginTop:22}}>
+                  <Link to="/register" className="gwm-btn gwm-btn-gold">Open Your Account <ArrowUpRight size={15}/></Link>
+                </div>
+              </div>
+              <div className="gwm-story-right">
+                <div className="gwm-step">
+                  <div className="gwm-step-icon"><WalletCards size={21}/></div>
+                  <div><h3>Set up your membership</h3><p>Complete the registration process using your details.</p></div>
+                  <span className="gwm-step-no">01</span>
+                </div>
+                <div className="gwm-step">
+                  <div className="gwm-step-icon"><Globe2 size={21}/></div>
+                  <div><h3>Discover your workspace</h3><p>Explore the member tools and platform information available.</p></div>
+                  <span className="gwm-step-no">02</span>
+                </div>
+                <div className="gwm-step">
+                  <div className="gwm-step-icon"><ShieldCheck size={21}/></div>
+                  <div><h3>Stay informed and secure</h3><p>Review details carefully and protect your sign-in credentials.</p></div>
+                  <span className="gwm-step-no">03</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
 
-      <main className="relative z-10">
-        
-        {/* --- ABOUT SECTION --- */}
-        <section className="py-20 px-4 sm:px-6 max-w-7xl mx-auto" id="about">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-            
-            {/* Left Content */}
+        <section className="gwm-cta">
+          <div className="gwm-wrap">
+            <div className="gwm-cta-box">
+              <div className="gwm-cta-content">
+                <div>
+                  <div className="gwm-kicker">Your global access point</div>
+                  <h2>READY TO STEP INSIDE?</h2>
+                  <p>Access your existing account or create your Global Wealth membership to explore the platform.</p>
+                </div>
+                <Link to="/login" className="gwm-btn">Access Member Area <ArrowRight size={16}/></Link>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section className="gwm-section" id="questions">
+          <div className="gwm-wrap gwm-faq-layout">
+            <div className="gwm-faq-title">
+              <div className="gwm-kicker">Help centre</div>
+              <h2>THE DETAILS<br/><span className="gwm-gold-text">MATTER.</span></h2>
+              <p>Useful information to help you understand account access and platform basics.</p>
+              <CircleHelp size={38} color="#d8ad4b" strokeWidth={1.2}/>
+            </div>
             <div>
-              <p className="text-[#e4c568] font-black text-sm tracking-widest uppercase mb-2">How We Generate Value</p>
-              <h2 className="text-3xl sm:text-4xl font-black mb-6 text-white leading-tight">
-                The Engine Behind Your <br className="hidden sm:block" />
-                <span className="text-gold-gradient">Consistent Returns</span>
-              </h2>
-              <p className="text-gray-400 text-justify mb-6 leading-relaxed text-sm sm:text-base">
-                 worldfinance24 utilizes deposited liquidity to power our high-frequency crypto trading algorithms and market arbitrage bots. By trading in high-volume markets, our system generates consistent profit margins regardless of market direction.
-              </p>
-              <p className="text-gray-400 text-justify mb-8 leading-relaxed text-sm sm:text-base">
-                A portion of these profits is distributed back to our investors as a stable Daily ROI, while the rest sustains the platform and funds our lucrative multi-level referral network.
-              </p>
-
-              <div className="space-y-4">
-                <div className="bg-[#131927] p-4 rounded-xl border border-[#2d3748] flex gap-4 items-center">
-                  <div className="bg-[#1e2536] p-3 rounded-lg text-[#00ff88] border border-[#2d3748]"><BarChart3 size={24} /></div>
-                  <div>
-                    <h3 className="font-bold text-white text-base">Algorithmic Crypto Trading</h3>
-                    <p className="text-gray-500 text-xs mt-1">24/7 automated trades across global exchanges.</p>
-                  </div>
+              {questions.map((item, index) => (
+                <div className="gwm-faq-item" key={item.q}>
+                  <button className="gwm-faq-q" type="button" aria-expanded={activeFaq === index} onClick={() => setActiveFaq(activeFaq === index ? -1 : index)}>
+                    {item.q}<ChevronDown size={18}/>
+                  </button>
+                  {activeFaq === index && <div className="gwm-faq-a">{item.a}</div>}
                 </div>
-                <div className="bg-[#131927] p-4 rounded-xl border border-[#2d3748] flex gap-4 items-center">
-                  <div className="bg-[#1e2536] p-3 rounded-lg text-[#e4c568] border border-[#2d3748]"><Layers size={24} /></div>
-                  <div>
-                    <h3 className="font-bold text-white text-base">Liquidity Pooling</h3>
-                    <p className="text-gray-500 text-xs mt-1">Earning fees through decentralized exchange liquidity.</p>
-                  </div>
-                </div>
-              </div>
+              ))}
             </div>
-
-            {/* Right Side: Earning Steps */}
-            <div>
-              <div className="bg-[#131927] border border-[#2d3748] rounded-2xl shadow-xl p-6 sm:p-8 relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-32 h-32 bg-[#e4c568]/10 blur-[50px] rounded-full"></div>
-                <h3 className="text-xl sm:text-2xl font-bold mb-8 text-white border-b border-[#2d3748] pb-4">
-                  Start Earning in 3 Simple Steps
-                </h3>
-                
-                <div className="space-y-8 relative before:absolute before:inset-0 before:ml-[1.1rem] before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-[#2d3748] before:to-transparent">
-                  
-                  {/* Step 1 */}
-                  <div className="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group is-active">
-                    <div className="flex items-center justify-center w-9 h-9 rounded-full border-2 border-[#e4c568] bg-[#161c2d] text-[#e4c568] font-bold shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 shadow-[0_0_10px_rgba(228,197,104,0.3)] z-10">
-                      1
-                    </div>
-                    <div className="w-[calc(100%-3rem)] md:w-[calc(50%-2.5rem)] bg-[#1e2536] p-4 rounded-xl border border-[#2d3748] shadow-sm">
-                      <div className="flex items-center gap-2 mb-1">
-                        <DollarSign size={16} className="text-[#e4c568]"/>
-                        <h4 className="font-bold text-white text-sm">Deposit USDT</h4>
-                      </div>
-                      <p className="text-xs text-gray-400">Add funds to your wallet using the secure BEP-20 network.</p>
-                    </div>
-                  </div>
-
-                  {/* Step 2 */}
-                  <div className="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group is-active">
-                    <div className="flex items-center justify-center w-9 h-9 rounded-full border-2 border-[#e4c568] bg-[#161c2d] text-[#e4c568] font-bold shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 shadow-[0_0_10px_rgba(228,197,104,0.3)] z-10">
-                      2
-                    </div>
-                    <div className="w-[calc(100%-3rem)] md:w-[calc(50%-2.5rem)] bg-[#1e2536] p-4 rounded-xl border border-[#2d3748] shadow-sm">
-                      <div className="flex items-center gap-2 mb-1">
-                        <Lock size={16} className="text-[#e4c568]"/>
-                        <h4 className="font-bold text-white text-sm">Activate Package</h4>
-                      </div>
-                      <p className="text-xs text-gray-400">Select and activate a package to unlock your earning potential.</p>
-                    </div>
-                  </div>
-
-                  {/* Step 3 */}
-                  <div className="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group is-active">
-                    <div className="flex items-center justify-center w-9 h-9 rounded-full border-2 border-[#e4c568] bg-[#161c2d] text-[#e4c568] font-bold shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 shadow-[0_0_10px_rgba(228,197,104,0.3)] z-10">
-                      3
-                    </div>
-                    <div className="w-[calc(100%-3rem)] md:w-[calc(50%-2.5rem)] bg-[#1e2536] p-4 rounded-xl border border-[#2d3748] shadow-sm">
-                      <div className="flex items-center gap-2 mb-1">
-                        <TrendingUp size={16} className="text-[#00ff88]"/>
-                        <h4 className="font-bold text-white text-sm">Earn & Withdraw</h4>
-                      </div>
-                      <p className="text-xs text-gray-400">Enjoy consistent ROI daily. Withdraw directly to your crypto wallet.</p>
-                    </div>
-                  </div>
-
-                </div>
-              </div>
-            </div>
-
           </div>
         </section>
-
-        {/* --- FLEXIBLE PACKAGES SECTION (Table Removed) --- */}
-        <section className="py-20 px-4 sm:px-6 max-w-6xl mx-auto" id="packages">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl sm:text-4xl font-black mb-3 text-white"> Flexible <span className="text-gold-gradient">Packages</span></h2>
-            <p className="text-[#e4c568] font-bold bg-[#131927] border border-[#2d3748] inline-block px-5 py-2 rounded-full shadow-sm text-sm sm:text-base">
-              Tailored plans to suit every financial goal
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            
-            <div className="bg-[#131927] border border-[#2d3748] hover:border-[#e4c568] p-8 rounded-2xl transition-all hover:-translate-y-2 group">
-              <div className="w-14 h-14 bg-[#1e2536] rounded-full flex items-center justify-center mb-6 group-hover:scale-110 transition-transform border border-[#2d3748]">
-                <Star className="text-gray-400" size={24} />
-              </div>
-              <h3 className="text-2xl font-black text-white mb-2">Starter Plans</h3>
-              <p className="text-gray-400 text-sm mb-6 leading-relaxed">
-                Perfect for beginners looking to step into the world of crypto earning with minimal risk.
-              </p>
-              <ul className="space-y-3 mb-8">
-                <li className="flex items-center gap-2 text-sm text-gray-300"><CheckIcon /> Entry-level access</li>
-                <li className="flex items-center gap-2 text-sm text-gray-300"><CheckIcon /> Standard ROI rates</li>
-                <li className="flex items-center gap-2 text-sm text-gray-300"><CheckIcon /> Basic network bonuses</li>
-              </ul>
-              <Link to="/login" className="block text-center border border-[#e4c568] text-[#e4c568] hover:bg-[#e4c568] hover:text-black font-bold py-3 rounded-lg transition-colors text-sm">View in Dashboard</Link>
-            </div>
-
-            <div className="bg-[#131927] border border-[#e4c568] relative p-8 rounded-2xl transition-all hover:-translate-y-2 shadow-[0_0_25px_rgba(228,197,104,0.15)] group">
-              <div className="absolute top-0 right-0 bg-[#e4c568] text-black text-[10px] font-black uppercase tracking-wider px-3 py-1 rounded-bl-lg rounded-tr-lg">Most Popular</div>
-              <div className="w-14 h-14 bg-gold-gradient rounded-full flex items-center justify-center mb-6 group-hover:scale-110 transition-transform shadow-[0_0_15px_rgba(228,197,104,0.4)]">
-                <TrendingUp className="text-black" size={24} />
-              </div>
-              <h3 className="text-2xl font-black text-white mb-2">Professional Plans</h3>
-              <p className="text-gray-400 text-sm mb-6 leading-relaxed">
-                Designed for serious investors seeking optimized returns and team-building potential.
-              </p>
-              <ul className="space-y-3 mb-8">
-                <li className="flex items-center gap-2 text-sm text-gray-300"><CheckIcon /> Mid-tier investments</li>
-                <li className="flex items-center gap-2 text-sm text-gray-300"><CheckIcon /> Enhanced ROI access</li>
-                <li className="flex items-center gap-2 text-sm text-gray-300"><CheckIcon /> Advanced network rewards</li>
-              </ul>
-              <Link to="/login" className="block text-center bg-gold-gradient text-black font-bold py-3 rounded-lg transition-colors text-sm">View in Dashboard</Link>
-            </div>
-
-            <div className="bg-[#131927] border border-[#2d3748] hover:border-[#e4c568] p-8 rounded-2xl transition-all hover:-translate-y-2 group">
-              <div className="w-14 h-14 bg-[#1e2536] rounded-full flex items-center justify-center mb-6 group-hover:scale-110 transition-transform border border-[#2d3748]">
-                <ShieldCheck className="text-gray-400" size={24} />
-              </div>
-              <h3 className="text-2xl font-black text-white mb-2">Executive Plans</h3>
-              <p className="text-gray-400 text-sm mb-6 leading-relaxed">
-                For crypto whales wanting maximum leverage, highest yields, and priority support.
-              </p>
-              <ul className="space-y-3 mb-8">
-                <li className="flex items-center gap-2 text-sm text-gray-300"><CheckIcon /> High-volume limits</li>
-                <li className="flex items-center gap-2 text-sm text-gray-300"><CheckIcon /> Premium ROI multipliers</li>
-                <li className="flex items-center gap-2 text-sm text-gray-300"><CheckIcon /> Maximum network depth</li>
-              </ul>
-              <Link to="/login" className="block text-center border border-[#e4c568] text-[#e4c568] hover:bg-[#e4c568] hover:text-black font-bold py-3 rounded-lg transition-colors text-sm">View in Dashboard</Link>
-            </div>
-
-          </div>
-        </section>
-
-        {/* --- FAQ SECTION --- */}
-        <section className="py-20 px-4 sm:px-6 max-w-4xl mx-auto" id="faq">
-          <div className="text-center mb-14">
-            <h2 className="text-3xl sm:text-4xl font-black mb-4 text-white">Frequently Asked <span className="text-gold-gradient">Questions</span></h2>
-            <p className="text-gray-400 text-sm sm:text-base">Everything you need to know about worldfinance24.</p>
-          </div>
-          <div className="space-y-4">
-            {faqData.map((faq, index) => (
-              <div key={index} className="bg-[#131927] border border-[#2d3748] rounded-xl overflow-hidden shadow-sm">
-                <button
-                  onClick={() => toggleFaq(index)}
-                  className="w-full px-5 sm:px-6 py-4 text-left flex justify-between items-center focus:outline-none hover:bg-[#1e2536] transition-colors"
-                >
-                  <span className="font-bold text-gray-200 text-sm sm:text-base">{faq.q}</span>
-                  <div className={`shrink-0 w-7 h-7 flex items-center justify-center rounded-full bg-[#161c2d] border border-[#2d3748] transition-transform duration-300 ${openFaq === index ? 'rotate-180 border-[#e4c568]' : ''}`}>
-                    <ChevronDown className={openFaq === index ? "text-[#e4c568]" : "text-gray-400"} size={16} strokeWidth={3} />
-                  </div>
-                </button>
-                <div className={`transition-all duration-300 ease-in-out ${openFaq === index ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0 overflow-hidden'}`}>
-                  <div className="px-5 sm:px-6 pb-4 pt-2 border-t border-[#2d3748] bg-[#0b101e]">
-                    <p className="text-gray-400 text-sm leading-relaxed">{faq.a}</p>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        {/* --- CALL TO ACTION --- */}
-        <section className="py-20 px-4 sm:px-6 bg-gold-gradient text-black text-center relative overflow-hidden">
-          <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10"></div>
-          <div className="max-w-4xl mx-auto relative z-10">
-            <h2 className="text-3xl sm:text-4xl font-black mb-4 uppercase tracking-wide">Start Your Trading Journey Today</h2>
-            <p className="text-black/80 font-bold text-sm sm:text-lg mb-8 max-w-xl mx-auto">
-              Join worldfinance24 now to unlock daily crypto ROI and build a powerful global network.
-            </p>
-            <Link to="/register" className="bg-[#0b101e] text-[#e4c568] font-black px-8 py-4 rounded-lg shadow-2xl hover:bg-[#131927] hover:scale-105 inline-block transition-all text-sm sm:text-base uppercase tracking-widest border border-[#e4c568]/30">
-              Create Free Account
-            </Link>
-          </div>
-        </section>
-
       </main>
 
-      {/* --- FOOTER --- */}
-      <footer className="bg-[#0b101e] border-t border-[#2d3748] text-gray-400 py-12 px-4 sm:px-6 relative z-10">
-        <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
-          <div className="col-span-1 md:col-span-2">
-            <div className="flex items-center gap-2 mb-4">
-              <Globe2 className="text-[#e4c568]" size={24} />
-              <span className="text-xl font-black tracking-tight text-white">WORLD<span className="text-[#e4c568]">FINANCE24</span></span>
+      <footer className="gwm-footer">
+        <div className="gwm-wrap">
+          <div className="gwm-footer-grid">
+            <div>
+              <Logo/>
+              <p className="gwm-footer-about">
+                Global Wealth is a digital platform experience. Always review the
+                applicable service terms and risk disclosures before using any
+                financial or digital-asset features.
+              </p>
             </div>
-            <p className="text-sm leading-relaxed mb-4 max-w-sm">
-              Premium decentralized crypto trading. Empowering users with automated ROI and transparent BEP-20 technology.
-            </p>
+            <div>
+              <h4>DISCOVER</h4>
+              <div className="gwm-footer-links">
+                <a href="#top">Home</a>
+                <a href="#platform">The Platform</a>
+                <a href="#journey">Your Journey</a>
+                <a href="#questions">Help Centre</a>
+              </div>
+            </div>
+            <div>
+              <h4>YOUR ACCOUNT</h4>
+              <div className="gwm-footer-links">
+                <Link to="/login">Member Sign In</Link>
+                <Link to="/register">Create Membership</Link>
+                <Link to="/forgot-password">Password Recovery</Link>
+              </div>
+            </div>
           </div>
-          
-          <div>
-            <h3 className="text-white font-bold text-lg mb-4 border-b border-[#2d3748] pb-2 inline-block">Quick Links</h3>
-            <ul className="space-y-2 text-sm font-medium">
-              <li><a href="#" className="hover:text-[#e4c568] transition-colors">Home</a></li>
-              <li><a href="#about" className="hover:text-[#e4c568] transition-colors">Ecosystem</a></li>
-              <li><a href="#packages" className="hover:text-[#e4c568] transition-colors">Packages</a></li>
-              <li><Link to="/login" className="hover:text-[#e4c568] transition-colors">Member Login</Link></li>
-            </ul>
+          <div className="gwm-footer-bottom">
+            <span>© {new Date().getFullYear()} Global Wealth. All rights reserved.</span>
+            <span>Digital assets involve risk. Returns are not guaranteed.</span>
           </div>
-          
-          <div>
-            <h3 className="text-white font-bold text-lg mb-4 border-b border-[#2d3748] pb-2 inline-block">Support Info</h3>
-            <p className="text-sm mb-2 font-medium">Email: <span className="text-[#e4c568]">support@worldfinance24.online</span></p>
-            <p className="text-sm font-medium">Mon - Sat: 10:00 AM - 6:00 PM</p>
-          </div>
-        </div>
-        <div className="max-w-7xl mx-auto border-t border-[#2d3748] pt-6 flex flex-col md:flex-row justify-between items-center text-xs">
-          <p>&copy; {new Date().getFullYear()} worldtogether24. All Rights Reserved.</p>
-          <p className="mt-2 md:mt-0 text-gray-500">Secured via 256-Bit SSL Encryption.</p>
         </div>
       </footer>
-
     </div>
   );
-};
-
-// Check Icon Component Helper
-const CheckIcon = () => (
-  <svg className="w-4 h-4 text-[#00ff88]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-  </svg>
-);
-
-export default Home;
+}

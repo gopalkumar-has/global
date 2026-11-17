@@ -10,8 +10,7 @@ const Setting = require('../models/Setting');
 const TopUp = require('../models/TopUp'); 
 const DummyTransaction = require('../models/DummyTransaction');
 const DummyUser = require('../models/DummyUser.js'); 
-const FastTrack = require('../models/FastTrack');
-const FakeUser = require('../models/FakeUser');
+ const FakeUser = require('../models/FakeUser');
 const PackageActivation = require('../models/PackageActivation'); // 🔥 YE IMPORT ZAROORI HAI
 // Middleware & Utils
 const authMiddleware = require('../middleware/authMiddleware');

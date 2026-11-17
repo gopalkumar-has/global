@@ -1,27 +1,32 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { format } from "date-fns";
 import { useAuth } from "../../context/AuthContext";
 import api from "../../api/axios";
-import { Search, ChevronLeft, ChevronRight, ArrowUpRight, ArrowDownLeft, RefreshCcw, CheckCircle2, User, Calendar } from "lucide-react";
+import {
+  Search, ChevronLeft, ChevronRight, ArrowUpRight, ArrowDownLeft,
+  RefreshCcw, CheckCircle2, UserRound, CalendarDays, Package,
+  Wallet, Sparkles, AlertCircle, ArrowRightLeft, X
+} from "lucide-react";
 
 const TopupDetails = () => {
   const { user } = useAuth();
   const [topups, setTopups] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(10);
 
-  // 🔥 HELPER: Decimal128 ko normal number me convert karne ke liye taaki NaN na aaye
-  const getSafeAmount = (val) => {
-    if (!val) return 0;
-    if (val.$numberDecimal) return parseFloat(val.$numberDecimal);
-    return parseFloat(val) || 0;
+  // Convert MongoDB Decimal128 and regular numeric values safely.
+  const getSafeAmount = (value) => {
+    if (!value) return 0;
+    if (value.$numberDecimal) return parseFloat(value.$numberDecimal) || 0;
+    return parseFloat(value) || 0;
   };
 
   useEffect(() => {
+    let isMounted = true;
+
     const fetchTopups = async () => {
       if (!user?.userId) {
         setLoading(false);
@@ -31,30 +36,43 @@ const TopupDetails = () => {
 
       try {
         setLoading(true);
-        const res = await api.get(`/wallet/topup-history/${user.userId}?t=${new Date().getTime()}`);
-        
+        setError("");
+        const res = await api.get(
+          `/wallet/topup-history/${user.userId}?t=${new Date().getTime()}`
+        );
+
+        if (!isMounted) return;
+
         if (Array.isArray(res.data)) {
-          const userTopups = res.data.filter((t) => {
-            const typeStr = (t.type || "").toLowerCase();
-            const sourceStr = (t.source || "").toLowerCase();
-            const descStr = (t.description || "").toUpperCase();
-            
-            const isTopupRelated = 
-              typeStr.includes("topup") || 
-              sourceStr.includes("topup") || 
-              typeStr.includes("activation") || 
+          const userTopups = res.data.filter((transaction) => {
+            const typeStr = (transaction.type || "").toLowerCase();
+            const sourceStr = (transaction.source || "").toLowerCase();
+            const descStr = (transaction.description || "").toUpperCase();
+
+            const isTopupRelated =
+              typeStr.includes("topup") ||
+              sourceStr.includes("topup") ||
+              typeStr.includes("activation") ||
               typeStr.includes("package");
-              
+
             const isNotPromo = !descStr.includes("PROMOTION");
-            
             return isTopupRelated && isNotPromo;
           });
 
           const uniqueTopups = Array.from(
-            new Map(userTopups.map((t) => [`${t._id}-${t.createdAt}`, t])).values()
+            new Map(
+              userTopups.map((transaction) => [
+                `${transaction._id}-${transaction.createdAt}`,
+                transaction,
+              ])
+            ).values()
           );
 
-          uniqueTopups.sort((a, b) => new Date(b.createdAt || b.date) - new Date(a.createdAt || a.date));
+          uniqueTopups.sort(
+            (a, b) =>
+              new Date(b.createdAt || b.date) -
+              new Date(a.createdAt || a.date)
+          );
 
           setTopups(uniqueTopups);
         } else {
@@ -62,262 +80,435 @@ const TopupDetails = () => {
         }
       } catch (err) {
         console.error("Topup fetch error:", err);
-        setError(err.response?.data?.message || "Failed to load top-ups.");
+        if (isMounted) {
+          setError(err.response?.data?.message || "Failed to load top-ups.");
+        }
       } finally {
-        setLoading(false);
+        if (isMounted) setLoading(false);
       }
     };
 
     fetchTopups();
-  }, [user]);
+    return () => {
+      isMounted = false;
+    };
+  }, [user?.userId]);
 
-  const handleSearch = (e) => {
-    setSearchQuery(e.target.value);
-    setCurrentPage(1); 
+  const currentUserId = String(user?.userId || "");
+
+  const getTransactionView = (transaction) => {
+    let senderId = transaction.fromUserId
+      ? String(transaction.fromUserId)
+      : String(transaction.userId || "");
+    let receiverId = transaction.toUserId
+      ? String(transaction.toUserId)
+      : String(transaction.userId || "");
+
+    const isDebitTransaction =
+      transaction.type?.toLowerCase().includes("debit") ||
+      Number(getSafeAmount(transaction.amount)) < 0;
+
+    if (isDebitTransaction && !transaction.toUserId) {
+      senderId = currentUserId;
+      const descMatch = transaction.description?.match(
+        /(?:for|user|to|#|-)\s*([0-9]{4,10})/i
+      );
+      receiverId = descMatch?.[1] || "Team Member";
+    }
+
+    let tag = {
+      label: "ACTIVATED",
+      icon: CheckCircle2,
+      className: "border-white/10 bg-white/[0.04] text-[#b9b1a2]",
+    };
+
+    if (senderId === currentUserId && receiverId === currentUserId) {
+      tag = {
+        label: "SELF ACTIVATION",
+        icon: CheckCircle2,
+        className: "border-emerald-500/20 bg-emerald-500/[0.08] text-emerald-400",
+      };
+    } else if (senderId === currentUserId && receiverId !== currentUserId) {
+      tag = {
+        label: "ACTIVATED FOR TEAM",
+        icon: ArrowUpRight,
+        className: "border-[#c9a45c]/25 bg-[#c9a45c]/[0.08] text-[#e2c47f]",
+      };
+    } else if (receiverId === currentUserId && senderId !== currentUserId) {
+      tag = {
+        label: "ACTIVATED BY UPLINE",
+        icon: ArrowDownLeft,
+        className: "border-sky-500/20 bg-sky-500/[0.08] text-sky-400",
+      };
+    }
+
+    return { senderId, receiverId, tag };
   };
 
-  const filteredTopups = topups.filter((t) => {
-    const searchLower = searchQuery.toLowerCase();
-    const senderIdStr = (t.fromUserId || t.userId || "").toString().toLowerCase();
-    const receiverIdStr = (t.toUserId || t.userId || "").toString().toLowerCase();
-    const descStr = (t.description || "").toLowerCase();
-    const amountStr = getSafeAmount(t.amount || t.grossAmount).toString().toLowerCase();
+  const filteredTopups = useMemo(() => {
+    const searchLower = searchQuery.trim().toLowerCase();
 
-    return (
-      senderIdStr.includes(searchLower) ||
-      receiverIdStr.includes(searchLower) ||
-      descStr.includes(searchLower) ||
-      amountStr.includes(searchLower)
-    );
-  });
+    return topups.filter((transaction) => {
+      const { senderId, receiverId } = getTransactionView(transaction);
+      const descStr = (transaction.description || "").toLowerCase();
+      const amountStr = getSafeAmount(
+        transaction.amount || transaction.grossAmount
+      ).toString().toLowerCase();
 
-  const totalPages = Math.ceil(filteredTopups.length / rowsPerPage) || 1;
-  const indexOfLastRow = currentPage * rowsPerPage;
-  const indexOfFirstRow = indexOfLastRow - rowsPerPage;
+      return (
+        senderId.toLowerCase().includes(searchLower) ||
+        receiverId.toLowerCase().includes(searchLower) ||
+        descStr.includes(searchLower) ||
+        amountStr.includes(searchLower)
+      );
+    });
+  }, [topups, searchQuery, currentUserId]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredTopups.length / rowsPerPage));
+  const safeCurrentPage = Math.min(currentPage, totalPages);
+  const indexOfFirstRow = (safeCurrentPage - 1) * rowsPerPage;
+  const indexOfLastRow = safeCurrentPage * rowsPerPage;
   const currentRows = filteredTopups.slice(indexOfFirstRow, indexOfLastRow);
 
-  const handleRowsPerPageChange = (e) => {
-    setRowsPerPage(Number(e.target.value));
+  const totalAmount = topups.reduce(
+    (sum, transaction) =>
+      sum + Math.abs(
+        getSafeAmount(transaction.amount || transaction.grossAmount)
+      ),
+    0
+  );
+
+  const handleSearch = (event) => {
+    setSearchQuery(event.target.value);
     setCurrentPage(1);
   };
 
-  const handlePrev = () => currentPage > 1 && setCurrentPage(prev => prev - 1);
-  const handleNext = () => currentPage < totalPages && setCurrentPage(prev => prev + 1);
+  const handleRowsPerPageChange = (event) => {
+    setRowsPerPage(Number(event.target.value));
+    setCurrentPage(1);
+  };
+
+  const formatRecordDate = (date, pattern) => {
+    if (!date) return "N/A";
+    const parsed = new Date(date);
+    return Number.isNaN(parsed.getTime()) ? "N/A" : format(parsed, pattern);
+  };
+
+  const renderMember = (memberId) => {
+    if (memberId === currentUserId) {
+      return (
+        <span className="inline-flex items-center gap-1.5 font-semibold text-[#e5c984]">
+          #{memberId}
+          <span className="rounded bg-[#c9a45c]/15 px-1.5 py-0.5 text-[8px] font-bold tracking-wider text-[#d9bb78]">
+            YOU
+          </span>
+        </span>
+      );
+    }
+
+    return (
+      <span className="break-all text-[#d7d0c3]">
+        {memberId.includes("Team") ? memberId : `#${memberId || "N/A"}`}
+      </span>
+    );
+  };
+
+  const TransactionTag = ({ tag }) => {
+    const Icon = tag.icon;
+    return (
+      <span className={`inline-flex w-fit items-center gap-1.5 rounded-full border px-2.5 py-1.5 text-[9px] font-bold tracking-[0.08em] ${tag.className}`}>
+        <Icon size={12} />
+        {tag.label}
+      </span>
+    );
+  };
 
   return (
-    <div className="w-full min-h-screen bg-[#0b1221] p-4 md:p-8 font-sans">
-      
-      {/* Inner Card Container */}
-      <div className="max-w-7xl mx-auto bg-[#131c31] rounded-xl border-t-[3px] border-[#eab308] shadow-2xl p-4 sm:p-6">
-        
-        {/* Header Title */}
-        <div className="mb-6">
-          <h2 className="text-2xl sm:text-3xl text-[#eab308] font-bold tracking-wide flex items-center gap-3">
-             <RefreshCcw className="text-[#eab308]" size={28} /> Package Details
-          </h2>
-         
+    <main className="min-h-screen bg-[#080808] px-3 pb-12 pt-6 font-sans text-[#eee6d6] sm:px-6 sm:pt-9 lg:px-8">
+      <div className="mx-auto max-w-[1500px]">
+        {/* Page intro */}
+        <div className="mb-7 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <div className="mb-3 flex items-center gap-2 text-[9px] font-bold uppercase tracking-[0.3em] text-[#b99a5a]">
+              <span className="h-px w-7 bg-[#b99a5a]" />
+              Global Wealth / Membership
+            </div>
+            <h1 className="font-serif text-3xl font-semibold tracking-tight text-[#f1e2c1] sm:text-4xl">
+              Package <span className="italic text-[#c9a45c]">Details</span>
+            </h1>
+            <p className="mt-2 max-w-xl text-sm leading-6 text-[#898273]">
+              Review package activations, member transfers and your top-up history.
+            </p>
+          </div>
+          <div className="inline-flex w-fit items-center gap-2 rounded-full border border-[#c9a45c]/20 bg-[#c9a45c]/[0.06] px-3.5 py-2 text-[10px] font-semibold uppercase tracking-[0.15em] text-[#d6bd83]">
+            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+            Package activity
+          </div>
         </div>
 
-        {/* Filters (Search & Entries) */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4 text-gray-300 text-sm">
-          
-          <div className="flex items-center gap-2">
-            <span>Show</span>
-            <select
-              value={rowsPerPage}
-              onChange={handleRowsPerPageChange}
-              className="bg-[#0b1221] border border-gray-700 text-[#eab308] rounded px-3 py-1.5 focus:outline-none focus:border-[#eab308] transition-colors"
-            >
-              <option value={10}>10</option>
-              <option value={20}>20</option>
-              <option value={50}>50</option>
-            </select>
-            <span>entries</span>
+        {/* Overview cards */}
+        <div className="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <div className="relative overflow-hidden rounded-2xl border border-[#c9a45c]/25 bg-gradient-to-br from-[#211b10] via-[#15120d] to-[#0d0d0c] p-5 shadow-[0_18px_50px_rgba(0,0,0,0.25)]">
+            <div className="pointer-events-none absolute -right-8 -top-10 h-32 w-32 rounded-full border border-[#c9a45c]/10" />
+            <div className="relative flex items-center justify-between gap-3">
+              <div>
+                <p className="text-[9px] font-bold uppercase tracking-[0.23em] text-[#a58c59]">Total activations</p>
+                <p className="mt-3 text-3xl font-semibold tabular-nums text-[#f1e2c1]">{topups.length.toLocaleString("en-IN")}</p>
+                <p className="mt-1 text-[11px] text-[#8e8575]">All recorded package entries</p>
+              </div>
+              <span className="flex h-12 w-12 items-center justify-center rounded-2xl border border-[#c9a45c]/25 bg-[#c9a45c]/[0.08] text-[#d9bb78]">
+                <Package size={22} />
+              </span>
+            </div>
           </div>
 
-          <div className="flex items-center gap-2 w-full sm:w-auto">
-            <span>Search:</span>
-            <div className="relative w-full sm:w-64">
-               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                 <Search size={16} className="text-gray-500" />
-               </div>
-               <input
-                 type="text"
-                 placeholder="Search ID, details..."
-                 value={searchQuery}
-                 onChange={handleSearch}
-                 className="bg-[#0b1221] border border-gray-700 text-gray-200 rounded px-3 py-1.5 pl-9 w-full focus:outline-none focus:border-[#eab308] transition-colors placeholder-gray-500"
-               />
+          <div className="relative overflow-hidden rounded-2xl border border-[#c9a45c]/25 bg-gradient-to-br from-[#211b10] via-[#15120d] to-[#0d0d0c] p-5 shadow-[0_18px_50px_rgba(0,0,0,0.25)]">
+            <div className="pointer-events-none absolute -right-8 -top-10 h-32 w-32 rounded-full border border-[#c9a45c]/10" />
+            <div className="relative flex items-center justify-between gap-3">
+              <div>
+                <p className="text-[9px] font-bold uppercase tracking-[0.23em] text-[#a58c59]">Total top-up amount</p>
+                <p className="mt-3 text-3xl font-semibold tabular-nums text-[#f1e2c1]">
+                  ${totalAmount.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </p>
+                <p className="mt-1 text-[11px] text-[#8e8575]">Sum of recorded top-up amounts</p>
+              </div>
+              <span className="flex h-12 w-12 items-center justify-center rounded-2xl border border-[#c9a45c]/25 bg-[#c9a45c]/[0.08] text-[#d9bb78]">
+                <Wallet size={22} />
+              </span>
             </div>
           </div>
         </div>
 
-        {/* Table Container */}
-        <div className="overflow-x-auto border border-gray-700 rounded-lg">
-          <table className="w-full text-left whitespace-nowrap border-collapse">
-            <thead className="text-[#eab308] bg-[#1a253e] text-sm border-b border-gray-700">
-              <tr>
-                <th className="p-4 border-r border-gray-700/50 font-bold text-center">Sr.</th>
-                <th className="p-4 border-r border-gray-700/50 font-bold text-center">Date & Time</th>
-                <th className="p-4 border-r border-gray-700/50 font-bold">Action Type</th>
-                <th className="p-4 border-r border-gray-700/50 font-bold">Sender</th>
-                <th className="p-4 border-r border-gray-700/50 font-bold">Receiver</th>
-                <th className="p-4 border-r border-gray-700/50 font-bold text-center">Amount</th>
-                <th className="p-4 font-bold">Details</th>
-              </tr>
-            </thead>
+        {/* History panel */}
+        <section className="overflow-hidden rounded-[24px] border border-[#c9a45c]/20 bg-[#10100f] shadow-[0_24px_70px_rgba(0,0,0,0.35)]">
+          <div className="flex flex-col gap-4 border-b border-white/[0.07] p-4 sm:p-6 lg:flex-row lg:items-center lg:justify-between">
+            <div className="flex items-center gap-3">
+              <span className="flex h-10 w-10 items-center justify-center rounded-xl border border-[#c9a45c]/20 bg-[#c9a45c]/[0.08] text-[#d9bb78]">
+                <ArrowRightLeft size={18} />
+              </span>
+              <div>
+                <h2 className="text-base font-semibold text-[#eee1c7]">Activation history</h2>
+                <p className="mt-0.5 text-[10px] text-[#827a6d]">Search and review package transactions</p>
+              </div>
+            </div>
 
-            <tbody className="text-gray-300 text-sm">
-              {loading ? (
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+              <label className="flex items-center gap-2 text-xs text-[#9b9385]">
+                <span>Show</span>
+                <select
+                  value={rowsPerPage}
+                  onChange={handleRowsPerPageChange}
+                  className="rounded-lg border border-[#c9a45c]/25 bg-[#090909] px-3 py-2 text-sm text-[#e7d5ac] outline-none transition focus:border-[#d8b76e]"
+                >
+                  <option value={10}>10</option>
+                  <option value={20}>20</option>
+                  <option value={50}>50</option>
+                </select>
+                <span>entries</span>
+              </label>
+
+              <label className="relative block w-full sm:w-72">
+                <span className="sr-only">Search package history</span>
+                <Search size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[#9b8250]" />
+                <input
+                  type="search"
+                  placeholder="Search ID, details, amount..."
+                  value={searchQuery}
+                  onChange={handleSearch}
+                  className="w-full rounded-lg border border-[#c9a45c]/25 bg-[#090909] py-2.5 pl-9 pr-9 text-sm text-[#f5f0e6] outline-none transition placeholder:text-[#625c52] focus:border-[#d8b76e]"
+                />
+                {searchQuery && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSearchQuery("");
+                      setCurrentPage(1);
+                    }}
+                    aria-label="Clear search"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-[#827a6d] hover:text-[#e5c984]"
+                  >
+                    <X size={14} />
+                  </button>
+                )}
+              </label>
+            </div>
+          </div>
+
+          {/* Desktop table */}
+          <div className="hidden overflow-x-auto xl:block">
+            <table className="w-full min-w-[1050px] border-collapse text-left">
+              <thead className="bg-[#19160f] text-[9px] uppercase tracking-[0.18em] text-[#c9a45c]">
                 <tr>
-                  <td colSpan="7" className="text-center py-8 text-[#eab308]">
-                     <div className="flex flex-col items-center justify-center">
-                       <RefreshCcw className="animate-spin mb-2" size={24} />
-                       Loading History...
-                     </div>
-                  </td>
+                  <th className="px-4 py-4 text-center font-bold">Sr.</th>
+                  <th className="px-4 py-4 font-bold">Date & Time</th>
+                  <th className="px-4 py-4 font-bold">Action Type</th>
+                  <th className="px-4 py-4 font-bold">Sender</th>
+                  <th className="px-4 py-4 font-bold">Receiver</th>
+                  <th className="px-4 py-4 text-right font-bold">Amount</th>
+                  <th className="px-4 py-4 font-bold">Details</th>
                 </tr>
-              ) : error ? (
-                <tr>
-                  <td colSpan="7" className="text-center py-8 text-red-400 bg-red-900/10">
-                     {error}
-                  </td>
-                </tr>
-              ) : currentRows.length === 0 ? (
-                <tr>
-                  <td colSpan="7" className="text-center py-8 text-gray-500">
-                    No package Records Found
-                  </td>
-                </tr>
-              ) : (
-                currentRows.map((t, idx) => {
-                  
-                  const currentUserId = String(user?.userId || "");
-                  let senderId = t.fromUserId ? String(t.fromUserId) : String(t.userId);
-                  let receiverId = t.toUserId ? String(t.toUserId) : String(t.userId);
-                  const isDebitTransaction = t.type?.toLowerCase().includes("debit") || Number(getSafeAmount(t.amount)) < 0;
-
-                  if (isDebitTransaction && !t.toUserId) {
-                      senderId = currentUserId; 
-                      const descMatch = t.description?.match(/(?:for|user|to|#|-)\s*([0-9]{4,10})/i);
-                      if (descMatch && descMatch[1]) {
-                          receiverId = descMatch[1];
-                      } else {
-                          receiverId = "Team Member";
-                      }
-                  }
-
-                  let tagDetails = { icon: null, text: "", style: "" };
-
-                  if (senderId === currentUserId && receiverId === currentUserId) {
-                    tagDetails = { icon: <CheckCircle2 size={12}/>, text: "SELF ACTIVATION", style: "bg-green-500/10 text-green-400 border-green-500/20" };
-                  } else if (senderId === currentUserId && receiverId !== currentUserId) {
-                    tagDetails = { icon: <ArrowUpRight size={12}/>, text: "ACTIVATED FOR TEAM", style: "bg-[#eab308]/10 text-[#eab308] border-[#eab308]/20" };
-                  } else if (receiverId === currentUserId && senderId !== currentUserId) {
-                    tagDetails = { icon: <ArrowDownLeft size={12}/>, text: "ACTIVATED BY UPLINE", style: "bg-blue-500/10 text-blue-400 border-blue-500/20" };
-                  } else {
-                    tagDetails = { icon: <CheckCircle2 size={12}/>, text: "ACTIVATED", style: "bg-gray-500/10 text-gray-400 border-gray-500/20" };
-                  }
-
-                  const recordDate = t.createdAt || t.date;
-                  const finalAmount = getSafeAmount(t.amount || t.grossAmount);
+              </thead>
+              <tbody className="divide-y divide-white/[0.055] text-xs text-[#d6d0c5]">
+                {loading ? (
+                  <tr>
+                    <td colSpan={7} className="px-5 py-16 text-center text-[#c9a45c]">
+                      <RefreshCcw size={22} className="mx-auto mb-3 animate-spin" />
+                      Loading package history...
+                    </td>
+                  </tr>
+                ) : error ? (
+                  <tr>
+                    <td colSpan={7} className="px-5 py-16 text-center text-red-400">
+                      <AlertCircle size={22} className="mx-auto mb-3" />
+                      {error}
+                    </td>
+                  </tr>
+                ) : currentRows.length === 0 ? (
+                  <tr>
+                    <td colSpan={7} className="px-5 py-16 text-center text-[#827b70]">
+                      <Package size={24} className="mx-auto mb-3 opacity-50" />
+                      No package records found.
+                    </td>
+                  </tr>
+                ) : currentRows.map((transaction, index) => {
+                  const { senderId, receiverId, tag } = getTransactionView(transaction);
+                  const TagIcon = tag.icon;
+                  const recordDate = transaction.createdAt || transaction.date;
+                  const finalAmount = Math.abs(getSafeAmount(transaction.amount || transaction.grossAmount));
 
                   return (
-                    <tr
-                      key={`${t._id}-${t.createdAt}-${idx}`}
-                      className="border-b border-gray-700 hover:bg-[#1a253e] transition-colors"
-                    >
-                      <td className="p-4 border-r border-gray-700/50 text-center font-medium">
-                        {indexOfFirstRow + idx + 1}
+                    <tr key={`${transaction._id}-${transaction.createdAt}-${index}`} className="transition hover:bg-[#c9a45c]/[0.045]">
+                      <td className="px-4 py-4 text-center text-[#756d60]">{indexOfFirstRow + index + 1}</td>
+                      <td className="px-4 py-4">
+                        <div className="flex flex-col gap-1">
+                          <span className="font-medium text-[#e5dccb]">{formatRecordDate(recordDate, "dd MMM yyyy")}</span>
+                          <span className="text-[10px] text-[#80796c]">{formatRecordDate(recordDate, "hh:mm a")}</span>
+                        </div>
                       </td>
-                      
-                      {/* 🔥 TIME AND DATE ADDED */}
-                      <td className="p-4 border-r border-gray-700/50 text-center">
-                         <div className="flex flex-col items-center justify-center">
-                           <span className="font-medium text-gray-200">
-                             {recordDate ? format(new Date(recordDate), "dd MMM yyyy") : "N/A"}
-                           </span>
-                           <span className="text-[11px] text-gray-500">
-                             {recordDate ? format(new Date(recordDate), "hh:mm a") : ""}
-                           </span>
-                         </div>
-                      </td>
-
-                      <td className="p-4 border-r border-gray-700/50">
-                        <span className={`flex items-center gap-1.5 w-fit border py-1 px-2.5 rounded text-[10px] font-bold tracking-wider ${tagDetails.style}`}>
-                          {tagDetails.icon} {tagDetails.text}
+                      <td className="px-4 py-4">
+                        <span className={`inline-flex w-fit items-center gap-1.5 rounded-full border px-2.5 py-1.5 text-[9px] font-bold tracking-[0.07em] ${tag.className}`}>
+                          <TagIcon size={12} /> {tag.label}
                         </span>
                       </td>
-
-                      <td className="p-4 border-r border-gray-700/50 font-medium text-white">
-                        <div className="flex items-center gap-2">
-                           <div className="p-1 bg-[#0b1221] rounded-full text-gray-500 border border-gray-700"><User size={12}/></div>
-                           {senderId === currentUserId ? (
-                             <span className="text-[#eab308]">#{senderId} <span className="text-[9px] bg-[#eab308]/20 text-[#eab308] px-1.5 py-0.5 rounded ml-1">YOU</span></span>
-                           ) : (
-                             <span>{senderId.includes("Team") ? senderId : `#${senderId}`}</span>
-                           )}
-                        </div>
+                      <td className="px-4 py-4 font-medium">{renderMember(senderId)}</td>
+                      <td className="px-4 py-4 font-medium">{renderMember(receiverId)}</td>
+                      <td className="px-4 py-4 text-right font-semibold tabular-nums text-[#e2c47f]">
+                        ${finalAmount.toFixed(2)}
                       </td>
-
-                      <td className="p-4 border-r border-gray-700/50 font-medium text-white">
-                        <div className="flex items-center gap-2">
-                           <div className="p-1 bg-[#0b1221] rounded-full text-gray-500 border border-gray-700"><User size={12}/></div>
-                           {receiverId === currentUserId ? (
-                             <span className="text-[#eab308]">#{receiverId} <span className="text-[9px] bg-[#eab308]/20 text-[#eab308] px-1.5 py-0.5 rounded ml-1">YOU</span></span>
-                           ) : (
-                             <span>{receiverId.includes("Team") ? receiverId : `#${receiverId}`}</span>
-                           )}
-                        </div>
+                      <td className="max-w-[240px] px-4 py-4 text-[#a9a091]" title={transaction.description || "Top-up package"}>
+                        <span className="line-clamp-2">{transaction.description || "Top-up package"}</span>
                       </td>
-
-                      {/* 🔥 AMOUNT FIX APPLIED */}
-                      <td className="p-4 border-r border-gray-700/50 font-bold text-center text-[#eab308]">
-                         ${Math.abs(finalAmount).toFixed(2)}
-                      </td>
-
-                      <td className="p-4 text-gray-400 text-xs truncate max-w-[200px]" title={t.description || "Top-up package"}>
-                        {t.description || "Top-up package"}
-                      </td>
-
                     </tr>
                   );
-                })
-              )}
-            </tbody>
-          </table>
-        </div>
-
-        {/* Pagination Footer */}
-        {!loading && filteredTopups.length > 0 && (
-          <div className="flex flex-col sm:flex-row justify-between items-center mt-6 text-gray-400 text-sm gap-4">
-            <div>
-              Showing <span className="text-white font-medium">{indexOfFirstRow + 1}</span> to <span className="text-white font-medium">{Math.min(indexOfLastRow, filteredTopups.length)}</span> of <span className="text-white font-medium">{filteredTopups.length}</span> entries
-            </div>
-            
-            <div className="flex items-center bg-[#0b1221] rounded border border-gray-700 overflow-hidden">
-              <button
-                onClick={handlePrev}
-                disabled={currentPage === 1}
-                className={`px-4 py-2 transition-colors ${currentPage === 1 ? 'text-gray-600 bg-transparent cursor-not-allowed' : 'text-[#eab308] hover:bg-[#1a253e]'}`}
-              >
-                Previous
-              </button>
-              <div className="px-4 py-2 border-l border-r border-gray-700 bg-[#1a253e] text-[#eab308] font-bold">
-                {currentPage}
-              </div>
-              <button
-                onClick={handleNext}
-                disabled={currentPage === totalPages || totalPages === 0}
-                className={`px-4 py-2 transition-colors ${currentPage === totalPages || totalPages === 0 ? 'text-gray-600 bg-transparent cursor-not-allowed' : 'text-[#eab308] hover:bg-[#1a253e]'}`}
-              >
-                Next
-              </button>
-            </div>
+                })}
+              </tbody>
+            </table>
           </div>
-        )}
+
+          {/* Tablet and mobile transaction cards */}
+          <div className="grid gap-3 p-3 xl:hidden">
+            {loading ? (
+              <div className="py-14 text-center text-sm text-[#c9a45c]">
+                <RefreshCcw size={22} className="mx-auto mb-3 animate-spin" />
+                Loading package history...
+              </div>
+            ) : error ? (
+              <div className="py-12 text-center text-sm text-red-400">
+                <AlertCircle size={22} className="mx-auto mb-3" />
+                {error}
+              </div>
+            ) : currentRows.length === 0 ? (
+              <div className="py-14 text-center text-sm text-[#827b70]">
+                <Package size={24} className="mx-auto mb-3 opacity-50" />
+                No package records found.
+              </div>
+            ) : currentRows.map((transaction, index) => {
+              const { senderId, receiverId, tag } = getTransactionView(transaction);
+              const recordDate = transaction.createdAt || transaction.date;
+              const finalAmount = Math.abs(getSafeAmount(transaction.amount || transaction.grossAmount));
+
+              return (
+                <article key={`${transaction._id}-${transaction.createdAt}-${index}`} className="rounded-2xl border border-[#c9a45c]/15 bg-[#171510] p-4">
+                  <div className="flex flex-wrap items-start justify-between gap-3">
+                    <div className="flex items-center gap-2 text-[10px] text-[#928876]">
+                      <CalendarDays size={13} className="text-[#b99a5a]" />
+                      <span>{formatRecordDate(recordDate, "dd MMM yyyy")}</span>
+                      <span className="text-[#5d5547]">·</span>
+                      <span>{formatRecordDate(recordDate, "hh:mm a")}</span>
+                    </div>
+                    <span className="text-[10px] text-[#6f6759]">#{indexOfFirstRow + index + 1}</span>
+                  </div>
+
+                  <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <TransactionTag tag={tag} />
+                    <p className="text-xl font-semibold tabular-nums text-[#e2c47f]">${finalAmount.toFixed(2)}</p>
+                  </div>
+
+                  <div className="mt-4 grid grid-cols-2 gap-3 border-t border-white/[0.06] pt-3">
+                    <div className="min-w-0">
+                      <p className="mb-1 text-[9px] uppercase tracking-[0.16em] text-[#766e60]">Sender</p>
+                      <div className="flex items-center gap-1.5 text-xs">
+                        <UserRound size={12} className="shrink-0 text-[#8c8067]" />
+                        <span className="min-w-0 break-all">{renderMember(senderId)}</span>
+                      </div>
+                    </div>
+                    <div className="min-w-0">
+                      <p className="mb-1 text-[9px] uppercase tracking-[0.16em] text-[#766e60]">Receiver</p>
+                      <div className="flex items-center gap-1.5 text-xs">
+                        <UserRound size={12} className="shrink-0 text-[#8c8067]" />
+                        <span className="min-w-0 break-all">{renderMember(receiverId)}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="mt-3 border-t border-white/[0.06] pt-3">
+                    <p className="text-[9px] uppercase tracking-[0.16em] text-[#766e60]">Details</p>
+                    <p className="mt-1 break-words text-xs leading-5 text-[#aaa091]">{transaction.description || "Top-up package"}</p>
+                  </div>
+                </article>
+              );
+            })}
+          </div>
+
+          {/* Pagination */}
+          {!loading && !error && filteredTopups.length > 0 && (
+            <div className="flex flex-col gap-4 border-t border-white/[0.07] px-4 py-4 sm:px-6 md:flex-row md:items-center md:justify-between">
+              <p className="text-xs text-[#827b70]">
+                Showing <span className="font-semibold text-[#e8d9b8]">{indexOfFirstRow + 1}</span>
+                {" "}to <span className="font-semibold text-[#e8d9b8]">{Math.min(indexOfLastRow, filteredTopups.length)}</span>
+                {" "}of <span className="font-semibold text-[#e8d9b8]">{filteredTopups.length}</span> entries
+              </p>
+              <div className="flex items-center justify-between gap-2 sm:justify-end">
+                <button
+                  type="button"
+                  onClick={() => setCurrentPage((page) => Math.max(1, page - 1))}
+                  disabled={safeCurrentPage === 1}
+                  className="inline-flex items-center gap-1 rounded-lg border border-[#c9a45c]/20 px-3 py-2 text-xs font-medium text-[#d8c28f] transition hover:border-[#c9a45c]/50 hover:bg-[#c9a45c]/[0.06] disabled:cursor-not-allowed disabled:opacity-35"
+                >
+                  <ChevronLeft size={14} /> Previous
+                </button>
+                <span className="min-w-20 rounded-lg border border-[#c9a45c]/25 bg-[#c9a45c]/[0.08] px-4 py-2 text-center text-xs font-semibold text-[#e2c47f]">
+                  {safeCurrentPage} / {totalPages}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setCurrentPage((page) => Math.min(totalPages, page + 1))}
+                  disabled={safeCurrentPage >= totalPages}
+                  className="inline-flex items-center gap-1 rounded-lg border border-[#c9a45c]/20 px-3 py-2 text-xs font-medium text-[#d8c28f] transition hover:border-[#c9a45c]/50 hover:bg-[#c9a45c]/[0.06] disabled:cursor-not-allowed disabled:opacity-35"
+                >
+                  Next <ChevronRight size={14} />
+                </button>
+              </div>
+            </div>
+          )}
+        </section>
+
+        <p className="mt-5 flex items-center justify-center gap-2 text-center text-[9px] uppercase tracking-[0.2em] text-[#5e574b]">
+          <Sparkles size={11} className="text-[#9c8048]" />
+          Global Wealth · Package activity
+        </p>
       </div>
-    </div>
+    </main>
   );
 };
 
