@@ -1,3 +1,6 @@
+ 
+
+
 // import React, { useEffect, useMemo, useState } from "react";
 // import {
 //   CalendarDays,
@@ -7,7 +10,6 @@
 //   Loader2,
 //   RefreshCw,
 //   Package,
-//   TrendingUp,
 //   Wallet,
 // } from "lucide-react";
 // import api from "../../api/axios";
@@ -229,10 +231,10 @@
 //               {packages.map((pkg, index) => {
 //                 const amount = Number(pkg.packageAmount) || 0;
 //                 const daysDone = Number(pkg.daysCompleted) || 0;
-//                 const totalDays = Number(pkg.totalDays) || 25;
+//                 const totalDays = Number(pkg.totalDays) || 45;
 
 //                 // Preserve the original page's displayed ROI calculations.
-//                 const dailyRoi = (amount * 5) / 100;
+//                 const dailyRoi = (amount * 3) / 100;
 //                 const earnedRoi = dailyRoi * daysDone;
 //                 const totalExpected = dailyRoi * totalDays;
 //                 const isCompleted =
@@ -355,11 +357,17 @@
 // export default UserPackages;
 
 
+
+ 
+ 
+
+ 
+
+
 import React, { useEffect, useMemo, useState } from "react";
 import {
   CalendarDays,
   DollarSign,
-  CheckCircle2,
   Activity,
   Loader2,
   RefreshCw,
@@ -368,54 +376,6 @@ import {
 } from "lucide-react";
 import api from "../../api/axios";
 import { useAuth } from "../../context/AuthContext";
-
-const CircularProgress = ({ days, totalDays, status }) => {
-  const safeTotal = Number(totalDays) > 0 ? Number(totalDays) : 1;
-  const safeDays = Math.max(0, Number(days) || 0);
-  const percentage = Math.min((safeDays / safeTotal) * 100, 100);
-  const radius = 24;
-  const circumference = 2 * Math.PI * radius;
-  const strokeDashoffset = circumference - (percentage / 100) * circumference;
-  const isCompleted = String(status || "").toLowerCase() === "completed";
-
-  return (
-    <div
-      className="relative flex h-[76px] w-[76px] shrink-0 items-center justify-center"
-      role="img"
-      aria-label={`${safeDays} of ${safeTotal} days completed`}
-    >
-      <svg viewBox="0 0 64 64" className="-rotate-90">
-        <circle
-          cx="32"
-          cy="32"
-          r={radius}
-          stroke="currentColor"
-          strokeWidth="5"
-          fill="transparent"
-          className="text-white/10"
-        />
-        <circle
-          cx="32"
-          cy="32"
-          r={radius}
-          stroke="currentColor"
-          strokeWidth="5"
-          fill="transparent"
-          strokeDasharray={circumference}
-          strokeDashoffset={strokeDashoffset}
-          strokeLinecap="round"
-          className={`${isCompleted ? "text-emerald-300" : "text-amber-300"} transition-all duration-700`}
-        />
-      </svg>
-      <div className="absolute flex flex-col items-center text-center">
-        <span className="text-base font-bold leading-none text-white">{safeDays}</span>
-        <span className="mt-1 text-[8px] font-bold uppercase tracking-widest text-white/40">
-          Days
-        </span>
-      </div>
-    </div>
-  );
-};
 
 const UserPackages = () => {
   const { user, token } = useAuth();
@@ -584,16 +544,18 @@ const UserPackages = () => {
             <div className="grid grid-cols-1 gap-3 p-3 sm:gap-4 sm:p-5">
               {packages.map((pkg, index) => {
                 const amount = Number(pkg.packageAmount) || 0;
-                const daysDone = Number(pkg.daysCompleted) || 0;
-                const totalDays = Number(pkg.totalDays) || 45;
+                const daysDone = Math.max(0, Number(pkg.daysCompleted) || 0);
+                const totalDays = Number(pkg.totalDays) > 0 ? Number(pkg.totalDays) : 45;
+                const completedDays = Math.min(daysDone, totalDays);
+                const remainingDays = Math.max(totalDays - completedDays, 0);
+                const progressPercent = Math.min((completedDays / totalDays) * 100, 100);
+                const isCompleted =
+                  String(pkg.status || "").toLowerCase() === "completed";
 
-                // Preserve the original page's displayed ROI calculations.
+                // Keep the existing ROI calculation unchanged.
                 const dailyRoi = (amount * 3) / 100;
                 const earnedRoi = dailyRoi * daysDone;
                 const totalExpected = dailyRoi * totalDays;
-                const isCompleted =
-                  String(pkg.status || "").toLowerCase() === "completed";
-                const statusLabel = pkg.status || "unknown";
 
                 return (
                   <article
@@ -602,35 +564,34 @@ const UserPackages = () => {
                   >
                     <div className="pointer-events-none absolute -right-10 -top-12 h-40 w-40 rounded-full bg-amber-300/[0.055] blur-3xl transition group-hover:bg-amber-300/[0.10]" />
 
-                    <div className="relative flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-5">
-                      <div className="flex items-center gap-4 sm:w-[245px] sm:shrink-0">
-                        <CircularProgress
-                          days={daysDone}
-                          totalDays={totalDays}
-                          status={pkg.status}
-                        />
-                        <div className="min-w-0">
-                          <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-white/35">
-                            Package {index + 1}
+                    <div className="relative">
+                      {/* Investment amount and activation date */}
+                      <div className="flex flex-row items-center justify-between gap-2 border-b border-white/[0.07] pb-4">
+                        <div className="min-w-0 flex-1">
+                          <p className="text-[9px] font-bold uppercase tracking-[0.12em] text-white/35 sm:text-[10px] sm:tracking-[0.16em]">
+                            Package {index + 1} · Investment Amount
                           </p>
-                          <h3 className="mt-1 flex items-center gap-1.5 text-lg font-semibold text-white">
-                            <DollarSign size={17} className="text-amber-200" />
+                          <h3 className="mt-1 flex items-center gap-1 text-2xl font-bold tabular-nums text-white sm:gap-1.5 sm:text-3xl">
+                            <DollarSign size={20} className="shrink-0 text-amber-200 sm:h-[21px] sm:w-[21px]" />
                             {amount.toLocaleString("en-US", { maximumFractionDigits: 2 })}
                           </h3>
-                          <span
-                            className={`mt-2 inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[9px] font-bold uppercase tracking-wider ${
-                              isCompleted
-                                ? "border-emerald-300/20 bg-emerald-300/[0.08] text-emerald-300"
-                                : "border-amber-200/20 bg-amber-200/[0.08] text-amber-100"
-                            }`}
-                          >
-                            {isCompleted ? <CheckCircle2 size={11} /> : <Activity size={11} />}
-                            {statusLabel}
-                          </span>
+                        </div>
+
+                        <div className="flex shrink-0 items-center gap-2 rounded-xl border border-white/[0.07] bg-black/20 px-2.5 py-2.5 sm:gap-2.5 sm:px-3">
+                          <CalendarDays size={15} className="shrink-0 text-amber-200" />
+                          <div className="min-w-0">
+                            <p className="whitespace-nowrap text-[8px] font-bold uppercase tracking-[0.1em] text-white/35 sm:text-[9px] sm:tracking-[0.14em]">
+                              Investment Date
+                            </p>
+                            <p className="mt-0.5 whitespace-nowrap text-xs font-semibold text-white/80 sm:text-sm">
+                              {formatDate(pkg.startDate)}
+                            </p>
+                          </div>
                         </div>
                       </div>
 
-                      <div className="grid flex-1 grid-cols-2 gap-2 sm:grid-cols-3">
+                      {/* ROI details */}
+                      <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-2">
                         <div className="rounded-xl border border-white/[0.07] bg-black/20 p-3">
                           <p className="text-[9px] font-bold uppercase tracking-[0.14em] text-white/35">
                             ROI Received
@@ -647,40 +608,48 @@ const UserPackages = () => {
                             ${totalExpected.toFixed(2)}
                           </p>
                         </div>
-                        <div className="col-span-2 rounded-xl border border-white/[0.07] bg-black/20 p-3 sm:col-span-1">
-                          <p className="flex items-center gap-1.5 text-[9px] font-bold uppercase tracking-[0.14em] text-white/35">
-                            <CalendarDays size={11} />
-                            Activated On
-                          </p>
-                          <p className="mt-1 text-sm font-semibold text-white/70">
-                            {formatDate(pkg.startDate)}
-                          </p>
-                        </div>
                       </div>
-                    </div>
 
-                    <div className="relative mt-4 border-t border-white/[0.07] pt-3">
-                      <div className="mb-2 flex items-center justify-between text-[10px] font-semibold uppercase tracking-[0.12em]">
-                        <span className="text-white/35">Package progress</span>
-                        <span className={isCompleted ? "text-emerald-300" : "text-amber-200"}>
-                          {Math.min((Math.max(0, daysDone) / totalDays) * 100, 100).toFixed(0)}%
-                        </span>
-                      </div>
-                      <div className="h-1.5 overflow-hidden rounded-full bg-white/[0.08]">
+                      {/* Horizontal day progress */}
+                      <div className="mt-4 border-t border-white/[0.07] pt-3">
+                        <div className="mb-2 flex items-center justify-between gap-3">
+                          <span className="text-[10px] font-bold uppercase tracking-[0.12em] text-white/45">
+                            Package Progress
+                          </span>
+                          <span className={`text-xs font-bold tabular-nums ${isCompleted ? "text-emerald-300" : "text-amber-200"}`}>
+                            {progressPercent.toFixed(0)}%
+                          </span>
+                        </div>
+
                         <div
-                          className={`h-full rounded-full transition-all duration-700 ${
-                            isCompleted
-                              ? "bg-emerald-300"
-                              : "bg-gradient-to-r from-amber-300 to-orange-300"
-                          }`}
-                          style={{
-                            width: `${Math.min((Math.max(0, daysDone) / totalDays) * 100, 100)}%`,
-                          }}
-                        />
-                      </div>
-                      <div className="mt-2 flex items-center justify-between text-[10px] text-white/30">
-                        <span>{daysDone} days completed</span>
-                        <span>{totalDays} total days</span>
+                          className="h-2 overflow-hidden rounded-full bg-white/[0.08]"
+                          role="progressbar"
+                          aria-valuemin={0}
+                          aria-valuemax={totalDays}
+                          aria-valuenow={completedDays}
+                          aria-label={`${completedDays} of ${totalDays} package days completed`}
+                        >
+                          <div
+                            className={`h-full rounded-full transition-all duration-700 ${
+                              isCompleted
+                                ? "bg-emerald-300"
+                                : "bg-gradient-to-r from-amber-300 to-orange-300"
+                            }`}
+                            style={{ width: `${progressPercent}%` }}
+                          />
+                        </div>
+
+                        <div className="mt-2 flex flex-wrap items-center justify-between gap-2 text-[10px] font-medium">
+                          <span className="text-emerald-300">
+                            {completedDays} days completed
+                          </span>
+                          <span className="text-white/40">
+                            {remainingDays} days remaining
+                          </span>
+                          <span className="text-white/30">
+                            {totalDays} total days
+                          </span>
+                        </div>
                       </div>
                     </div>
                   </article>
@@ -709,3 +678,8 @@ const UserPackages = () => {
 };
 
 export default UserPackages;
+
+
+
+ 
+ 

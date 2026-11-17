@@ -1,148 +1,18 @@
-// import React from "react";
-// import { 
-//   X, 
-//   Info, 
-//   CheckCircle2, 
-//   AlertCircle, 
-//   TriangleAlert,
-//   Calendar
-// } from "lucide-react";
+ 
 
-// const MessageModal = ({
-//   isOpen,
-//   onClose,
-//   title = "Message",
-//   message = "",
-//   type = "info",
-//   zIndex = 2000,
-// }) => {
-//   if (!isOpen) return null;
-
-//   // 🔥 PREMIUM FINANCE THEME CONFIG
-//   const theme = {
-//     success: {
-//       color: "text-emerald-400",
-//       bg: "bg-emerald-500/10",
-//       border: "border-emerald-500/20",
-//       icon: CheckCircle2,
-//       btn: "bg-emerald-500 hover:bg-emerald-600 text-white shadow-emerald-500/20"
-//     },
-//     error: {
-//       color: "text-rose-400",
-//       bg: "bg-rose-500/10",
-//       border: "border-rose-500/20",
-//       icon: AlertCircle,
-//       btn: "bg-rose-500 hover:bg-rose-600 text-white shadow-rose-500/20"
-//     },
-//     warning: {
-//       color: "text-amber-400",
-//       bg: "bg-amber-500/10",
-//       border: "border-amber-500/20",
-//       icon: TriangleAlert,
-//       btn: "bg-amber-500 hover:bg-amber-600 text-white shadow-amber-500/20"
-//     },
-//     info: {
-//       color: "text-blue-400",
-//       bg: "bg-blue-500/10",
-//       border: "border-blue-500/20",
-//       icon: Info,
-//       btn: "bg-blue-500 hover:bg-blue-600 text-white shadow-blue-500/20"
-//     },
-//   };
-
-//   const currentTheme = theme[type] || theme.info;
-//   const Icon = currentTheme.icon;
-
-//   // Get current date only (no time)
-//   const todayDate = new Date().toLocaleDateString('en-GB', {
-//     day: '2-digit',
-//     month: 'short',
-//     year: 'numeric'
-//   });
-
-//   return (
-//     <div
-//       className="fixed inset-0 bg-[#070b14]/80 backdrop-blur-md flex items-center justify-center p-4 z-50 animate-in fade-in duration-200"
-//       style={{ zIndex }}
-//     >
-//       {/* Premium Minimalist Modal Card */}
-//       <div className="bg-[#111827] rounded-2xl border border-gray-800 shadow-2xl w-full max-w-sm flex flex-col relative overflow-hidden">
-        
-//         {/* Subtle Top Gradient Line */}
-//         <div className={`absolute top-0 left-0 right-0 h-1 ${currentTheme.btn} opacity-70`}></div>
-
-//         {/* Top Close Button */}
-//         <div className="absolute top-4 right-4 z-10">
-//            <button 
-//              onClick={onClose} 
-//              className="p-1.5 rounded-full bg-gray-800/50 hover:bg-gray-700 transition-all text-gray-400 hover:text-white"
-//            >
-//               <X size={16} strokeWidth={2.5} />
-//            </button>
-//         </div>
-
-//         {/* Content Area */}
-//         <div className="flex flex-col items-center pt-10 pb-4 px-6 relative z-10">
-          
-//           {/* Elegant Icon Box */}
-//           <div className={`p-4 rounded-2xl ${currentTheme.bg} border ${currentTheme.border} mb-5 shadow-inner`}>
-//             <Icon size={32} className={currentTheme.color} strokeWidth={2.5} />
-//           </div>
-
-//           {/* Title */}
-//           <h2 className="text-xl font-bold text-white mb-2 text-center tracking-wide">
-//             {title}
-//           </h2>
-
-//           {/* Message Area */}
-//           <div className="max-h-32 overflow-y-auto w-full text-center px-2 custom-scroll">
-//             <p className="text-sm text-gray-400 leading-relaxed font-medium">
-//               {message}
-//             </p>
-//           </div>
-//         </div>
-
-//         {/* Footer Area with Button & Date */}
-//         <div className="px-6 pb-6 pt-3 flex flex-col gap-4">
-//           <button
-//             onClick={onClose}
-//             className={`w-full py-3.5 rounded-xl font-bold tracking-wide text-sm transition-all duration-200 active:scale-95 shadow-lg ${currentTheme.btn}`}
-//           >
-//             Got It
-//           </button>
-          
-//           {/* Footer Date Section */}
-//           <div className="flex items-center justify-center gap-1.5 text-gray-500">
-//             <Calendar size={13} />
-//             <span className="text-xs font-medium tracking-wider uppercase">{todayDate}</span>
-//           </div>
-//         </div>
-//       </div>
-
-//       <style>{`
-//         /* Minimalist Scrollbar for Dark Mode */
-//         .custom-scroll { scrollbar-width: thin; scrollbar-color: #374151 transparent; }
-//         .custom-scroll::-webkit-scrollbar { width: 3px; }
-//         .custom-scroll::-webkit-scrollbar-track { background: transparent; }
-//         .custom-scroll::-webkit-scrollbar-thumb { background: #374151; border-radius: 10px; }
-//         .custom-scroll::-webkit-scrollbar-thumb:hover { background: #4b5563; }
-//       `}</style>
-//     </div>
-//   );
-// };
-
-// export default MessageModal;
-
-
-import React, { useEffect } from "react";
+import React, { useEffect, useMemo } from "react";
 import {
   X,
   Info,
   CheckCircle2,
   AlertCircle,
   TriangleAlert,
-  Calendar,
-  Sparkles
+  CalendarDays,
+  Sparkles,
+  ShieldCheck,
+  ArrowRight,
+  UserRound,
+  PackageCheck,
 } from "lucide-react";
 
 const MessageModal = ({
@@ -163,53 +33,60 @@ const MessageModal = ({
     };
 
     window.addEventListener("keydown", handleKeyDown);
-
-    return () => {
-      window.removeEventListener("keydown", handleKeyDown);
-    };
+    return () => window.removeEventListener("keydown", handleKeyDown);
   }, [isOpen, onClose]);
+
+  const activationDetails = useMemo(() => {
+    const text = String(message || "").replace(/\*\*/g, "").trim();
+
+    // Recognizes messages such as:
+    // "Package of $50 activated successfully for GW5977060!"
+    const amountMatch = text.match(
+      /(?:package\s+of|amount\s*(?:of|:)?|for)\s*\$?\s*([\d,]+(?:\.\d{1,2})?)/i
+    ) || text.match(/\$\s*([\d,]+(?:\.\d{1,2})?)/);
+
+    const userIdMatch = text.match(/\b[A-Z]{2,}[A-Z0-9]*\d{3,}\b/i);
+    const isPackageActivation =
+      /package/i.test(text) &&
+      /activat(?:ed|ion)/i.test(text) &&
+      Boolean(amountMatch);
+
+    if (!isPackageActivation) return null;
+
+    const numericAmount = Number(amountMatch[1].replace(/,/g, ""));
+    if (!Number.isFinite(numericAmount)) return null;
+
+    return {
+      amount: numericAmount.toLocaleString("en-US", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      }),
+      userId: userIdMatch?.[0] || "",
+    };
+  }, [message]);
 
   if (!isOpen) return null;
 
   const themes = {
     success: {
-      color: "text-emerald-400",
-      bg: "bg-emerald-500/10",
-      border: "border-emerald-500/25",
-      glow: "bg-emerald-500/10",
       icon: CheckCircle2,
-      button: "from-emerald-500 to-green-600",
       label: "Successfully Completed",
+      shortLabel: "Success",
     },
-
     error: {
-      color: "text-rose-400",
-      bg: "bg-rose-500/10",
-      border: "border-rose-500/25",
-      glow: "bg-rose-500/10",
       icon: AlertCircle,
-      button: "from-rose-500 to-red-600",
       label: "Something Went Wrong",
+      shortLabel: "Error",
     },
-
     warning: {
-      color: "text-amber-400",
-      bg: "bg-amber-500/10",
-      border: "border-amber-500/25",
-      glow: "bg-amber-500/10",
       icon: TriangleAlert,
-      button: "from-amber-500 to-yellow-600",
       label: "Please Check",
+      shortLabel: "Warning",
     },
-
     info: {
-      color: "text-blue-400",
-      bg: "bg-blue-500/10",
-      border: "border-blue-500/25",
-      glow: "bg-blue-500/10",
       icon: Info,
-      button: "from-blue-500 to-indigo-600",
       label: "Information",
+      shortLabel: "Information",
     },
   };
 
@@ -223,14 +100,12 @@ const MessageModal = ({
   });
 
   const handleClose = () => {
-    if (typeof onClose === "function") {
-      onClose();
-    }
+    if (typeof onClose === "function") onClose();
   };
 
   return (
     <div
-      className="fixed inset-0 flex items-center justify-center bg-[#070b14]/90 p-4 backdrop-blur-lg animate-in fade-in duration-200"
+      className="fixed inset-0 flex items-center justify-center bg-[#05080d]/85 p-4 backdrop-blur-md animate-in fade-in duration-200"
       style={{ zIndex }}
       onClick={handleClose}
     >
@@ -238,94 +113,147 @@ const MessageModal = ({
         role="alertdialog"
         aria-modal="true"
         aria-labelledby="message-modal-title"
-        className="relative w-full max-w-sm overflow-hidden rounded-[26px] border border-white/10 bg-[#0b1120] shadow-[0_30px_90px_rgba(0,0,0,0.7)] animate-in zoom-in-95 duration-200"
+        aria-describedby="message-modal-description"
+        className="relative w-full max-w-[410px] overflow-hidden rounded-[24px] border border-[#b99548]/30 bg-[#0b1018] shadow-[0_28px_100px_rgba(0,0,0,0.78)] animate-in zoom-in-95 duration-200"
         onClick={(event) => event.stopPropagation()}
       >
-        {/* Top Accent */}
-        <div
-          className={`absolute left-0 right-0 top-0 h-1 bg-gradient-to-r ${currentTheme.button}`}
-        />
+        {/* Global Wealth brand header */}
+        <div className="relative overflow-hidden border-b border-[#b99548]/15 bg-gradient-to-br from-[#171b20] via-[#10151d] to-[#0b1018] px-6 pb-6 pt-6">
+          <div className="pointer-events-none absolute -right-12 -top-16 h-44 w-44 rounded-full bg-[#d8b765]/[0.10] blur-[65px]" />
+          <div className="pointer-events-none absolute -bottom-20 -left-12 h-36 w-36 rounded-full bg-[#b99548]/[0.08] blur-[55px]" />
 
-        {/* Glow */}
-        <div
-          className={`pointer-events-none absolute -top-24 left-1/2 h-48 w-48 -translate-x-1/2 rounded-full blur-[75px] ${currentTheme.glow}`}
-        />
+         
 
-        {/* Close Button */}
-        <button
-          type="button"
-          onClick={handleClose}
-          aria-label="Close message"
-          className="absolute right-4 top-4 z-20 rounded-full border border-white/10 bg-white/5 p-2 text-gray-400 transition hover:bg-white/10 hover:text-white"
-        >
-          <X size={17} />
-        </button>
+          <div className="relative mt-1 flex items-center gap-4">
+            <div className="relative flex h-[66px] w-[66px] shrink-0 items-center justify-center rounded-2xl border border-[#d8b765]/45 bg-gradient-to-br from-[#d8b765]/20 to-[#8f7135]/10 shadow-[0_8px_28px_rgba(185,149,72,0.12)]">
+              <div className="absolute inset-1 rounded-xl border border-[#e2c36e]/15" />
+              <Icon size={31} strokeWidth={1.9} className="relative text-[#e2c36e]" />
+            </div>
 
-        {/* Main Content */}
-        <div className="relative flex flex-col items-center px-6 pb-5 pt-11">
-          {/* Icon */}
-          <div
-            className={`mb-5 flex h-20 w-20 items-center justify-center rounded-3xl border shadow-inner ${currentTheme.bg} ${currentTheme.border}`}
-          >
-            <Icon
-              size={36}
-              strokeWidth={2.2}
-              className={currentTheme.color}
-            />
-          </div>
-
-          {/* Heading */}
-          <h2
-            id="message-modal-title"
-            className="text-center text-xl font-black tracking-wide text-white"
-          >
-            {title}
-          </h2>
-
-          {/* Status Label */}
-          <div className="mt-2 flex items-center gap-2">
-            <span className={`h-px w-6 ${currentTheme.bg}`} />
-            <span
-              className={`text-[9px] font-black uppercase tracking-[0.2em] ${currentTheme.color}`}
+            <div className="min-w-0">
+              <div className="mb-2 inline-flex items-center gap-1.5 rounded-full border border-[#b99548]/30 bg-[#d8b765]/[0.07] px-2.5 py-1">
+                <span className="h-1.5 w-1.5 rounded-full bg-[#e2c36e] shadow-[0_0_8px_rgba(226,195,110,0.7)]" />
+                <span className="text-[8px] font-extrabold uppercase tracking-[0.18em] text-[#e2c36e]">
+                  {currentTheme.shortLabel}
+                </span>
+              </div>
+              <h2
+                id="message-modal-title"
+                className="break-words text-lg font-extrabold leading-tight tracking-wide text-white sm:text-xl"
+              >
+                {activationDetails ? "Package Activated Successfully" : title}
+              </h2>
+            </div>
+              <button
+              type="button"
+              onClick={handleClose}
+              aria-label="Close message"
+              className="rounded-lg border border-white/10 bg-white/[0.04] p-2 text-slate-400 transition hover:border-[#b99548]/40 hover:bg-[#d8b765]/10 hover:text-[#e2c36e]"
             >
-              {currentTheme.label}
-            </span>
-            <span className={`h-px w-6 ${currentTheme.bg}`} />
-          </div>
-
-          {/* Message */}
-          <div className="custom-message-scroll mt-6 max-h-40 w-full overflow-y-auto rounded-2xl border border-white/5 bg-white/[0.03] px-4 py-5 text-center">
-            <p className="whitespace-pre-wrap break-words text-sm font-medium leading-relaxed text-gray-300">
-              {message || "No additional information available."}
-            </p>
+              <X size={17} />
+            </button>
           </div>
         </div>
 
+        {/* Message details */}
+        <div className="px-6 pb-5 pt-5">
+          <div className="mb-3 flex items-center justify-between">
+            <p className="text-[9px] font-extrabold uppercase tracking-[0.2em] text-[#b99548]">
+              {activationDetails ? "Activation Summary" : "Notification Details"}
+            </p>
+            <span className="text-[9px] font-bold uppercase tracking-wider text-slate-600">
+              {currentTheme.label}
+            </span>
+          </div>
+
+          {activationDetails ? (
+            <div
+              id="message-modal-description"
+              className="relative overflow-hidden rounded-2xl border border-[#b99548]/30 bg-gradient-to-br from-[#171b20] via-[#10151d] to-[#080d14] p-4 shadow-[inset_0_1px_18px_rgba(216,183,101,0.04)]"
+            >
+              <div className="pointer-events-none absolute -right-8 -top-10 h-32 w-32 rounded-full bg-[#d8b765]/[0.08] blur-3xl" />
+
+              <div className="relative flex items-center justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="text-[9px] font-extrabold uppercase tracking-[0.2em] text-slate-500">
+                    Package Amount
+                  </p>
+                  <p className="mt-2 break-all text-4xl font-black leading-none tracking-tight text-[#e2c36e] tabular-nums sm:text-[42px]">
+                    ${activationDetails.amount}
+                  </p>
+                </div>
+
+                <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full border border-[#b99548]/45 bg-[#d8b765]/[0.10] shadow-[0_0_24px_rgba(185,149,72,0.15)]">
+                  <CheckCircle2
+                    size={31}
+                    strokeWidth={2.1}
+                    className="text-[#e2c36e]"
+                  />
+                </div>
+              </div>
+
+              {activationDetails.userId && (
+                <div className="relative mt-5 flex items-center justify-between gap-3 border-t border-white/[0.08] pt-3">
+                  <span className="flex items-center gap-2 text-[9px] font-bold uppercase tracking-[0.16em] text-slate-500">
+                    <UserRound size={13} className="text-[#b99548]" />
+                    User ID
+                  </span>
+                  <span className="break-all text-right font-mono text-xs font-bold tracking-wide text-white">
+                    {activationDetails.userId}
+                  </span>
+                </div>
+              )}
+
+              <div className="relative mt-3 flex items-center gap-2 rounded-lg border border-[#b99548]/15 bg-[#d8b765]/[0.05] px-3 py-2">
+                <PackageCheck size={15} className="shrink-0 text-[#d8b765]" />
+                <span className="text-[9px] font-semibold text-[#c9bea7]">
+                  Your package is now active.
+                </span>
+              </div>
+            </div>
+          ) : (
+            <div className="custom-message-scroll max-h-48 overflow-y-auto rounded-xl border border-white/[0.07] bg-[#080d14] px-4 py-4 shadow-inner">
+              <p
+                id="message-modal-description"
+                className="whitespace-pre-wrap break-words text-left text-[13px] font-medium leading-6 text-slate-300"
+              >
+                {message || "No additional information available."}
+              </p>
+            </div>
+          )}
+
+         
+        </div>
+
+          <div className="mt-4 flex items-center justify-center gap-2 text-slate-600">
+  <CalendarDays size={15} className="text-[#a9843e]" />
+  <span className="text-[12px] font-extrabold uppercase tracking-[0.17em]">
+    {todayDate}
+  </span>
+  <span className="mx-1 h-1 w-1 rounded-full bg-[#8f7135]" />
+  <span className="text-[12px] font-extrabold uppercase tracking-[0.17em]">
+    Global Wealth
+  </span>
+</div>
+
         {/* Footer */}
-        <div className="px-6 pb-7">
+        <div className="border-t border-white/[0.06] bg-[#080d14]/70 px-6 pb-5 pt-4">
           <button
             type="button"
             onClick={handleClose}
-            className={`w-full rounded-xl bg-gradient-to-r ${currentTheme.button} py-4 text-sm font-black uppercase tracking-widest text-white shadow-lg transition-all hover:-translate-y-0.5 hover:brightness-110 active:scale-[0.98]`}
+            className="group flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#a9843e] via-[#d8b765] to-[#e2c36e] px-5 py-3.5 text-[11px] font-black uppercase tracking-[0.2em] text-[#090d13] shadow-[0_7px_24px_rgba(185,149,72,0.18)] transition-all hover:-translate-y-0.5 hover:brightness-105 active:translate-y-0 active:scale-[0.99]"
           >
-            Got It
-          </button>
+            Done
+           </button>
 
-          {/* Date */}
-          <div className="mt-5 flex items-center justify-center gap-2 text-gray-500">
-            <Calendar size={13} />
-            <span className="text-[10px] font-bold uppercase tracking-widest">
-              {todayDate}
-            </span>
-            <Sparkles size={12} className="text-[#eab308]/60" />
-          </div>
+       
         </div>
       </div>
 
       <style>{`
         .custom-message-scroll {
           scrollbar-width: thin;
-          scrollbar-color: #374151 transparent;
+          scrollbar-color: #8f7135 transparent;
         }
         .custom-message-scroll::-webkit-scrollbar {
           width: 3px;
@@ -334,11 +262,11 @@ const MessageModal = ({
           background: transparent;
         }
         .custom-message-scroll::-webkit-scrollbar-thumb {
-          background: #374151;
+          background: #8f7135;
           border-radius: 10px;
         }
         .custom-message-scroll::-webkit-scrollbar-thumb:hover {
-          background: #6b7280;
+          background: #d8b765;
         }
       `}</style>
     </div>

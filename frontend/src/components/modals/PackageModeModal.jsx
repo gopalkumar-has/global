@@ -63,7 +63,7 @@ const PackageModeModal = ({
 
             <div className="min-w-0 flex-1">
               <h3 className="text-sm font-black text-white">
-                Normal Package
+                3% Daily Roi
               </h3>
               <p className="mt-1 text-[10px] text-gray-400">
                 Existing package activation · 45 days
@@ -85,7 +85,7 @@ const PackageModeModal = ({
 
             <div className="min-w-0 flex-1">
               <h3 className="text-sm font-black text-white">
-                Auto Compound V2
+                Auto Compound 
               </h3>
               <p className="mt-1 text-[10px] text-gray-400">
                 Demo simulation · 25 / 50 / 100 days

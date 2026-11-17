@@ -508,21 +508,7 @@ const handleBuyPackage = async (event) => {
                 </div>
               </div>
 
-              {/* NOTICE */}
-              <div className="rounded-lg border border-[#d4af37]/15 bg-[#d4af37]/[0.045] px-3 py-2.5">
-                <div className="flex items-start gap-2">
-                  <ShieldCheck
-                    size={15}
-                    className="mt-0.5 text-[#e5c875]"
-                  />
-                  <p className="text-[10px] leading-5 text-gray-400">
-                    Demo/test calculation only. Any displayed rate or
-                    projection is illustrative, not guaranteed earnings
-                    or guaranteed wallet credits. The package amount is
-                    deducted only after successful server-side validation.
-                  </p>
-                </div>
-              </div>
+            
 
               {/* BUTTONS */}
               <div className="flex gap-2">

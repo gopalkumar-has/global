@@ -285,7 +285,7 @@ const QuickActions = ({ onDepositClick }) => {
     },
     {
       id: "Wallet to Fund",
-      label: "Wallet to Fund",
+      label: "Income to Wallet",
       icon: Wallet,
       accent: "text-violet-300",
       surface: "bg-violet-400/[0.09]",

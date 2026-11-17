@@ -236,9 +236,7 @@ const TopupDetails = () => {
             <h1 className="font-serif text-3xl font-semibold tracking-tight text-[#f1e2c1] sm:text-4xl">
               Package <span className="italic text-[#c9a45c]">Details</span>
             </h1>
-            <p className="mt-2 max-w-xl text-sm leading-6 text-[#898273]">
-              Review package activations, member transfers and your top-up history.
-            </p>
+         
           </div>
           <div className="inline-flex w-fit items-center gap-2 rounded-full border border-[#c9a45c]/20 bg-[#c9a45c]/[0.06] px-3.5 py-2 text-[10px] font-semibold uppercase tracking-[0.15em] text-[#d6bd83]">
             <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
@@ -266,7 +264,7 @@ const TopupDetails = () => {
             <div className="pointer-events-none absolute -right-8 -top-10 h-32 w-32 rounded-full border border-[#c9a45c]/10" />
             <div className="relative flex items-center justify-between gap-3">
               <div>
-                <p className="text-[9px] font-bold uppercase tracking-[0.23em] text-[#a58c59]">Total top-up amount</p>
+                <p className="text-[9px] font-bold uppercase tracking-[0.23em] text-[#a58c59]">My all Package Total</p>
                 <p className="mt-3 text-3xl font-semibold tabular-nums text-[#f1e2c1]">
                   ${totalAmount.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </p>

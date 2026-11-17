@@ -10,8 +10,10 @@ const AutoCompoundV2 = require('../models/AutoCompoundV2');
 // CONFIGURATION
 // ==========================================
 const MIN_WITHDRAWAL = 2;
-const WITHDRAWAL_START_HOUR = 10;
-const WITHDRAWAL_END_HOUR = 12;
+const WITHDRAWAL_FEE_PERCENT = 10;
+
+const WITHDRAWAL_START_HOUR = 9;
+const WITHDRAWAL_END_HOUR = 22;
 
 const roundMoney = (value) =>
     Math.round((Number(value) + Number.EPSILON) * 10000) / 10000;
@@ -221,7 +223,7 @@ exports.withdrawFunds = async (req, res) => {
         if (!isWithdrawalTimeAllowed()) {
             return res.status(400).json({
                 success: false,
-                message: 'Withdrawal time is only between 10:00 AM and 12:00 PM IST.'
+                message: 'Withdrawal time is only between 09:00 AM and 12:00 PM IST.'
             });
         }
 
@@ -331,9 +333,14 @@ exports.withdrawFunds = async (req, res) => {
 
         deductedIncome = income;
 
+        const feeAmount = roundMoney(
+    (reqAmount * WITHDRAWAL_FEE_PERCENT) / 100
+);
+const netAmount = roundMoney(reqAmount - feeAmount);
+
         const expectedCreditDate = new Date();
         expectedCreditDate.setDate(
-            expectedCreditDate.getDate() + 10
+            expectedCreditDate.getDate()
         );
 
         const formattedCreditDate =
@@ -366,7 +373,7 @@ exports.withdrawFunds = async (req, res) => {
             name: user.name || user.username || '-',
             source: sources.join(', '),
             grossAmount: reqAmount,
-            fee: 0,
+            fee: feeAmount,
             netAmount: reqAmount,
             incomeUsed: reqAmount,
             walletAddress: user.walletAddress,
@@ -378,9 +385,12 @@ exports.withdrawFunds = async (req, res) => {
         return res.status(200).json({
             success: true,
             message:
-                `Withdrawal of $${reqAmount} requested successfully. It will be credited on ${formattedCreditDate}.`,
+                `Withdrawal of $${reqAmount} successful.`,
             data: {
                 amount: reqAmount,
+                feePercent: WITHDRAWAL_FEE_PERCENT,
+                fee: feeAmount,
+                netAmount: netAmount,
                 direct: income.direct,
                 level: income.level,
                 levelRoi: income.levelRoi,

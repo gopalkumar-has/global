@@ -781,15 +781,8 @@ const Dashboard = ({ setModalState }) => {
       <div className="relative mx-auto max-w-[1440px] space-y-5 sm:space-y-6">
         {/* Compact member header */}
         <header className="flex flex-wrap items-center justify-between gap-3 border-b border-[#b99348]/25 pb-3">
-          {/* <div className="min-w-0">
-            <p className="text-[8px] font-bold uppercase tracking-[.2em] text-[#c6a45e]">
-              Global Wealth
-            </p>
-            <h1 className="mt-1 truncate font-serif text-2xl font-semibold text-[#f4e7c9] sm:text-3xl">
-              Welcome, <span className="text-[#c9a45b]">{user.name || "Member"}</span>
-            </h1>
-          </div> */}
-          <div className="flex items-center gap-2">
+          
+          {/* <div className="flex items-center gap-2">
             <span className="flex items-center gap-1.5 border border-emerald-500/20 px-2.5 py-1.5 text-[9px] font-bold uppercase text-emerald-300">
               <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
               Active
@@ -797,17 +790,58 @@ const Dashboard = ({ setModalState }) => {
             <span className="border border-white/10 px-2.5 py-1.5 font-mono text-[10px] text-[#c9bea7]">
               {user.userId}
             </span>
-          </div>
+          </div> */}
+
+
+<div className="flex items-center gap-2 sm:gap-3 whitespace-nowrap overflow-x-auto">
+
+  {/* Active Status */}
+  <span className="flex shrink-0 items-center gap-1.5 border border-emerald-500/20 px-3 py-2 text-[11px] font-extrabold uppercase text-emerald-300 sm:text-xs">
+    <span className="h-2 w-2 rounded-full bg-emerald-400" />
+    Active
+  </span>
+
+  {/* User ID */}
+  <span className="shrink-0 border border-white/10 px-2.5 py-2 font-mono text-[10px] text-[#c9bea7] sm:text-xs">
+    {user?.userId || "—"}
+  </span>
+
+  {/* User Name */}
+  <span className="shrink-0 border border-white/10 px-2.5 py-2 text-[10px] font-semibold text-[#c9bea7] sm:text-xs">
+    {user?.name || "—"}
+  </span>
+
+  {/* Joining Date */}
+  <span className="shrink-0 border border-white/10 px-2.5 py-2 font-mono text-[10px] text-[#c9bea7] sm:text-xs">
+    {(() => {
+      const date =
+        user?.joiningDate ||
+        user?.joinedAt ||
+        user?.createdAt ||
+        user?.dateOfJoining ||
+        user?.registrationDate;
+
+      return date
+        ? new Date(date).toLocaleDateString("en-IN", {
+            day: "2-digit",
+            month: "short",
+            year: "numeric"
+          })
+        : "—";
+    })()}
+  </span>
+
+</div>
+
         </header>
 
-        {/* Account figures */}
-        <section className="grid min-w-0 gap-3 xl:grid-cols-2">
+         <section className="grid min-w-0 gap-3 xl:grid-cols-2">
           <div className="min-w-0 overflow-hidden border border-[#b99348]/20 bg-[linear-gradient(135deg,rgba(36,29,17,.62),rgba(12,12,11,.94)_65%)] p-2.5 sm:p-3">
             <TotalEarningBox user={user} />
           </div>
-          <div className="min-w-0 overflow-hidden border border-white/[.08] bg-[linear-gradient(135deg,rgba(25,24,20,.75),rgba(11,11,10,.96)_70%)] p-2.5 sm:p-3">
+          {/* <div className="min-w-0 overflow-hidden border border-white/[.08] bg-[linear-gradient(135deg,rgba(25,24,20,.75),rgba(11,11,10,.96)_70%)] p-2.5 sm:p-3">
             <LivePackageStatsBox user={user} />
-          </div>
+          </div> */}
         </section>
 
         {/* Referral only. QuickActions remains a separate dock and cannot stretch this row. */}

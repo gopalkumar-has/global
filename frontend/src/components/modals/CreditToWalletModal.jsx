@@ -457,7 +457,7 @@ const CreditToWalletModal = ({ onClose }) => {
 
             <div>
               <h2 className="text-base font-black tracking-wide text-white">
-                CREDIT TO WALLET
+                Income to Wallet
               </h2>
 
               <p className="mt-1 text-[9px] font-semibold tracking-[0.18em] text-gray-500">
@@ -668,7 +668,7 @@ const CreditToWalletModal = ({ onClose }) => {
                     setInlineMessage("");
                     setIsError(false);
                   }}
-                  placeholder="Enter your secure PIN"
+                  placeholder="Enter Transaction Password"
                   autoComplete="current-password"
                   disabled={loading}
                   className="w-full bg-transparent py-3.5 text-sm font-semibold text-white outline-none placeholder:text-gray-700"
@@ -724,10 +724,7 @@ const CreditToWalletModal = ({ onClose }) => {
                   <span className="font-bold text-emerald-400">0%</span>
                 </div>
 
-                <div className="border-t border-white/10 pt-3 text-center leading-relaxed text-gray-500">
-                  Credit requests are subject to backend validation and
-                  package eligibility rules.
-                </div>
+                 
               </div>
             </div>
           </div>
