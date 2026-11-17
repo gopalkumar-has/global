@@ -1585,9 +1585,7 @@ const TopUpModalWithInput = ({
 }) => {
   const { user: loggedInUser, token, login } = useAuth();
 
-  const [memberId, setMemberId] = useState(
-    loggedInUser?.userId || ""
-  );
+ const [memberId, setMemberId] = useState("");
 
   const [fundWallet, setFundWallet] = useState(0);
   const [walletLoading, setWalletLoading] = useState(true);
@@ -2070,7 +2068,7 @@ const TopUpModalWithInput = ({
               <div>
 
                 <label className="mb-1.5 block text-[10px] font-extrabold uppercase tracking-[0.16em] text-[#e5c875]">
-                  Enter User ID
+                  User ID
                 </label>
 
                 <div className="relative">
