@@ -1056,8 +1056,7 @@ router.post("/promo-transfer", authMiddleware, async (req, res) => {
 
 
 // Phir tumhare routes kuch aise dikhenge:
-router.get('/info', authMiddleware, walletController.getWalletInfo);
-router.post('/transfer', authMiddleware, transferController.walletTransfer);
+ router.post('/transfer', authMiddleware, transferController.walletTransfer);
 
  
 // 1. Wallet Info Get karne ka route

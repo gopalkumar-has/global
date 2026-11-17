@@ -64,6 +64,8 @@ const getActivePackageInfo = async (userId) => {
     const now = new Date();
     const normalizedUserId = String(userId);
 
+    // console.log("PACKAGE USER ID:", normalizedUserId);
+
     const [normalPackages, compoundPackages] = await Promise.all([
         PackageActivation.find({
             userId: normalizedUserId,
@@ -83,6 +85,22 @@ const getActivePackageInfo = async (userId) => {
             .lean()
     ]);
 
+
+//     console.log("WITHDRAWAL PACKAGE DEBUG:", {
+//     userId: normalizedUserId,
+//     normalPackageCount: normalPackages.length,
+//     compoundPackageCount: compoundPackages.length,
+//     normalAmounts: normalPackages.map(p => ({
+//         amount: p.packageAmount,
+//         status: p.status,
+//         endDate: p.endDate
+//     })),
+//     compoundAmounts: compoundPackages.map(p => ({
+//         amount: p.packageAmount,
+//         status: p.status
+//     }))
+// });
+
     const allPackages = [
         ...normalPackages,
         ...compoundPackages
@@ -92,14 +110,18 @@ const getActivePackageInfo = async (userId) => {
         .map((pkg) => Number(pkg.packageAmount))
         .filter((amount) => Number.isFinite(amount) && amount >= 2);
 
-    return {
-        hasActivePackage: validAmounts.length > 0,
-        highestActivePackageAmount:
-            validAmounts.length > 0
-                ? Math.max(...validAmounts)
-                : 0,
-        totalActivePackages: validAmounts.length
-    };
+    const totalActivePackageAmount = roundMoney(
+    validAmounts.reduce((total, amount) => total + amount, 0)
+);
+   return {
+    hasActivePackage: validAmounts.length > 0,
+    highestActivePackageAmount:
+        validAmounts.length > 0
+            ? Math.max(...validAmounts)
+            : 0,
+    totalActivePackageAmount,
+    totalActivePackages: validAmounts.length
+};
 };
 
 // ==========================================
@@ -245,13 +267,41 @@ exports.withdrawFunds = async (req, res) => {
             });
         }
 
-        if (reqAmount > packageInfo.highestActivePackageAmount) {
-            return res.status(400).json({
-                success: false,
-                message:
-                    `Withdrawal limit exceeded! Your highest active package is $${packageInfo.highestActivePackageAmount}.`
-            });
-        }
+        // if (reqAmount > packageInfo.highestActivePackageAmount) {
+        //     return res.status(400).json({
+        //         success: false,
+        //         message:
+        //             `Withdrawal limit exceeded! Your highest active package is $${packageInfo.highestActivePackageAmount}.`
+        //     });
+        // }
+
+     const startOfToday = getISTStartOfToday();
+
+const todayTransactions = await Transaction.find({
+    userId,
+    type: { $in: ['withdrawal', 'credit_to_wallet'] },
+    date: { $gte: startOfToday }
+}).select('amount').lean();
+
+const alreadyUsedToday = todayTransactions.reduce(
+    (total, transaction) => total + Number(transaction.amount || 0),
+    0
+);
+
+if (
+    alreadyUsedToday + reqAmount >
+    packageInfo.totalActivePackageAmount
+) {
+    const remainingLimit = Math.max(
+        0,
+        packageInfo.totalActivePackageAmount - alreadyUsedToday
+    );
+
+    return res.status(400).json({
+        success: false,
+        message: `Daily limit exceeded! Total active package limit: $${packageInfo.totalActivePackageAmount}. Already used today: $${roundMoney(alreadyUsedToday)}. Remaining today: $${roundMoney(remainingLimit)}.`
+    });
+}
 
         if (
             !user.walletAddress ||
@@ -304,8 +354,7 @@ exports.withdrawFunds = async (req, res) => {
             });
         }
 
-        const startOfToday = getISTStartOfToday();
-
+ 
         const alreadyWithdrawn = await Transaction.exists({
             userId,
             type: 'withdrawal',
@@ -374,7 +423,7 @@ const netAmount = roundMoney(reqAmount - feeAmount);
             source: sources.join(', '),
             grossAmount: reqAmount,
             fee: feeAmount,
-            netAmount: reqAmount,
+            netAmount: netAmount,
             incomeUsed: reqAmount,
             walletAddress: user.walletAddress,
             status: 'pending'
@@ -474,6 +523,49 @@ exports.creditToWallet = async (req, res) => {
                 message: 'An active package is required to use this feature.'
             });
         }
+
+    //     if (reqAmount > packageInfo.highestActivePackageAmount) {
+    // return res.status(400).json({
+    //     success: false,
+    //     message: `Credit limit exceeded! Your highest active package is $${packageInfo.highestActivePackageAmount}.`
+    // });
+    
+// }
+
+const startOfToday = getISTStartOfToday();
+
+const todayCredits = await Transaction.find({
+    userId,
+    type: 'credit_to_wallet',
+    date: { $gte: startOfToday }
+}).select('amount').lean();
+
+ 
+const todayTransactions = await Transaction.find({
+    userId,
+    type: { $in: ['withdrawal', 'credit_to_wallet'] },
+    date: { $gte: startOfToday }
+}).select('amount').lean();
+
+const alreadyUsedToday = todayTransactions.reduce(
+    (total, transaction) => total + Number(transaction.amount || 0),
+    0
+);
+
+if (
+    alreadyUsedToday + reqAmount >
+    packageInfo.totalActivePackageAmount
+) {
+    const remainingLimit = Math.max(
+        0,
+        packageInfo.totalActivePackageAmount - alreadyUsedToday
+    );
+
+    return res.status(400).json({
+        success: false,
+        message: `Daily limit exceeded! Total active package limit: $${packageInfo.totalActivePackageAmount}. Already used today: $${roundMoney(alreadyUsedToday)}. Remaining today: $${roundMoney(remainingLimit)}.`
+    });
+}
 
         if (
             typeof transactionPassword !== 'string' ||
@@ -617,9 +709,68 @@ exports.creditToWallet = async (req, res) => {
 // ==========================================
 // GET WALLET INFO
 // ==========================================
+// exports.getWalletInfo = async (req, res) => {
+//     try {
+//         const userId = String(req.user?.userId || '');
+
+//         if (!userId) {
+//             return res.status(401).json({
+//                 success: false,
+//                 message: 'Authentication required.'
+//             });
+//         }
+
+//         const user = await User.findOne({ userId }).lean();
+
+//         if (!user) {
+//             return res.status(404).json({
+//                 success: false,
+//                 message: 'User not found.'
+//             });
+//         }
+
+//         const directIncome = Number(user.directIncome || 0);
+//         const levelIncome = Number(user.levelIncome || 0);
+//         const roiIncome = Number(user.roiIncome || 0);
+//         const levelRoiIncome = Number(user.levelRoiIncome || 0);
+
+//         const availableBalance = roundMoney(
+//             directIncome + levelIncome + levelRoiIncome + roiIncome
+//         );
+
+//         const totalIncome = roundMoney(
+//             directIncome + levelIncome + roiIncome + levelRoiIncome
+//         );
+
+//         return res.status(200).json({
+//             success: true,
+//             directIncome,
+//             levelIncome,
+//             roiIncome,
+//             levelRoiIncome,
+//             totalIncome,
+//             availableBalance,
+//             totalWithdrawn: Number(
+//                 user.totalWithdrawn ?? user.totalWithdrawal ?? 0
+//             ),
+//             walletBalance: Number(user.walletBalance || 0),
+//             walletAddress: user.walletAddress || null
+//         });
+
+//     } catch (error) {
+//         console.error('Wallet Info Error:', error);
+
+//         return res.status(500).json({
+//             success: false,
+//             message: 'Server error while fetching wallet info.'
+//         });
+//     }
+// };
+
+
 exports.getWalletInfo = async (req, res) => {
     try {
-        const userId = String(req.user?.userId || '');
+        const userId = String(req.user?.userId || '').trim();
 
         if (!userId) {
             return res.status(401).json({
@@ -637,6 +788,9 @@ exports.getWalletInfo = async (req, res) => {
             });
         }
 
+        // ==========================================
+        // INCOME BALANCES
+        // ==========================================
         const directIncome = Number(user.directIncome || 0);
         const levelIncome = Number(user.levelIncome || 0);
         const roiIncome = Number(user.roiIncome || 0);
@@ -650,19 +804,42 @@ exports.getWalletInfo = async (req, res) => {
             directIncome + levelIncome + roiIncome + levelRoiIncome
         );
 
+        // ==========================================
+        // TOTAL ACTIVE PACKAGE AMOUNT
+        // Normal Package + AutoCompound V2
+        // ==========================================
+        const packageInfo = await getActivePackageInfo(userId);
+
+        // console.log("WALLET PACKAGE INFO:", packageInfo);
+
+        const dailyWithdrawalLimit = roundMoney(
+            Number(packageInfo.totalActivePackageAmount || 0)
+        );
+
+
+// console.log("WALLET PACKAGE INFO:", packageInfo);
+// console.log("FINAL DAILY LIMIT:", dailyWithdrawalLimit);
+
         return res.status(200).json({
             success: true,
+
             directIncome,
             levelIncome,
             roiIncome,
             levelRoiIncome,
+
             totalIncome,
             availableBalance,
+
             totalWithdrawn: Number(
                 user.totalWithdrawn ?? user.totalWithdrawal ?? 0
             ),
+
             walletBalance: Number(user.walletBalance || 0),
-            walletAddress: user.walletAddress || null
+            walletAddress: user.walletAddress || null,
+
+            // Daily withdrawal limit
+            dailyWithdrawalLimit
         });
 
     } catch (error) {
@@ -674,6 +851,7 @@ exports.getWalletInfo = async (req, res) => {
         });
     }
 };
+
 
 // ==========================================
 // GET WALLET HISTORY

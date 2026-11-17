@@ -767,6 +767,7 @@
 import api from "../../api/axios";
 
 import { useAuth } from "../../context/AuthContext";
+import MessageModal from "./MessageModal";
 
 import Swal from "sweetalert2";
 
@@ -1039,6 +1040,9 @@ const WithdrawalModal = ({ onClose }) => {
     balance: 0,
 
     totalWithdrawn: 0,
+    
+    dailyWithdrawalLimit: 0,
+
 
     walletAddress: user?.walletAddress || null,
 
@@ -1060,7 +1064,13 @@ const WithdrawalModal = ({ onClose }) => {
 
   const [showPassword, setShowPassword] = useState(false);
 
+const [successModalOpen, setSuccessModalOpen] = useState(false);
 
+const [withdrawalSuccessDetails, setWithdrawalSuccessDetails] = useState({
+  amount: 0,
+  userId: "",
+  name: "",
+});
 
   const [inlineMessage, setInlineMessage] = useState("");
 
@@ -1100,6 +1110,8 @@ const WithdrawalModal = ({ onClose }) => {
 
       const res = await api.get("/wallet/info", {
 
+        
+
         headers: {
 
           Authorization: `Bearer ${token}`,
@@ -1109,6 +1121,8 @@ const WithdrawalModal = ({ onClose }) => {
       });
 
 
+ 
+ 
 
       setWalletData({
 
@@ -1123,6 +1137,8 @@ const WithdrawalModal = ({ onClose }) => {
         balance: Number(res.data.availableBalance) || 0,
 
         totalWithdrawn: Number(res.data.totalWithdrawn) || 0,
+        
+        dailyWithdrawalLimit: Number(res.data.dailyWithdrawalLimit) || 0,
 
         walletAddress:
 
@@ -1510,22 +1526,31 @@ const WithdrawalModal = ({ onClose }) => {
 
 
 
-      await Swal.fire({
-        // No success icon: show a neutral request-submitted confirmation.
-        title: "Withdrawal Request Submitted",
-        text:
-          response.data.message ||
-          "Your withdrawal request has been submitted for processing.",
-        background: "#080808",
-        color: "#ffffff",
-        confirmButtonColor: "#d4af37",
-        confirmButtonText: "Continue",
-      });
+      // await Swal.fire({
+      //   // No success icon: show a neutral request-submitted confirmation.
+      //   title: "Withdrawal Request Submitted",
+      //   text:
+      //     response.data.message ||
+      //     "Your withdrawal request has been submitted for processing.",
+      //   background: "#080808",
+      //   color: "#ffffff",
+      //   confirmButtonColor: "#d4af37",
+      //   confirmButtonText: "Continue",
+      // });
+            // onClose();
+
+
+      setWithdrawalSuccessDetails({
+  amount: total,
+  userId: user?.userId || "",
+  name: user?.name || user?.username || "",
+});
+
+setSuccessModalOpen(true);
 
 
 
-      onClose();
-
+ 
     } catch (error) {
 
       console.error("Withdrawal error:", error);
@@ -2142,11 +2167,9 @@ const WithdrawalModal = ({ onClose }) => {
 
                   <span className="text-gray-500">Daily Withdrawal Limit</span>
 
-                  <span className="text-right font-bold text-[#e4c568]">
-
-                    $ amount
-
-                  </span>
+                 <span className="text-right font-bold text-[#e4c568]">
+  ${formatExact(walletData.dailyWithdrawalLimit)}
+</span>
 
                 </div>
 
@@ -2243,6 +2266,20 @@ const WithdrawalModal = ({ onClose }) => {
         </form>
 
       </div>
+
+      <MessageModal
+  isOpen={successModalOpen}
+  onClose={() => {
+    setSuccessModalOpen(false);
+    onClose();
+  }}
+  title="Withdrawal Sucessful"
+  message="Your withdrawal request has been submitted successfully."
+  type="success"
+  receiverName={withdrawalSuccessDetails.name}
+  transactionDetails={withdrawalSuccessDetails}
+  successNote="Your withdrawal request has been submitted for processing."
+/>
 
     </div>
 
