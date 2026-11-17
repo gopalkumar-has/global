@@ -66,7 +66,7 @@ const Register = () => {
   const [showCountryDropdown, setShowCountryDropdown] = useState(false);
   const [searchCountry, setSearchCountry] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [showModalPassword, setShowModalPassword] = useState(false);
+  const [showModalPassword, setShowModalPassword] = useState(true);
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
@@ -457,8 +457,7 @@ const Register = () => {
                 <span>Login password</span>
                 <strong className="gw-reg-secret">
                   {showModalPassword ? modalData.password : "••••••••"}
-                  <button type="button" aria-label={showModalPassword ? "Hide login password" : "Show login password"} onClick={() => setShowModalPassword((v) => !v)}>{showModalPassword ? <EyeOff size={14}/> : <Eye size={14}/>}</button>
-                </strong>
+                 </strong>
               </div>
               <div className="gw-reg-detail-row"><span>Transaction password</span><strong>{modalData.trxPassword}</strong></div>
               <div className="gw-reg-detail-row"><span>Registration date</span><strong>{modalData.date}</strong></div>
