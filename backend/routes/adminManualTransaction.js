@@ -1004,28 +1004,29 @@ router.post("/manual-transaction", adminAuth, async (req, res) => {
     const amt = parseFloat(amount); 
     let finalHash = txHash;
 
-    if (!finalHash) {
-        let matchedTx = null;
-        
-        // 🚀 LOGIC: Check hash from Shared MongoDB DB (PM2 Safe)
-        const TEN_MINS_AGO = new Date().getTime() - (10 * 60 * 1000);
+ if (!finalHash) {
+    let matchedTx = null;
 
-        // Delete old hashes before searching
-        await mongoose.connection.db.collection('sharedhashes').deleteMany({ detectedAt: { $lt: TEN_MINS_AGO } });
+    try {
+        const TEN_MINS_AGO = Date.now() - (10 * 60 * 1000);
 
-        // Uss specific amount ka ek hash nikalo database se aur delete bhi kardo taaki auto-bot usko na chura le
-        matchedTx = await mongoose.connection.db.collection('sharedhashes').findOneAndDelete({ amount: amt });
+        await mongoose.connection.db.collection("sharedhashes")
+            .deleteMany({ detectedAt: { $lt: TEN_MINS_AGO } });
 
-        if (matchedTx) { 
-           finalHash = matchedTx.value ? matchedTx.value.hash : matchedTx.hash;
-        } else {
-            return res.status(400).json({ 
-                success: false, 
-                message: `System syncing... No real network hash found for EXACTLY $${amt} in the last 10 minutes. Please provide a manual txHash or wait for a real $${amt} deposit to hit the network.` 
-            });
+        matchedTx = await mongoose.connection.db.collection("sharedhashes")
+            .findOneAndDelete({ amount: amt });
+
+        if (matchedTx) {
+            finalHash = matchedTx.value
+                ? matchedTx.value.hash
+                : matchedTx.hash;
         }
+    } catch (hashErr) {
+        console.error("Shared hash lookup error:", hashErr);
     }
 
+    // Matching hash na mile to bhi manual transaction continue hoga
+}
     // if (txHash) { 
     //   const checkHash = txHash || finalHash;
     //   const existingTx = await Transaction.findOne({ txHash: checkHash });

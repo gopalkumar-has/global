@@ -10,7 +10,7 @@ if (
 ) {
 
     // Runs daily at 12:30 AM IST
-    cron.schedule('22 11 * * *', async () => {
+    cron.schedule('10 21 * * *', async () => {
 
         console.log('Running Daily ROI Cron Job for Global Wealth...');
 
