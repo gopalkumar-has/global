@@ -832,12 +832,12 @@ const Dashboard = ({ setModalState }) => {
           </Suspense>
         </section>
 
-        {/* Member packages */}
+        {/* Member packages
         <section className="min-w-0">
           <Suspense fallback={<SectionLoader label="Loading portfolio" />}>
             <UserPackages />
           </Suspense>
-        </section>
+        </section> */}
       </div>
     </main>
   );
