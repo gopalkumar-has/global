@@ -1486,6 +1486,72 @@ router.get('/all', getAllUsers);
 // 👤 Get Sponsor Name (Register page par verification ke liye)
 router.get('/sponsor/:id', getSponsorName);
 
+
+
+
+const GwTokenReward = require('../models/GwTokenReward');
+
+// ==========================================
+// GW TOKEN TOTAL - USER REWARD LEDGER
+// ==========================================
+router.get('/gw-token-total', authMiddleware, async (req, res) => {
+    try {
+        const buyerId = getLoggedInUserId(req);
+
+        if (!buyerId || buyerId === '[object Object]') {
+            return res.status(401).json({
+                success: false,
+                message: 'User not authenticated'
+            });
+        }
+
+        const result = await GwTokenReward.aggregate([
+            {
+                $match: {
+  receiverId: buyerId
+                }
+            },
+            {
+                $group: {
+                    _id: '$buyerId',
+                    totalTokens: { $sum: '$tokenAmount' },
+                    totalPackages: { $sum: 1 }
+                }
+            }
+        ]);
+
+
+ 
+const sampleRecords = await GwTokenReward.find({})
+    .limit(5)
+    .lean();
+
+ 
+        const totalTokens = Number(
+            result[0]?.totalTokens || 0
+        );
+
+      
+
+        return res.status(200).json({
+            success: true,
+            buyerId,
+            totalTokens,
+            totalPackages: Number(
+                result[0]?.totalPackages || 0
+            )
+        });
+
+    } catch (error) {
+        console.error('[GW TOKEN TOTAL ERROR]', error);
+
+        return res.status(500).json({
+            success: false,
+            message: 'Unable to fetch GW Token total'
+        });
+    }
+});
+
  
 // 🔍 Get User By ID (Dashboard data, real + fake count yahan se jayega)
 // ⚠️ ISE SABSE NEECHE HI RAKHNA HAI

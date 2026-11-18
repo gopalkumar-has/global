@@ -32,6 +32,7 @@ module.exports = function sanitizeUser(user) {
     // 💰 WALLET BALANCES
     walletBalance: user.walletBalance || 0,
     usdtWallet: user.usdtWallet || 0, 
+    gwTokenBalance: Number(user.gwTokenBalance) || 0,
 
     // 💵 INDIVIDUAL INCOMES (Aapke DB ke hisaab se sabhi fields)
     directIncome: user.directIncome || 0,

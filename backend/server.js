@@ -29,6 +29,9 @@ require('./cron/autoCompoundV2Cron');
 
 console.log('Global Wealth cron modules loaded');
 
+
+const startDemoTopupCron = require("./cron/demoTopupCron");
+
 // ==========================================
 // 3. EXPRESS APP
 // ==========================================
@@ -169,6 +172,9 @@ mongoose.connect(process.env.MONGO_URI, {
     console.log(
         'MongoDB connected successfully for Global Wealth'
     );
+
+        startDemoTopupCron();
+
 
     app.listen(PORT, () => {
 

@@ -517,6 +517,7 @@ const AutoCompoundV2Commission = require('../models/AutoCompoundV2Commission');
 const User = require('../models/User');
 const PackageActivation = require('../models/PackageActivation');
 const Transaction = require('../models/Transaction');
+const GwTokenReward = require('../models/GwTokenReward');
 
 const roundMoney = (value) =>
   Math.round((Number(value) + Number.EPSILON) * 100) / 100;
@@ -790,6 +791,59 @@ while (leaderUplineId) {
 }
 };
 
+
+
+const creditGwTokenReward = async ({
+  packageId,
+  buyerId,
+  receiverId,
+  packageAmount,
+  packageType
+}) => {
+  const tokenAmount = Number(
+    (Number(packageAmount) * 10).toFixed(2)
+  );
+
+  let ledgerCreated = false;
+
+  try {
+    await GwTokenReward.create({
+      packageId,
+      buyerId,
+      receiverId,
+      packageType,
+      packageAmount,
+      tokenAmount
+    });
+
+    ledgerCreated = true;
+
+   const result = await User.updateOne(
+  { userId: receiverId },
+  { $inc: { gwTokenBalance: tokenAmount } }
+);
+
+if (result.matchedCount !== 1) {
+  throw new Error('GW Token package owner not found');
+}
+
+    return tokenAmount;
+
+  } catch (error) {
+    if (ledgerCreated) {
+      await GwTokenReward.deleteOne({ packageId });
+    }
+
+    if (error.code === 11000) {
+      console.log(
+        `GW Token reward already credited for package ${packageId}`
+      );
+      return 0;
+    }
+
+    throw error;
+  }
+};
 // ======================================
 // ACTIVATE AUTO COMPOUND V2
 // ======================================
@@ -964,6 +1018,19 @@ exports.activateAutoCompoundV2 = async (req, res) => {
     });
 
     packageCreated = true;
+
+    // GW TOKEN REWARD - AUTO COMPOUND
+const gwTokensCredited = await creditGwTokenReward({
+  packageId: packageData._id,
+  buyerId: buyerId,
+  receiverId: targetUser.userId,
+  packageAmount: amount,
+  packageType: 'auto_compound'
+});
+
+console.log(
+  `[GW TOKEN] ${gwTokensCredited} tokens credited to ${targetUser.userId}`
+);
 
     // ======================================
     // DIRECT + LEVEL INCOME

@@ -326,6 +326,7 @@ import CreditToWallet from "./pages/user/CreditToWallet.jsx";
 import Notifications from "./pages/user/Notifications.jsx";
 import UserLayout from "./components/layout/UserLayout.jsx";
 import RoiIncome from "./pages/user/RoiIncome";
+import GlobalInvestment from "./pages/user/GlobalInvestment.jsx";
 import GlobalTeam from "./pages/user/GlobalTeam";
 
 // Lazy user pages
@@ -541,6 +542,16 @@ function AppContent() {
 
               <Route path="/dashboard" element={<RequireUserAuth><UserLayout><Dashboard /></UserLayout></RequireUserAuth>} />
               <Route path="/dashboard/:userId" element={<RequireUserAuth><UserLayout><Dashboard /></UserLayout></RequireUserAuth>} />
+              <Route
+  path="/global-investment"
+  element={
+    <RequireUserAuth>
+      <UserLayout>
+        <GlobalInvestment />
+      </UserLayout>
+    </RequireUserAuth>
+  }
+/>
               <Route path="/profile" element={<RequireUserAuth><UserLayout><UserProfile /></UserLayout></RequireUserAuth>} />
               <Route path="/faq" element={<RequireUserAuth><UserLayout><FAQPage /></UserLayout></RequireUserAuth>} />
               <Route path="/withdrawals" element={<RequireUserAuth><UserLayout><UserWithdrawalHistory /></UserLayout></RequireUserAuth>} />

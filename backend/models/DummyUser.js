@@ -1,18 +1,55 @@
-const mongoose = require('mongoose');
 
-const DummyUserSchema = new mongoose.Schema({
-  // 🔥 ID aur Sponsor ID ko String kar diya hai "WF" format ke liye
-  userId: { type: String, required: true, unique: true },
-  name: { type: String, required: true },
-  email: { type: String },
-  password: { type: String },
-  country: { type: String },
-  mobile: { type: String },
-  isDummy: { type: Boolean, default: true },
-  topUpAmount: { type: Number, default: 0 },
-  withdrawAmount: { type: Number, default: 0 }, // NAYA FIELD ADD KIYA HAI WITHDRAW KE LIYE
-  sponsorId: { type: String }, 
-  createdAt: { type: Date, default: Date.now }
-});
+const mongoose = require("mongoose");
 
-module.exports = mongoose.models.DummyUser || mongoose.model('DummyUser', DummyUserSchema);
+const DummyUserSchema = new mongoose.Schema(
+  {
+    userId: {
+      type: String,
+      required: true,
+      unique: true,
+      trim: true,
+      index: true
+    },
+
+    name: {
+      type: String,
+      required: true,
+      trim: true
+    },
+
+    packageType: {
+      type: String,
+      enum: ["Normal", "Auto Compound V2"],
+      required: true
+    },
+
+    package: {
+      type: Number,
+      required: true,
+      min: 0
+    },
+
+    country: {
+      type: String,
+      default: "India"
+    },
+
+    isDummy: {
+      type: Boolean,
+      default: true,
+      immutable: true
+    },
+
+    createdAt: {
+      type: Date,
+      default: Date.now
+    }
+  },
+  {
+    timestamps: false
+  }
+);
+
+module.exports =
+  mongoose.models.DummyUser ||
+  mongoose.model("DummyUser", DummyUserSchema);

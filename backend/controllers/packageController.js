@@ -3,6 +3,61 @@ const User = require('../models/User');
 const PackageActivation = require('../models/PackageActivation');
 const Transaction = require('../models/Transaction');
 const AutoCompoundV2 = require('../models/AutoCompoundV2');
+const GwTokenReward = require('../models/GwTokenReward');
+
+
+
+const creditGwTokenReward = async ({
+  packageId,
+  buyerId,
+  receiverId,
+  packageAmount,
+  packageType
+}) => {
+  const tokenAmount = Number(
+    (Number(packageAmount) * 10).toFixed(2)
+  );
+
+  let ledgerCreated = false;
+
+  try {
+    await GwTokenReward.create({
+      packageId,
+      buyerId,
+      receiverId,
+      packageType,
+      packageAmount,
+      tokenAmount
+    });
+
+    ledgerCreated = true;
+
+const result = await User.updateOne(
+  { userId: receiverId },
+  { $inc: { gwTokenBalance: tokenAmount } }
+);
+
+if (result.matchedCount !== 1) {
+  throw new Error('GW Token package owner not found');
+}
+
+    return tokenAmount;
+
+  } catch (error) {
+    if (ledgerCreated) {
+      await GwTokenReward.deleteOne({ packageId });
+    }
+
+    if (error.code === 11000) {
+      console.log(
+        `GW Token reward already credited for package ${packageId}`
+      );
+      return 0;
+    }
+
+    throw error;
+  }
+};
 
 exports.activatePackage = async (req, res) => {
     try {
@@ -108,6 +163,21 @@ exports.activatePackage = async (req, res) => {
             endDate: endDate,
             status: 'active'
         });
+
+
+
+        // GW TOKEN REWARD - NORMAL PACKAGE
+const gwTokensCredited = await creditGwTokenReward({
+  packageId: newPackage._id,
+  buyerId: currentUser.userId,
+  receiverId: targetUser.userId,
+  packageAmount: amount,
+  packageType: 'normal'
+});
+
+console.log(
+  `[GW TOKEN] ${gwTokensCredited} tokens credited to ${targetUser.userId}`
+);
 
         // 7. TARGET USER UPDATE
         const isFirstTopup = !targetUser.isToppedUp;

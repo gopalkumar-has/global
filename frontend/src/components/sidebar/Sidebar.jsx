@@ -107,6 +107,8 @@ const Sidebar = ({ user, isOpen, setIsOpen }) => {
         { label: "Buy a Package", path: "/topup-details" },
         { label: "My Packages", path: "/my-packages" },
         { label: "Auto Compound", path: "/my-compound-packages" },
+            { label: "Global Investment", path: "/global-investment" },
+
       ],
     },
     {

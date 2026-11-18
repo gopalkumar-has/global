@@ -106,6 +106,14 @@ const userSchema = new mongoose.Schema({
     type: Number,
     default: 0
   },
+    // ==========================================
+  // GW TOKEN REWARD WALLET
+  // ==========================================
+  gwTokenBalance: {
+    type: Number,
+    default: 0,
+    min: 0
+  },
   depositAddress: {
     type: String,
     default: null

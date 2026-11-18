@@ -697,7 +697,10 @@ import { useAuth } from "../../context/AuthContext";
 import ReferralLink from "../../components/dashboard/ReferralLink";
 import QuickActions from "../../components/dashboard/QuickActions";
 import TotalEarningBox from "../../components/dashboard/TotalEarningBox";
+import GwTokenBalance from "../../components/dashboard/GwTokenBalance";
 import LivePackageStatsBox from "../../components/dashboard/LivePackageStatsBox";
+import GlobalTotalInvestmentBox from
+  "../../components/dashboard/GlobalTotalInvestmentBox";
 
 import DailySalaryPlanBanner from "../../components/dashboard/DailySalaryPlanBanner";
 
@@ -836,6 +839,11 @@ const Dashboard = ({ setModalState }) => {
 </div>
 
 <DailySalaryPlanBanner />
+
+   <GlobalTotalInvestmentBox />
+ 
+<GwTokenBalance balance={user?.gwTokenBalance || 0} />
+
 
         </header>
 
