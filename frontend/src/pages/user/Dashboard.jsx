@@ -782,7 +782,7 @@ const Dashboard = ({ setModalState }) => {
 
       <div className="relative mx-auto max-w-[1440px] space-y-5 sm:space-y-6">
         {/* Compact member header */}
-        <header className="flex flex-wrap items-center justify-between gap-3 border-b border-[#b99348]/25 pb-3">
+        <header className="flex flex-wrap items-center justify-between gap-1 border-b border-[#b99348]/25 ">
           
           {/* <div className="flex items-center gap-2">
             <span className="flex items-center gap-1.5 border border-emerald-500/20 px-2.5 py-1.5 text-[9px] font-bold uppercase text-emerald-300">
