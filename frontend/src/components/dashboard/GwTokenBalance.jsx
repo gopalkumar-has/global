@@ -39,8 +39,7 @@ const GwTokenBalance = () => {
   }, [fetchGwTokenTotal]);
 
   return (
-    <div className="flex min-h-[82px] w-full min-w-0 flex-col justify-center overflow-hidden rounded-2xl border border-[#c9a45c]/20 bg-gradient-to-br from-[#201a10] to-[#100e0a] px-4 py-2.5 shadow-lg sm:min-h-[90px] sm:px-5">
-      <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-[#bca878] sm:text-xs">
+<div className="flex min-h-[82px] w-full min-w-0 flex-col justify-center overflow-hidden rounded-2xl border border-purple-400/30 bg-gradient-to-br from-[#3b0764] to-[#160b2e] px-4 py-2.5 shadow-lg sm:min-h-[90px] sm:px-5">      <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-[#bca878] sm:text-xs">
         My Total GW Tokens
       </p>
 

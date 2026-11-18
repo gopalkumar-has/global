@@ -840,10 +840,11 @@ const Dashboard = ({ setModalState }) => {
 
 <DailySalaryPlanBanner />
 
-   <GlobalTotalInvestmentBox />
- 
-<GwTokenBalance balance={user?.gwTokenBalance || 0} />
+  <div className="grid grid-cols-2 gap-2">
+  <GlobalTotalInvestmentBox />
 
+  <GwTokenBalance balance={user?.gwTokenBalance || 0} />
+</div>
 
         </header>
 
