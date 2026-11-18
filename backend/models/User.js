@@ -237,6 +237,35 @@ const userSchema = new mongoose.Schema({
     default: 0
   },
 
+
+  // ==========================================
+// DAILY SALARY TRACKING
+// ==========================================
+salaryStatus: {
+  type: String,
+  enum: ['not_started', 'qualified', 'not_qualified', 'completed'],
+  default: 'not_started'
+},
+salaryQualifiedBusiness: {
+  type: Number,
+  default: 0
+},
+salaryDailyAmount: {
+  type: Number,
+  default: 0
+},
+salaryDaysPaid: {
+  type: Number,
+  default: 0
+},
+salaryPayoutStartAt: {
+  type: Date,
+  default: null
+},
+salaryLastPaidDate: {
+  type: String,
+  default: null
+},
   // ==========================================
   // WALLET ADDRESS SECURITY
   // ==========================================

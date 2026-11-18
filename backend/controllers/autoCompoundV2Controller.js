@@ -942,6 +942,8 @@ exports.activateAutoCompoundV2 = async (req, res) => {
 
     const packageData = await AutoCompoundV2.create({
       userId: targetUser.userId,
+      purchasedBy: buyerId,
+  memberId: targetUser.userId,
       packageAmount: amount,
       selectedDays: days,
 

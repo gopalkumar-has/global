@@ -1644,28 +1644,204 @@ router.get('/history/:userId', async (req, res) => {
 });
 
  
- 
+
+
+const PackageActivation = require("../models/PackageActivation");
+const AutoCompoundV2 = require("../models/AutoCompoundV2");
+
+
 router.get("/topup-history/:userId", async (req, res) => {
   try {
-    const rawUserId = req.params.userId; 
-    
-    // 🔥 FIX 1: String me se sirf numbers nikalo
-    const numericIdString = String(rawUserId).replace(/\D/g, ''); 
-    const userIdNum = Number(numericIdString);
+    const rawUserId = String(req.params.userId || "").trim();
 
-    const possibleIds = [rawUserId];
-    if (numericIdString && !isNaN(userIdNum)) {
-      possibleIds.push(userIdNum);
-      possibleIds.push(numericIdString);
+    if (!rawUserId) {
+      return res.status(400).json({
+        success: false,
+        message: "User ID is required"
+      });
     }
 
-    let topups = await Transaction.find({ 
+    // String aur numeric IDs dono support karo.
+    const digits = rawUserId.replace(/\D/g, "");
+    const numericId = digits ? Number(digits) : NaN;
+
+    const possibleIds = [rawUserId];
+
+    if (digits && Number.isFinite(numericId)) {
+      possibleIds.push(digits, numericId);
+    }
+
+    const uniqueIds = [
+      ...new Map(
+        possibleIds.map((id) => [String(id), id])
+      ).values()
+    ];
+
+    const toSafeNumber = (value) => {
+      if (value == null) return 0;
+
+      if (
+        typeof value === "object" &&
+        value.$numberDecimal
+      ) {
+        value = value.$numberDecimal;
+      }
+
+      const number = Number(value);
+      return Number.isFinite(number) ? number : 0;
+    };
+
+    const getRecordDate = (record) =>
+      record.startDate ||
+      record.createdAt ||
+      record.date ||
+      null;
+
+    const normaliseId = (value) =>
+      String(value || "").trim().toUpperCase();
+
+    // =========================================
+    // 1. NORMAL PACKAGE HISTORY
+    // =========================================
+
+    const normalPackages = await PackageActivation.find({
+      $or: [
+        { userId: { $in: uniqueIds } },
+        { memberId: { $in: uniqueIds } },
+        { purchasedBy: { $in: uniqueIds } }
+      ]
+    }).lean();
+
+    const normalHistory = normalPackages.map((pkg) => {
+      const receiverId = String(
+        pkg.memberId || pkg.userId || ""
+      ).trim();
+
+      const buyerId = String(
+        pkg.purchasedBy ||
+        pkg.activatedBy ||
+        pkg.fromUserId ||
+        ""
+      ).trim();
+
+      return {
+        _id: String(pkg._id),
+
+        historyType: "package_activation",
+        packageType: "Normal Package",
+
+        userId: receiverId,
+        memberId: receiverId,
+        purchasedBy: buyerId,
+
+        fromUserId: buyerId,
+        toUserId: receiverId,
+
+        amount: toSafeNumber(pkg.packageAmount),
+        grossAmount: toSafeNumber(pkg.packageAmount),
+        packageAmount: toSafeNumber(pkg.packageAmount),
+
+        dailyRoi: toSafeNumber(pkg.dailyRoi),
+        totalDays: toSafeNumber(pkg.totalDays),
+        daysCompleted: toSafeNumber(pkg.daysCompleted),
+
+        status: pkg.status || "",
+
+        description: "Normal Package Activation",
+
+        date: getRecordDate(pkg),
+        createdAt: getRecordDate(pkg)
+      };
+    });
+
+    // =========================================
+    // 2. AUTO COMPOUND HISTORY
+    // =========================================
+
+    const autoCompoundPackages = await AutoCompoundV2.find({
+      $or: [
+        { userId: { $in: uniqueIds } },
+        { memberId: { $in: uniqueIds } },
+        { purchasedBy: { $in: uniqueIds } },
+        { activatedBy: { $in: uniqueIds } },
+        { fromUserId: { $in: uniqueIds } }
+      ]
+    }).lean();
+
+    const autoCompoundHistory = autoCompoundPackages.map((pkg) => {
+      // Jisne activate kiya.
+      const buyerId = String(
+        pkg.purchasedBy ||
+        pkg.activatedBy ||
+        pkg.fromUserId ||
+        ""
+      ).trim();
+
+      // Jiske naam par package activate hua.
+      const receiverId = String(
+        pkg.memberId ||
+        pkg.userId ||
+        ""
+      ).trim();
+
+      return {
+        _id: String(pkg._id),
+
+        historyType: "auto_compound_v2",
+        packageType: "Auto Compound",
+
+        userId: receiverId,
+        memberId: receiverId,
+        purchasedBy: buyerId,
+
+        fromUserId: buyerId,
+        toUserId: receiverId,
+
+        amount: toSafeNumber(pkg.packageAmount),
+        grossAmount: toSafeNumber(pkg.packageAmount),
+        packageAmount: toSafeNumber(pkg.packageAmount),
+
+        selectedDays: toSafeNumber(pkg.selectedDays),
+        demoDailyRate: toSafeNumber(pkg.demoDailyRate),
+
+        currentBalance: toSafeNumber(pkg.currentBalance),
+        daysCompleted: toSafeNumber(pkg.daysCompleted),
+
+        remainingAmount: toSafeNumber(pkg.remainingAmount),
+        dailyInstallment: toSafeNumber(pkg.dailyInstallment),
+
+        distributionDays: toSafeNumber(pkg.distributionDays),
+
+        distributionDaysCompleted: toSafeNumber(
+          pkg.distributionDaysCompleted
+        ),
+
+        status: pkg.status || "",
+
+        description: "Auto Compound Activation",
+
+        date: getRecordDate(pkg),
+        createdAt: getRecordDate(pkg)
+      };
+    });
+
+    // Package collections are the primary activation records.
+    const packageHistory = [
+      ...normalHistory,
+      ...autoCompoundHistory
+    ];
+
+    // =========================================
+    // 3. TRANSACTION HISTORY
+    // =========================================
+
+    const transactions = await Transaction.find({
       $and: [
         {
           $or: [
-            { userId: { $in: possibleIds } },
-            { fromUserId: { $in: possibleIds } },
-            { toUserId: { $in: possibleIds } }
+            { userId: { $in: uniqueIds } },
+            { fromUserId: { $in: uniqueIds } },
+            { toUserId: { $in: uniqueIds } }
           ]
         },
         {
@@ -1673,34 +1849,243 @@ router.get("/topup-history/:userId", async (req, res) => {
             { type: { $regex: /topup|activation|package/i } },
             { source: { $regex: /topup|activation|package/i } }
           ]
+        },
+        {
+          description: { $not: /PROMOTION/i }
         }
       ]
-    }).sort({ createdAt: -1, date: -1 }).lean();
+    })
+      .sort({ createdAt: -1, date: -1 })
+      .lean();
 
-    // 🔥 FIX 2: amount object ($numberDecimal) ko safe number mein convert karke frontend bhejo
-    const safeTopups = topups.map(t => {
-        let safeAmount = 0;
-        let safeGross = 0;
-        
-        if (t.amount && t.amount.$numberDecimal) safeAmount = parseFloat(t.amount.$numberDecimal);
-        else safeAmount = parseFloat(t.amount) || 0;
+    const transactionHistory = transactions.map((tx) => ({
+      ...tx,
 
-        if (t.grossAmount && t.grossAmount.$numberDecimal) safeGross = parseFloat(t.grossAmount.$numberDecimal);
-        else safeGross = parseFloat(t.grossAmount) || 0;
+      _id: String(tx._id),
 
-        return {
-            ...t,
-            amount: safeAmount,
-            grossAmount: safeGross
-        };
+      historyType: "transaction",
+
+      packageType:
+        tx.packageType ||
+        tx.plan ||
+        "Package Transaction",
+
+      amount: toSafeNumber(tx.amount),
+      grossAmount: toSafeNumber(tx.grossAmount),
+
+      purchasedBy: String(
+        tx.purchasedBy ||
+        tx.fromUserId ||
+        ""
+      ),
+
+      memberId: String(
+        tx.memberId ||
+        tx.toUserId ||
+        ""
+      ),
+
+      fromUserId: String(
+        tx.fromUserId ||
+        tx.purchasedBy ||
+        ""
+      ),
+
+      toUserId: String(
+        tx.toUserId ||
+        tx.memberId ||
+        ""
+      ),
+
+      createdAt: getRecordDate(tx),
+      date: getRecordDate(tx)
+    }));
+
+    // =========================================
+    // 4. REMOVE DUPLICATE TRANSACTIONS
+    // =========================================
+
+    const filteredTransactions = transactionHistory.filter((tx) => {
+      const txSender = normaliseId(
+        tx.purchasedBy ||
+        tx.fromUserId ||
+        tx.userId
+      );
+
+      const txReceiver = normaliseId(
+        tx.memberId ||
+        tx.toUserId ||
+        tx.userId
+      );
+
+      const txAmount = Math.abs(
+        toSafeNumber(tx.amount || tx.grossAmount)
+      );
+
+      const txDate = tx.createdAt
+        ? new Date(tx.createdAt).getTime()
+        : NaN;
+
+      const isDuplicate = packageHistory.some((pkg) => {
+        const pkgSender = normaliseId(
+          pkg.purchasedBy ||
+          pkg.fromUserId
+        );
+
+        const pkgReceiver = normaliseId(
+          pkg.memberId ||
+          pkg.toUserId ||
+          pkg.userId
+        );
+
+        const pkgAmount = Math.abs(
+          toSafeNumber(pkg.amount)
+        );
+
+        const pkgDate = pkg.createdAt
+          ? new Date(pkg.createdAt).getTime()
+          : NaN;
+
+        const sameParties =
+          txSender &&
+          txReceiver &&
+          pkgSender &&
+          pkgReceiver &&
+          txSender === pkgSender &&
+          txReceiver === pkgReceiver;
+
+        const sameAmount =
+          Math.abs(txAmount - pkgAmount) < 0.000001;
+
+        const closeDate =
+          !Number.isFinite(txDate) ||
+          !Number.isFinite(pkgDate) ||
+          Math.abs(txDate - pkgDate) <= 10 * 60 * 1000;
+
+        return (
+          sameParties &&
+          sameAmount &&
+          closeDate
+        );
+      });
+
+      return !isDuplicate;
     });
 
-    res.json(safeTopups); 
+    // =========================================
+    // 5. COMBINE HISTORY
+    // =========================================
+
+    const combinedHistory = [
+      ...packageHistory,
+      ...filteredTransactions
+    ];
+
+    // =========================================
+    // 6. REMOVE SAME COLLECTION DUPLICATES
+    // =========================================
+
+    const seen = new Set();
+
+    const uniqueHistory = combinedHistory.filter((record) => {
+      const key = `${record.historyType}:${record._id}`;
+
+      if (seen.has(key)) {
+        return false;
+      }
+
+      seen.add(key);
+      return true;
+    });
+
+    // =========================================
+    // 7. LATEST FIRST
+    // =========================================
+
+    uniqueHistory.sort((a, b) => {
+      const dateA = new Date(
+        a.createdAt || a.date || 0
+      ).getTime();
+
+      const dateB = new Date(
+        b.createdAt || b.date || 0
+      ).getTime();
+
+      return (
+        (Number.isFinite(dateB) ? dateB : 0) -
+        (Number.isFinite(dateA) ? dateA : 0)
+      );
+    });
+
+    return res.json(uniqueHistory);
+
   } catch (err) {
     console.error("Top-up history error:", err);
-    res.status(500).json({ message: "Failed to fetch top-up history" });
+
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch top-up history"
+    });
   }
 });
+
+ 
+// router.get("/topup-history/:userId", async (req, res) => {
+//   try {
+//     const rawUserId = req.params.userId; 
+    
+//     // 🔥 FIX 1: String me se sirf numbers nikalo
+//     const numericIdString = String(rawUserId).replace(/\D/g, ''); 
+//     const userIdNum = Number(numericIdString);
+
+//     const possibleIds = [rawUserId];
+//     if (numericIdString && !isNaN(userIdNum)) {
+//       possibleIds.push(userIdNum);
+//       possibleIds.push(numericIdString);
+//     }
+
+//     let topups = await Transaction.find({ 
+//       $and: [
+//         {
+//           $or: [
+//             { userId: { $in: possibleIds } },
+//             { fromUserId: { $in: possibleIds } },
+//             { toUserId: { $in: possibleIds } }
+//           ]
+//         },
+//         {
+//           $or: [
+//             { type: { $regex: /topup|activation|package/i } },
+//             { source: { $regex: /topup|activation|package/i } }
+//           ]
+//         }
+//       ]
+//     }).sort({ createdAt: -1, date: -1 }).lean();
+
+//     // 🔥 FIX 2: amount object ($numberDecimal) ko safe number mein convert karke frontend bhejo
+//     const safeTopups = topups.map(t => {
+//         let safeAmount = 0;
+//         let safeGross = 0;
+        
+//         if (t.amount && t.amount.$numberDecimal) safeAmount = parseFloat(t.amount.$numberDecimal);
+//         else safeAmount = parseFloat(t.amount) || 0;
+
+//         if (t.grossAmount && t.grossAmount.$numberDecimal) safeGross = parseFloat(t.grossAmount.$numberDecimal);
+//         else safeGross = parseFloat(t.grossAmount) || 0;
+
+//         return {
+//             ...t,
+//             amount: safeAmount,
+//             grossAmount: safeGross
+//         };
+//     });
+
+//     res.json(safeTopups); 
+//   } catch (err) {
+//     console.error("Top-up history error:", err);
+//     res.status(500).json({ message: "Failed to fetch top-up history" });
+//   }
+// });
 
 
 router.get("/:userId", authMiddleware, async (req, res) => {

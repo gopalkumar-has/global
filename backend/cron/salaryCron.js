@@ -1,275 +1,266 @@
-// // // const cron = require('node-cron');
-// // // const User = require('../models/User');
-// // // const Transaction = require('../models/Transaction');
-
-// // // // Har mahine ki 1 tareekh ko Midnight (00:00) pe chalega
-// // // // cron.schedule('0 0 1 * *', async () => {
-// // //   cron.schedule('21 0 1 * *', async () => {  
-// // //     console.log("🔥 Running Monthly Salary Distribution Engine...");
-    
-// // //     try {
-// // //         // Un users ko dhundo jo qualified hain aur jinki salary 6 mahine se kam aayi hai
-// // //         const qualifiedUsers = await User.find({ 
-// // //             isSalaryQualified: true, 
-// // //             salaryMonthsPaid: { $lt: 6 } 
-// // //         });
-
-// // //         console.log(`Found ${qualifiedUsers.length} users qualified for Monthly Salary.`);
-
-// // //         for (const user of qualifiedUsers) {
-// // //             const salaryAmount = 100;
-
-// // //             // User ke wallet me aur salary record me balance add karo
-// // //             user.walletBalance += salaryAmount;
-// // //             user.salaryTotalIncome += salaryAmount;
-// // //             user.salaryMonthsPaid += 1;
-            
-// // //             // Unki Earning Total mein bhi add kardo (rewardIncome karke)
-// // //             user.rewardIncome = (user.rewardIncome || 0) + salaryAmount;
-// // //             user.totalRewardIncome = (user.totalRewardIncome || 0) + salaryAmount;
-
-// // //             await user.save();
-
-// // //             // Transaction log create karo
-// // //             await Transaction.create({
-// // //                 userId: user.userId,
-// // //                 type: 'monthly_salary',
-// // //                 source: 'reward',
-// // //                 amount: salaryAmount,
-// // //                 description: `Monthly Salary Reward (Month ${user.salaryMonthsPaid} of 6)`,
-// // //                 status: 'success',
-// // //                 date: new Date()
-// // //             });
-
-// // //             console.log(`✅ Paid $100 salary to ${user.userId}`);
-// // //         }
-
-// // //         console.log("🎉 Monthly Salary Distribution Completed!");
-// // //     } catch (error) {
-// // //         console.error("❌ Monthly Salary Cron Error:", error);
-// // //     }
-// // // }, {
-// // //     scheduled: true,
-// // //     timezone: "Asia/Kolkata" // India time ke hisaab se 1st tarik
-// // // });
-
-
-
-
-// // const cron = require('node-cron');
-// // const User = require('../models/User');
-// // const Transaction = require('../models/Transaction');
-
-// // // 🔥 YAHAN UPDATE KIYA HAI: Sirf Instance '0' (Primary Core) par hi yeh cron chalega
-// // if (process.env.NODE_APP_INSTANCE === '0' || process.env.NODE_APP_INSTANCE === undefined) {
-
-// //   // Har mahine ki 1 tareekh ko Midnight (00:00) pe chalega
-// //   cron.schedule('21 0 1 * *', async () => {  
-// //       console.log("🔥 Running Monthly Salary Distribution Engine...");
-      
-// //       try {
-// //           // Un users ko dhundo jo qualified hain aur jinki salary 6 mahine se kam aayi hai
-// //           const qualifiedUsers = await User.find({ 
-// //               isSalaryQualified: true, 
-// //               salaryMonthsPaid: { $lt: 6 } 
-// //           });
-
-// //           console.log(`Found ${qualifiedUsers.length} users qualified for Monthly Salary.`);
-
-// //           for (const user of qualifiedUsers) {
-// //               const salaryAmount = 100;
-
-// //               // User ke wallet me aur salary record me balance add karo
-// //               user.walletBalance += salaryAmount;
-// //               user.salaryTotalIncome += salaryAmount;
-// //               user.salaryMonthsPaid += 1;
-              
-// //               // Unki Earning Total mein bhi add kardo (rewardIncome karke)
-// //               user.rewardIncome = (user.rewardIncome || 0) + salaryAmount;
-// //               user.totalRewardIncome = (user.totalRewardIncome || 0) + salaryAmount;
-
-// //               await user.save();
-
-// //               // Transaction log create karo
-// //               await Transaction.create({
-// //                   userId: user.userId,
-// //                   type: 'monthly_salary',
-// //                   source: 'reward',
-// //                   amount: salaryAmount,
-// //                   description: `Monthly Salary Reward (Month ${user.salaryMonthsPaid} of 6)`,
-// //                   status: 'success',
-// //                   date: new Date()
-// //               });
-
-// //               console.log(`✅ Paid $100 salary to ${user.userId}`);
-// //           }
-
-// //           console.log("🎉 Monthly Salary Distribution Completed!");
-// //       } catch (error) {
-// //           console.error("❌ Monthly Salary Cron Error:", error);
-// //       }
-// //   }, {
-// //       scheduled: true,
-// //       timezone: "Asia/Kolkata" // India time ke hisaab se 1st tarik
-// //   });
-
-// // } // 🔥 YAHAN UPDATE KIYA HAI: if condition yahan close ho rahi hai
-
-
-
-
-
-
-// const cron = require('node-cron');
-// const User = require('../models/User');
-// const Transaction = require('../models/Transaction');
-
-// // Sirf Instance '0' (Primary Core) par hi yeh cron chalega
-// if (process.env.NODE_APP_INSTANCE === '0' || process.env.NODE_APP_INSTANCE === undefined) {
-
-//   // Har mahine ki 1 tareekh ko Midnight (00:00) pe chalega
-//   cron.schedule('05 0 1 * *', async () => {  
-//       console.log("🔥 Running Monthly Salary Distribution Engine (Pending Mode)...");
-      
-//       try {
-//           // Un users ko dhundo jo qualified hain aur jinki salary 6 mahine se kam aayi hai
-//           const qualifiedUsers = await User.find({ 
-//               isSalaryQualified: true, 
-//               salaryMonthsPaid: { $lt: 6 } 
-//           });
-
-//           console.log(`Found ${qualifiedUsers.length} users qualified for Monthly Salary.`);
-
-//           for (const user of qualifiedUsers) {
-//               const salaryAmount = 100;
-
-//               // 🔴 UPDATE 1: Wallet me add mat karo, 'unclaimedSalary' me daalo
-//               user.unclaimedSalary = (user.unclaimedSalary || 0) + salaryAmount;
-              
-//               // Baaki counting aur records same rahenge
-//               user.salaryTotalIncome += salaryAmount;
-//               user.salaryMonthsPaid += 1;
-//               user.rewardIncome = (user.rewardIncome || 0) + salaryAmount;
-//               user.totalRewardIncome = (user.totalRewardIncome || 0) + salaryAmount;
-
-//               await user.save();
-
-//               // 🔴 UPDATE 2: Transaction status 'pending' aur type change kar diya
-//               await Transaction.create({
-//                   userId: user.userId,
-//                   type: 'monthly_salary_generated', 
-//                   source: 'reward',
-//                   amount: salaryAmount,
-//                   description: `Monthly Salary Generated (Month ${user.salaryMonthsPaid} of 6) - Waiting for Claim`,
-//                   status: 'pending', 
-//                   date: new Date()
-//               });
-
-//               console.log(`✅ Generated $100 salary for ${user.userId} (Pending Claim)`);
-//           }
-
-//           console.log("🎉 Monthly Salary Distribution Completed!");
-//       } catch (error) {
-//           console.error("❌ Monthly Salary Cron Error:", error);
-//       }
-//   }, {
-//       scheduled: true,
-//       timezone: "Asia/Kolkata" 
-//   });
-// }
-
-
-
 
 const cron = require('node-cron');
 const User = require('../models/User');
+const PackageActivation = require('../models/PackageActivation');
+const AutoCompoundV2 = require('../models/AutoCompoundV2');
 const Transaction = require('../models/Transaction');
 
-// Sirf Instance '0' (Primary Core) par hi yeh cron chalega
-if (process.env.NODE_APP_INSTANCE === '0' || process.env.NODE_APP_INSTANCE === undefined) {
+const roundMoney = (n) =>
+  Math.round((Number(n) + Number.EPSILON) * 100) / 100;
 
-  // 🔴 UPDATE 1: Ab yeh cron HAR ROZ (Daily) Raat 12:05 AM pe chalega
-  cron.schedule('05 0 * * *', async () => {  
-      console.log("🔥 Running DAILY Monthly Salary Distribution Engine...");
-      
-      try {
-          // Un users ko dhundo jo qualified hain aur jinki salary 6 mahine se kam aayi hai
-          const qualifiedUsers = await User.find({ 
-              isSalaryQualified: true, 
-              salaryMonthsPaid: { $lt: 6 } 
-          });
+const getISTDate = () => {
+  const parts = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Asia/Kolkata',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit'
+  }).formatToParts(new Date());
 
-          console.log(`Found ${qualifiedUsers.length} users qualified for Salary Check.`);
+  const p = {};
+  parts.forEach(x => p[x.type] = x.value);
+  return `${p.year}-${p.month}-${p.day}`;
+};
 
-          for (const user of qualifiedUsers) {
-              let shouldGiveSalary = false;
+// User ka earliest own package startDate.
+// No new timer fields are required.
+const getUserFirstPackageDate = async (userId) => {
+  const [normal, compound] = await Promise.all([
+    PackageActivation.findOne({ userId: String(userId) })
+      .sort({ startDate: 1 })
+      .select('startDate')
+      .lean(),
 
-              // 🔴 UPDATE 2: Logic check for Instant 1st Salary vs Next Month Salary
-              if (user.salaryMonthsPaid === 0) {
-                  // Case 1: Naya Achiever (Pehli salary ekdum instant / agle din mil jayegi)
-                  shouldGiveSalary = true;
-              } else {
-                  // Case 2: Purana Achiever (Check karenge ki aakhri salary kab mili thi)
-                  const lastSalaryTxn = await Transaction.findOne({
-                      userId: user.userId,
-                      type: 'monthly_salary_generated'
-                  }).sort({ date: -1 });
+    AutoCompoundV2.findOne({ userId: String(userId) })
+      .sort({ startDate: 1 })
+      .select('startDate')
+      .lean()
+  ]);
 
-                  if (lastSalaryTxn) {
-                      const lastDate = new Date(lastSalaryTxn.date);
-                      
-                      // Usme theek 1 mahina (1 Month) add kar do
-                      const nextEligibleDate = new Date(lastDate);
-                      nextEligibleDate.setMonth(nextEligibleDate.getMonth() + 1);
+  const dates = [normal?.startDate, compound?.startDate]
+    .filter(Boolean)
+    .map(d => new Date(d))
+    .filter(d => !Number.isNaN(d.getTime()));
 
-                      // Aaj ki date lo (Time ko zero kar do taaki exact date match ho)
-                      const today = new Date();
-                      today.setHours(0, 0, 0, 0);
-                      nextEligibleDate.setHours(0, 0, 0, 0);
+  if (!dates.length) return null;
 
-                      // Agar aaj ki date us '1 mahine wali date' ke barabar ya usse aage hai
-                      if (today.getTime() >= nextEligibleDate.getTime()) {
-                          shouldGiveSalary = true;
-                      }
-                  } else {
-                      // Failsafe: Agar galti se transaction delete ho gaya toh de do
-                      shouldGiveSalary = true; 
-                  }
-              }
+  return new Date(Math.min(...dates.map(d => d.getTime())));
+};
 
-              // Agar user eligible hai (Instant ya 1 Mahine ka gap poora ho gaya hai)
-              if (shouldGiveSalary) {
-                  const salaryAmount = 100;
+// Highest Direct Business slab.
+const getSalarySlab = (business) => {
+  if (business >= 5000) return 40;
+  if (business >= 3000) return 20;
+  if (business >= 1000) return 6;
+  if (business >= 500) return 3;
+  return 0;
+};
 
-                  user.unclaimedSalary = (user.unclaimedSalary || 0) + salaryAmount;
-                  user.salaryTotalIncome += salaryAmount;
-                  user.salaryMonthsPaid += 1;
-                  user.rewardIncome = (user.rewardIncome || 0) + salaryAmount;
-                  user.totalRewardIncome = (user.totalRewardIncome || 0) + salaryAmount;
+// Direct Business = only personally sponsored users' package purchases.
+// Both Normal and Auto Compound V2 are counted.
+const getDirectBusiness = async (userId, startDate, endDate) => {
+  const directs = await User.find({
+    sponsorId: String(userId)
+  }).select('userId').lean();
 
-                  await user.save();
+  const directIds = directs.map(u => String(u.userId));
+  if (!directIds.length) return 0;
 
-                  // Pending Transaction Record Banega
-                  await Transaction.create({
-                      userId: user.userId,
-                      type: 'monthly_salary_generated', 
-                      source: 'reward',
-                      amount: salaryAmount,
-                      description: `Monthly Salary Generated (Month ${user.salaryMonthsPaid} of 6) - Waiting for Claim`,
-                      status: 'pending', 
-                      date: new Date()
-                  });
+  const dateRange = {
+    $gte: startDate,
+    $lt: endDate
+  };
 
-                  console.log(`✅ Generated $100 salary for ${user.userId} (Month ${user.salaryMonthsPaid})`);
-              }
-          }
-
-          console.log("🎉 Daily Salary Distribution Engine Completed!");
-      } catch (error) {
-          console.error("❌ Daily Salary Cron Error:", error);
+  const [normal, compound] = await Promise.all([
+    PackageActivation.aggregate([
+      {
+        $match: {
+          userId: { $in: directIds },
+          startDate: dateRange
+        }
+      },
+      {
+        $group: {
+          _id: null,
+          total: { $sum: '$packageAmount' }
+        }
       }
-  }, {
-      scheduled: true,
-      timezone: "Asia/Kolkata" 
+    ]),
+    AutoCompoundV2.aggregate([
+      {
+        $match: {
+          userId: { $in: directIds },
+          startDate: dateRange
+        }
+      },
+      {
+        $group: {
+          _id: null,
+          total: { $sum: '$packageAmount' }
+        }
+      }
+    ])
+  ]);
+
+  return roundMoney(
+    Number(normal[0]?.total || 0) +
+    Number(compound[0]?.total || 0)
+  );
+};
+
+// Qualification and daily payout engine.
+const processDailySalary = async () => {
+  const now = new Date();
+  const today = getISTDate();
+
+  console.log('[DAILY SALARY] Started:', today);
+
+  try {
+    // A. Users who have a package but salary has not been decided.
+  const users = await User.find({
+  $or: [
+    { salaryStatus: 'not_started' },
+    { salaryStatus: { $exists: false } }
+  ]
+}).select('userId').lean();
+
+    for (const item of users) {
+      try {
+        const user = await User.findOne({ userId: item.userId });
+        if (!user) continue;
+
+        const firstPackageDate = await getUserFirstPackageDate(user.userId);
+        if (!firstPackageDate) continue;
+
+        const qualificationEnd = new Date(firstPackageDate);
+        qualificationEnd.setDate(qualificationEnd.getDate() + 15);
+
+        // Wait until the complete 15-day window is over.
+        if (now < qualificationEnd) continue;
+
+        const directBusiness = await getDirectBusiness(
+          user.userId,
+          firstPackageDate,
+          qualificationEnd
+        );
+
+        const dailyAmount = getSalarySlab(directBusiness);
+
+        const payoutStart = new Date(qualificationEnd);
+        payoutStart.setDate(payoutStart.getDate() + 1);
+
+        // Lock the highest achieved slab exactly once.
+        const locked = await User.findOneAndUpdate(
+          {
+            _id: user._id,
+$or: [
+  { salaryStatus: 'not_started' },
+  { salaryStatus: { $exists: false } }
+]          },
+          {
+            $set: {
+              salaryQualifiedBusiness: directBusiness,
+              salaryDailyAmount: dailyAmount,
+              salaryStatus: dailyAmount > 0 ? 'qualified' : 'not_qualified',
+              salaryPayoutStartAt: dailyAmount > 0 ? payoutStart : null
+            }
+          },
+          { returnDocument: 'after' }
+        );
+
+        if (locked) {
+          console.log(
+            `[SALARY LOCKED] ${user.userId} | Direct: $${directBusiness} | Daily: $${dailyAmount}`
+          );
+        }
+      } catch (err) {
+        console.error('[SALARY QUALIFICATION ERROR]', item.userId, err);
+      }
+    }
+
+    // B. Pay qualified users once per IST date, maximum 90 days.
+    const qualifiedUsers = await User.find({
+      salaryStatus: 'qualified',
+      salaryDailyAmount: { $gt: 0 },
+      salaryDaysPaid: { $lt: 90 },
+      salaryPayoutStartAt: { $lte: now },
+      salaryLastPaidDate: { $ne: today }
+    }).lean();
+
+    for (const user of qualifiedUsers) {
+      try {
+        const amount = roundMoney(user.salaryDailyAmount);
+
+        if (amount <= 0) continue;
+
+        // Atomic wallet update prevents duplicate daily payment.
+        const updated = await User.findOneAndUpdate(
+          {
+            _id: user._id,
+            salaryStatus: 'qualified',
+            salaryDaysPaid: { $lt: 90 },
+            salaryLastPaidDate: { $ne: today }
+          },
+          {
+            $inc: {
+              walletBalance: amount,
+              salaryDaysPaid: 1,
+              salaryTotalIncome: amount,
+              rewardIncome: amount,
+              totalRewardIncome: amount
+            },
+            $set: {
+              salaryLastPaidDate: today
+            }
+          },
+          { returnDocument: 'after' }
+        );
+
+        if (!updated) continue;
+
+        const day = updated.salaryDaysPaid;
+
+        await Transaction.create({
+          userId: updated.userId,
+          type: 'daily_salary',
+          source: 'salary',
+          amount,
+          description: `Daily Salary Day ${day}/90 | Direct Business $${updated.salaryQualifiedBusiness}`,
+          status: 'success',
+          date: new Date()
+        });
+
+        if (day >= 90) {
+          await User.updateOne(
+            { _id: updated._id, salaryDaysPaid: { $gte: 90 } },
+            { $set: { salaryStatus: 'completed' } }
+          );
+        }
+
+        console.log(
+          `[DAILY SALARY PAID] ${updated.userId} | $${amount} | Day ${day}/90`
+        );
+      } catch (err) {
+        console.error('[SALARY PAYMENT ERROR]', user.userId, err);
+      }
+    }
+
+    console.log('[DAILY SALARY] Finished');
+  } catch (error) {
+    console.error('[DAILY SALARY FATAL ERROR]', error);
+  }
+};
+
+// Only primary PM2 instance.
+if (
+  process.env.NODE_APP_INSTANCE === '0' ||
+  process.env.NODE_APP_INSTANCE === undefined
+) {
+  console.log('[DAILY SALARY] Cron registered: 12:10 AM IST');
+
+  cron.schedule('10 0 * * *', processDailySalary, {
+    scheduled: true,
+    timezone: 'Asia/Kolkata'
   });
 }
+
+module.exports = { processDailySalary };

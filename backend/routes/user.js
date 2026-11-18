@@ -12,6 +12,7 @@ const DummyTransaction = require('../models/DummyTransaction');
 const DummyUser = require('../models/DummyUser.js'); 
  const FakeUser = require('../models/FakeUser');
 const PackageActivation = require('../models/PackageActivation'); // 🔥 YE IMPORT ZAROORI HAI
+const AutoCompoundV2 = require("../models/AutoCompoundV2");
 // Middleware & Utils
 const authMiddleware = require('../middleware/authMiddleware');
 const checkFeature = require("../middleware/checkFeatureEnabled");
@@ -144,116 +145,773 @@ router.get('/check-sponsor/:id', async (req, res) => {
 
 
 
+
+
+
+// =======================================================
+// SHARED HELPERS
+// =======================================================
+
+const getLoggedInUserId = (req) => {
+  return String(
+    req.user?.userId || req.user?.id || req.user || ""
+  ).trim();
+};
+
+const getIndiaDateKey = (date) => {
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Kolkata",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(new Date(date));
+};
+
+// Find downline up to 12 levels
+const getDownlineData = async (userId) => {
+  const downlineMap = {};
+  const visited = new Set([userId]);
+
+  let currentLevelIds = [userId];
+
+  for (let level = 1; level <= 12; level++) {
+    if (!currentLevelIds.length) break;
+
+    const users = await User.find({
+      sponsorId: { $in: currentLevelIds },
+    })
+      .select("userId name")
+      .lean();
+
+    const nextLevelIds = [];
+
+    for (const user of users) {
+      const childId = String(user.userId || "").trim();
+
+      if (!childId || visited.has(childId)) continue;
+
+      visited.add(childId);
+
+      downlineMap[childId] = {
+        level,
+        name: user.name || "User",
+      };
+
+      nextLevelIds.push(childId);
+    }
+
+    currentLevelIds = nextLevelIds;
+  }
+
+  return {
+    downlineMap,
+    downlineUserIds: Object.keys(downlineMap),
+    directUserIds: Object.keys(downlineMap).filter(
+      (id) => downlineMap[id].level === 1
+    ),
+  };
+};
+
+// Fetch Normal Package + Auto Compound V2 purchases
+const getPackagesForUsers = async (userIds) => {
+  if (!userIds.length) return [];
+
+  const [normalPackages, autoPackages] = await Promise.all([
+    PackageActivation.find({
+      userId: { $in: userIds },
+    })
+      .select("userId packageAmount startDate")
+      .lean(),
+
+    AutoCompoundV2.find({
+      userId: { $in: userIds },
+    })
+      .select("userId packageAmount startDate")
+      .lean(),
+  ]);
+
+  return [...normalPackages, ...autoPackages];
+};
+
+// =======================================================
+// 1. DOWNLINE BUSINESS
+// Only Direct Business + Team Business
+// No Daily Salary calculation in this API
+// =======================================================
+
+router.get("/downline-business", authMiddleware, async (req, res) => {
+  try {
+    const userId = getLoggedInUserId(req);
+
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        message: "User not authenticated",
+      });
+    }
+
+    const todayStr = getIndiaDateKey(new Date());
+
+    const {
+      downlineMap,
+      downlineUserIds,
+    } = await getDownlineData(userId);
+
+    const allPackages = await getPackagesForUsers(downlineUserIds);
+
+    let totalDirect = 0;
+    let todayDirect = 0;
+    let totalLevel = 0;
+    let todayLevel = 0;
+
+    const groupedByDate = {};
+
+    for (const pkg of allPackages) {
+      const pkgUserId = String(pkg.userId || "");
+      const downlineInfo = downlineMap[pkgUserId];
+
+      if (!downlineInfo || !pkg.startDate) continue;
+
+      const amount = Number(pkg.packageAmount) || 0;
+
+      if (amount <= 0) continue;
+
+      const packageDate = new Date(pkg.startDate);
+
+      if (Number.isNaN(packageDate.getTime())) continue;
+
+      const dateKey = getIndiaDateKey(packageDate);
+      const level = downlineInfo.level;
+      const isToday = dateKey === todayStr;
+
+      if (!groupedByDate[dateKey]) {
+        groupedByDate[dateKey] = {
+          rawDate: packageDate,
+          direct: 0,
+          team: 0,
+        };
+      }
+
+      if (packageDate > groupedByDate[dateKey].rawDate) {
+        groupedByDate[dateKey].rawDate = packageDate;
+      }
+
+      if (level === 1) {
+        totalDirect += amount;
+
+        if (isToday) todayDirect += amount;
+
+        groupedByDate[dateKey].direct += amount;
+      } else {
+        totalLevel += amount;
+
+        if (isToday) todayLevel += amount;
+
+        groupedByDate[dateKey].team += amount;
+      }
+    }
+
+    // Prepare history for frontend
+    const finalData = [];
+    let idCounter = 1;
+
+    Object.values(groupedByDate)
+      .sort((a, b) => b.rawDate - a.rawDate)
+      .forEach((day) => {
+        if (day.direct > 0) {
+          finalData.push({
+            _id: idCounter++,
+            date: day.rawDate,
+            type: "Direct Business",
+            amount: Number(day.direct.toFixed(2)),
+          });
+        }
+
+        if (day.team > 0) {
+          finalData.push({
+            _id: idCounter++,
+            date: day.rawDate,
+            type: "Team Business",
+            amount: Number(day.team.toFixed(2)),
+          });
+        }
+      });
+
+    return res.status(200).json({
+      success: true,
+      stats: {
+        totalDirect: Number(totalDirect.toFixed(2)),
+        todayDirect: Number(todayDirect.toFixed(2)),
+        totalLevel: Number(totalLevel.toFixed(2)),
+        todayLevel: Number(todayLevel.toFixed(2)),
+      },
+      data: finalData,
+    });
+  } catch (error) {
+    console.error("Downline business error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Server error while fetching business data",
+    });
+  }
+});
+
+// =======================================================
+// 2. DAILY SALARY INFORMATION
+// Only Direct Business counts for salary qualification
+// Timer starts from user's earliest own package date
+// =======================================================
+
+router.get("/daily-salary", authMiddleware, async (req, res) => {
+  try {
+    const userId = getLoggedInUserId(req);
+
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        message: "User not authenticated",
+      });
+    }
+
+    const now = new Date();
+
+    const salarySlabs = [
+      { business: 500, dailySalary: 3 },
+      { business: 1000, dailySalary: 6 },
+      { business: 3000, dailySalary: 20 },
+      { business: 5000, dailySalary: 40 },
+    ];
+
+    // Get user's own earliest package from BOTH collections
+    const [ownNormalPackage, ownAutoPackage, currentUser] =
+      await Promise.all([
+        PackageActivation.findOne({ userId })
+          .sort({ startDate: 1 })
+          .select("startDate")
+          .lean(),
+
+        AutoCompoundV2.findOne({ userId })
+          .sort({ startDate: 1 })
+          .select("startDate")
+          .lean(),
+
+        User.findOne({ userId })
+          .select(
+            "salaryStatus salaryQualifiedBusiness salaryDailyAmount salaryDaysPaid salaryPayoutStartAt salaryLastPaidDate"
+          )
+          .lean(),
+      ]);
+
+    const ownPackageDates = [
+      ownNormalPackage?.startDate,
+      ownAutoPackage?.startDate,
+    ]
+      .filter(Boolean)
+      .map((date) => new Date(date))
+      .filter((date) => !Number.isNaN(date.getTime()));
+
+    ownPackageDates.sort((a, b) => a.getTime() - b.getTime());
+
+    const firstPackageDate = ownPackageDates[0] || null;
+
+    // No package yet: timer has not started
+    if (!firstPackageDate) {
+      return res.status(200).json({
+        success: true,
+        salary: {
+          firstPackageDate: null,
+          qualificationEndAt: null,
+          payoutStartAt: null,
+          qualificationDays: 15,
+          qualificationDirectBusiness: 0,
+          timerStatus: "not_started",
+          remainingQualificationMs: 0,
+          achievedSlab: null,
+          nextSlab: {
+            business: 500,
+            dailySalary: 3,
+          },
+          businessNeededForNextSlab: 500,
+          lockedDailySalary: 0,
+          daysPaid: 0,
+          remainingPayoutDays: 0,
+        },
+      });
+    }
+
+    // Qualification period: first package date + 15 days
+    const qualificationEndAt = new Date(firstPackageDate);
+    qualificationEndAt.setDate(qualificationEndAt.getDate() + 15);
+
+    // Find only user's direct referrals (level 1)
+    const directUsers = await User.find({
+      sponsorId: userId,
+    })
+      .select("userId")
+      .lean();
+
+    const directUserIds = directUsers
+      .map((user) => String(user.userId || "").trim())
+      .filter(Boolean);
+
+    // Fetch direct referral purchases from both package collections
+    const directPackages = await getPackagesForUsers(directUserIds);
+
+    // Count package purchases only within user's 15-day window
+    const qualificationPackages = directPackages.filter((pkg) => {
+      if (!pkg.startDate) return false;
+
+      const packageDate = new Date(pkg.startDate);
+
+      return (
+        !Number.isNaN(packageDate.getTime()) &&
+        packageDate >= firstPackageDate &&
+        packageDate < qualificationEndAt
+      );
+    });
+
+    const calculatedDirectBusiness = qualificationPackages.reduce(
+      (sum, pkg) => sum + (Number(pkg.packageAmount) || 0),
+      0
+    );
+
+    // Check whether salary slab has already been locked by cron
+    const lockedStatuses = [
+      "qualified",
+      "not_qualified",
+      "completed",
+    ];
+
+    const isLocked = lockedStatuses.includes(
+      currentUser?.salaryStatus
+    );
+
+    const qualificationDirectBusiness = isLocked
+      ? Number(currentUser?.salaryQualifiedBusiness) || 0
+      : calculatedDirectBusiness;
+
+    // Find achieved slab
+    const getAchievedSlab = (business) => {
+      let achieved = null;
+
+      for (const slab of salarySlabs) {
+        if (business >= slab.business) {
+          achieved = slab;
+        }
+      }
+
+      return achieved;
+    };
+
+    let achievedSlab = null;
+
+    if (isLocked) {
+      const lockedAmount =
+        Number(currentUser?.salaryDailyAmount) || 0;
+
+      achievedSlab =
+        salarySlabs.find(
+          (slab) => slab.dailySalary === lockedAmount
+        ) || null;
+    } else {
+      achievedSlab = getAchievedSlab(
+        qualificationDirectBusiness
+      );
+    }
+
+    // Next target is shown only while qualification is running
+    const nextSlab = isLocked
+      ? null
+      : salarySlabs.find(
+          (slab) =>
+            slab.business > qualificationDirectBusiness
+        ) || null;
+
+    const businessNeededForNextSlab = nextSlab
+      ? Math.max(
+          0,
+          nextSlab.business - qualificationDirectBusiness
+        )
+      : 0;
+
+    let payoutStartAt = new Date(qualificationEndAt);
+    payoutStartAt.setDate(payoutStartAt.getDate() + 1);
+
+    if (currentUser?.salaryPayoutStartAt) {
+      payoutStartAt = new Date(currentUser.salaryPayoutStartAt);
+    }
+
+    let timerStatus = "qualification_running";
+    let remainingQualificationMs = 0;
+
+    if (isLocked) {
+      timerStatus = currentUser.salaryStatus;
+    } else if (now < qualificationEndAt) {
+      timerStatus = "qualification_running";
+
+      remainingQualificationMs =
+        qualificationEndAt.getTime() - now.getTime();
+    } else {
+      // Period ended; cron still needs to lock the slab
+      timerStatus =
+        qualificationDirectBusiness >= 500
+          ? "qualification_completed"
+          : "not_qualified";
+    }
+
+    const daysPaid = Number(currentUser?.salaryDaysPaid) || 0;
+
+    const remainingPayoutDays =
+      currentUser?.salaryStatus === "qualified"
+        ? Math.max(0, 90 - daysPaid)
+        : 0;
+
+    const lockedDailySalary =
+      Number(currentUser?.salaryDailyAmount) || 0;
+
+    const salary = {
+      firstPackageDate,
+      qualificationEndAt,
+      payoutStartAt,
+
+      qualificationDays: 15,
+
+      qualificationDirectBusiness: Number(
+        qualificationDirectBusiness.toFixed(2)
+      ),
+
+      timerStatus,
+      remainingQualificationMs,
+
+      achievedSlab: achievedSlab
+        ? {
+            business: achievedSlab.business,
+            dailySalary: achievedSlab.dailySalary,
+            total90DaySalary:
+              achievedSlab.dailySalary * 90,
+          }
+        : null,
+
+      nextSlab: nextSlab
+        ? {
+            business: nextSlab.business,
+            dailySalary: nextSlab.dailySalary,
+          }
+        : null,
+
+      businessNeededForNextSlab: Number(
+        businessNeededForNextSlab.toFixed(2)
+      ),
+
+      lockedDailySalary,
+      daysPaid,
+      remainingPayoutDays,
+    };
+
+    return res.status(200).json({
+      success: true,
+      salary,
+    });
+  } catch (error) {
+    console.error("Daily salary API error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Server error while fetching Daily Salary information",
+    });
+  }
+});
+
+
+
+
+ 
+
+router.get("/downline-business", authMiddleware, async (req, res) => {
+  try {
+    const userId = String(
+      req.user?.userId || req.user?.id || req.user?._id || req.user || ""
+    ).trim();
+
+    if (!userId || userId === "[object Object]") {
+      return res.status(401).json({
+        success: false,
+        message: "User not authenticated",
+      });
+    }
+
+    const todayKey = getIndiaDateKey(new Date());
+
+    // Build downline tree up to Level 12
+    const downlineMap = Object.create(null);
+    const visited = new Set([userId]);
+    let currentLevelIds = [userId];
+
+    for (let level = 1; level <= 12; level += 1) {
+      if (currentLevelIds.length === 0) break;
+
+      const users = await User.find({
+        sponsorId: { $in: currentLevelIds },
+      })
+        .select("userId name")
+        .lean();
+
+      const nextLevelIds = [];
+
+      for (const member of users) {
+        const memberId = String(member.userId || "").trim();
+
+        if (!memberId || visited.has(memberId)) continue;
+
+        visited.add(memberId);
+
+        downlineMap[memberId] = {
+          level,
+          name: member.name || "User",
+        };
+
+        nextLevelIds.push(memberId);
+      }
+
+      currentLevelIds = nextLevelIds;
+    }
+
+    const downlineIds = Object.keys(downlineMap);
+
+    // Fetch Normal Package + Auto Compound V2 purchases
+    const [normalPackages, autoPackages] = await Promise.all([
+      downlineIds.length
+        ? PackageActivation.find({
+            userId: { $in: downlineIds },
+          })
+            .select("userId packageAmount startDate")
+            .lean()
+        : [],
+
+      downlineIds.length
+        ? AutoCompoundV2.find({
+            userId: { $in: downlineIds },
+          })
+            .select("userId packageAmount startDate")
+            .lean()
+        : [],
+    ]);
+
+    const allPackages = [...normalPackages, ...autoPackages];
+
+    let totalDirect = 0;
+    let todayDirect = 0;
+    let totalLevel = 0;
+    let todayLevel = 0;
+
+    const byDate = Object.create(null);
+
+    for (const pkg of allPackages) {
+      const memberId = String(pkg.userId || "");
+      const memberInfo = downlineMap[memberId];
+
+      if (!memberInfo || !pkg.startDate) continue;
+
+      const amount = Number(pkg.packageAmount) || 0;
+      const date = new Date(pkg.startDate);
+
+      if (amount <= 0 || Number.isNaN(date.getTime())) continue;
+
+      const dateKey = getIndiaDateKey(date);
+      const isDirect = memberInfo.level === 1;
+
+      if (!byDate[dateKey]) {
+        byDate[dateKey] = {
+          date,
+          direct: 0,
+          team: 0,
+        };
+      }
+
+      if (isDirect) {
+        totalDirect += amount;
+
+        if (dateKey === todayKey) {
+          todayDirect += amount;
+        }
+
+        byDate[dateKey].direct += amount;
+      } else {
+        totalLevel += amount;
+
+        if (dateKey === todayKey) {
+          todayLevel += amount;
+        }
+
+        byDate[dateKey].team += amount;
+      }
+
+      if (date > byDate[dateKey].date) {
+        byDate[dateKey].date = date;
+      }
+    }
+
+    // Prepare date-wise business history
+    const data = [];
+    let rowId = 1;
+
+    Object.values(byDate)
+      .sort((a, b) => b.date - a.date)
+      .forEach((day) => {
+        if (day.direct > 0) {
+          data.push({
+            _id: rowId++,
+            date: day.date,
+            type: "Direct Business",
+            amount: Number(day.direct.toFixed(2)),
+          });
+        }
+
+        if (day.team > 0) {
+          data.push({
+            _id: rowId++,
+            date: day.date,
+            type: "Team Business",
+            amount: Number(day.team.toFixed(2)),
+          });
+        }
+      });
+
+    return res.status(200).json({
+      success: true,
+      stats: {
+        totalDirect: Number(totalDirect.toFixed(2)),
+        todayDirect: Number(todayDirect.toFixed(2)),
+        totalLevel: Number(totalLevel.toFixed(2)),
+        todayLevel: Number(todayLevel.toFixed(2)),
+      },
+      data,
+    });
+  } catch (error) {
+    console.error("Error fetching downline business:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Server error while fetching business data",
+    });
+  }
+});
+
+// =======================================================
+// DOWNLINE BUSINESS + DAILY SALARY QUALIFICATION
+// =======================================================
+ 
 // =======================================================
 // 🚀 FIXED ROUTE: GET DOWNLINE BUSINESS (Using PackageActivation)
 // =======================================================
-router.get('/downline-business', authMiddleware, async (req, res) => {
-    try {
-        const userId = req.user.userId || req.user.id || req.user;
+// router.get('/downline-business', authMiddleware, async (req, res) => {
+//     try {
+//         const userId = req.user.userId || req.user.id || req.user;
 
-        let currentLevelIds = [userId];
-        let downlineMap = {}; 
-        let currentLevel = 1;
+//         let currentLevelIds = [userId];
+//         let downlineMap = {}; 
+//         let currentLevel = 1;
 
-        // 1. Downline Structure nikalo
-        while (currentLevelIds.length > 0 && currentLevel <= 12) {
-            const users = await User.find({ sponsorId: { $in: currentLevelIds } }).select("userId name");
-            let nextLevelIds = [];
+//         // 1. Downline Structure nikalo
+//         while (currentLevelIds.length > 0 && currentLevel <= 12) {
+//             const users = await User.find({ sponsorId: { $in: currentLevelIds } }).select("userId name");
+//             let nextLevelIds = [];
 
-            users.forEach(u => {
-                downlineMap[u.userId] = { level: currentLevel, name: u.name || "User" };
-                nextLevelIds.push(u.userId);
-            });
+//             users.forEach(u => {
+//                 downlineMap[u.userId] = { level: currentLevel, name: u.name || "User" };
+//                 nextLevelIds.push(u.userId);
+//             });
 
-            currentLevelIds = nextLevelIds;
-            currentLevel++;
-        }
+//             currentLevelIds = nextLevelIds;
+//             currentLevel++;
+//         }
 
-        const downlineUserIds = Object.keys(downlineMap);
+//         const downlineUserIds = Object.keys(downlineMap);
 
-        // 2. Fetch Active Packages
-        const topups = await PackageActivation.find({
-            userId: { $in: downlineUserIds },
-            status: 'active'
-        });
+//         // 2. Fetch Active Packages
+//         const topups = await PackageActivation.find({
+//             userId: { $in: downlineUserIds },
+//             status: 'active'
+//         });
 
-        let totalDirect = 0, todayDirect = 0;
-        let totalLevel = 0, todayLevel = 0;
+//         let totalDirect = 0, todayDirect = 0;
+//         let totalLevel = 0, todayLevel = 0;
         
-        const todayStr = new Date().toLocaleString("en-US", { timeZone: "Asia/Kolkata" }).split(',')[0];
+//         const todayStr = new Date().toLocaleString("en-US", { timeZone: "Asia/Kolkata" }).split(',')[0];
 
-        // 🔥 GROUP BY DATE LOGIC
-        let groupedByDate = {};
+//         // 🔥 GROUP BY DATE LOGIC
+//         let groupedByDate = {};
 
-        topups.forEach(pkg => {
-            const amt = Number(pkg.packageAmount) || 0;
-            const userLvl = downlineMap[pkg.userId].level;
+//         topups.forEach(pkg => {
+//             const amt = Number(pkg.packageAmount) || 0;
+//             const userLvl = downlineMap[pkg.userId].level;
             
-            const txDate = new Date(pkg.startDate);
-            const txDateStr = txDate.toLocaleString("en-US", { timeZone: "Asia/Kolkata" }).split(',')[0];
-            const isToday = (txDateStr === todayStr);
+//             const txDate = new Date(pkg.startDate);
+//             const txDateStr = txDate.toLocaleString("en-US", { timeZone: "Asia/Kolkata" }).split(',')[0];
+//             const isToday = (txDateStr === todayStr);
 
-            // 4 Box Stats
-            if (userLvl === 1) {
-                totalDirect += amt;
-                if (isToday) todayDirect += amt;
-            } else if (userLvl >= 2 && userLvl <= 12) {
-                totalLevel += amt;
-                if (isToday) todayLevel += amt;
-            }
+//             // 4 Box Stats
+//             if (userLvl === 1) {
+//                 totalDirect += amt;
+//                 if (isToday) todayDirect += amt;
+//             } else if (userLvl >= 2 && userLvl <= 12) {
+//                 totalLevel += amt;
+//                 if (isToday) todayLevel += amt;
+//             }
 
-            // Grouping Daily Business
-            if (userLvl <= 12) {
-                if (!groupedByDate[txDateStr]) {
-                    groupedByDate[txDateStr] = { dateStr: txDateStr, rawDate: txDate, direct: 0, team: 0 };
-                }
-                if (userLvl === 1) {
-                    groupedByDate[txDateStr].direct += amt;
-                } else {
-                    groupedByDate[txDateStr].team += amt;
-                }
-            }
-        });
+//             // Grouping Daily Business
+//             if (userLvl <= 12) {
+//                 if (!groupedByDate[txDateStr]) {
+//                     groupedByDate[txDateStr] = { dateStr: txDateStr, rawDate: txDate, direct: 0, team: 0 };
+//                 }
+//                 if (userLvl === 1) {
+//                     groupedByDate[txDateStr].direct += amt;
+//                 } else {
+//                     groupedByDate[txDateStr].team += amt;
+//                 }
+//             }
+//         });
 
-        // 🔥 Format Data for Frontend Table
-        let finalData = [];
-        let idCounter = 1;
+//         // 🔥 Format Data for Frontend Table
+//         let finalData = [];
+//         let idCounter = 1;
 
-        Object.values(groupedByDate)
-            .sort((a, b) => new Date(b.rawDate) - new Date(a.rawDate)) // Latest first
-            .forEach(day => {
-                if (day.direct > 0) {
-                    finalData.push({
-                        _id: idCounter++,
-                        date: day.rawDate,
-                        type: "Direct Business",
-                        amount: day.direct
-                    });
-                }
-                if (day.team > 0) {
-                    finalData.push({
-                        _id: idCounter++,
-                        date: day.rawDate,
-                        type: "Team Business",
-                        amount: day.team
-                    });
-                }
-            });
+//         Object.values(groupedByDate)
+//             .sort((a, b) => new Date(b.rawDate) - new Date(a.rawDate)) // Latest first
+//             .forEach(day => {
+//                 if (day.direct > 0) {
+//                     finalData.push({
+//                         _id: idCounter++,
+//                         date: day.rawDate,
+//                         type: "Direct Business",
+//                         amount: day.direct
+//                     });
+//                 }
+//                 if (day.team > 0) {
+//                     finalData.push({
+//                         _id: idCounter++,
+//                         date: day.rawDate,
+//                         type: "Team Business",
+//                         amount: day.team
+//                     });
+//                 }
+//             });
 
-        res.status(200).json({
-            success: true,
-            stats: { 
-                totalDirect, todayDirect, 
-                totalLevel, todayLevel 
-            },
-            data: finalData
-        });
+//         res.status(200).json({
+//             success: true,
+//             stats: { 
+//                 totalDirect, todayDirect, 
+//                 totalLevel, todayLevel 
+//             },
+//             data: finalData
+//         });
 
-    } catch (error) {
-        console.error("Error fetching downline business:", error);
-        res.status(500).json({ success: false, message: "Server Error while fetching business data" });
-    }
-});
+//     } catch (error) {
+//         console.error("Error fetching downline business:", error);
+//         res.status(500).json({ success: false, message: "Server Error while fetching business data" });
+//     }
+// });
 
 
 

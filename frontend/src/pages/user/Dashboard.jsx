@@ -699,6 +699,8 @@ import QuickActions from "../../components/dashboard/QuickActions";
 import TotalEarningBox from "../../components/dashboard/TotalEarningBox";
 import LivePackageStatsBox from "../../components/dashboard/LivePackageStatsBox";
 
+import DailySalaryPlanBanner from "../../components/dashboard/DailySalaryPlanBanner";
+
 const Packages = lazy(() => import("../../components/Packages"));
 const UserPackages = lazy(() => import("../../pages/user/UserPackages"));
 
@@ -832,6 +834,8 @@ const Dashboard = ({ setModalState }) => {
   </span>
 
 </div>
+
+<DailySalaryPlanBanner />
 
         </header>
 

@@ -1,9 +1,25 @@
+
 const mongoose = require('mongoose');
 
 const autoCompoundV2Schema = new mongoose.Schema({
+    // Package receiver
     userId: {
         type: String,
         required: true,
+        index: true
+    },
+
+    // Person who purchased / activated the package
+    purchasedBy: {
+        type: String,
+        default: '',
+        index: true
+    },
+
+    // Package receiver ID
+    memberId: {
+        type: String,
+        default: '',
         index: true
     },
 

@@ -1021,9 +1021,7 @@ const TotalEarningBox = ({ user }) => {
             <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[#e2c36e]">
               Income Overview
             </p>
-            <p className="mt-1 text-[10px] text-slate-500">
-              Current wallet balances and lifetime income totals
-            </p>
+          
           </div>
           {isPromo && (
             <span className="rounded-full border border-[#d3b15d]/30 px-2.5 py-1 text-[9px] font-bold uppercase tracking-[0.15em] text-[#e2c36e]">
@@ -1094,14 +1092,14 @@ const TotalEarningBox = ({ user }) => {
               </div>
             ))}
           </div>
-          <div className="mt-3 flex items-center justify-between rounded-xl border border-[#d3b15d]/20 bg-[#d3b15d]/[0.05] px-3 py-2.5">
+          {/* <div className="mt-3 flex items-center justify-between rounded-xl border border-[#d3b15d]/20 bg-[#d3b15d]/[0.05] px-3 py-2.5">
             <span className="text-[10px] font-bold uppercase tracking-[0.12em] text-[#d8b765]">
               Total lifetime income
             </span>
             <span className="text-sm font-bold text-white tabular-nums">
               ${formatAmount(calculatedTotal)}
             </span>
-          </div>
+          </div> */}
         </div>
 
         {isPromo && (
