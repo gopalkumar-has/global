@@ -294,7 +294,7 @@ const userSchema = new mongoose.Schema({
   // ==========================================
   role: {
     type: String,
-    enum: ['user', 'admin', 'promo', 'leader', 'superleader'],
+    enum: ['user', 'admin', 'promo', 'leader'],
     default: 'user'
   },
   isBlocked: {

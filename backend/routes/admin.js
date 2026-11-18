@@ -626,47 +626,343 @@ router.get("/stats", verifyAdmin, async (req, res) => {
 
 
 
+// router.get('/all-users', verifyAdmin, async (req, res) => {
+//   try {
+//     const { search = "", page = 1, limit = 50 } = req.query;
+//     let query = {};
+
+//     if (search.trim()) {
+//       // 🔍 Agar search kiya hai, toh sabme dhoondo (ID, Name, Email)
+//       query = {
+//         $or: [
+//           { userId: isNaN(search) ? undefined : Number(search) },
+//           { name: { $regex: search, $options: "i" } },
+//           { email: { $regex: search, $options: "i" } }
+//         ].filter(Boolean)
+//       };
+//     } else {
+//       // 👑 🔥 NAYA FIX: Agar search khali hai, toh "Leader" aur "Super Leader" dono dikhao
+//       query = { role: { $in: ["leader", "superleader"] } };
+//     }
+
+//     // 🔥 FIX: .lean() add kiya hai! 
+//     const users = await User.find(query)
+//       .select('-password -transactionPassword') 
+//       .sort({ createdAt: -1 })
+//       .limit(Number(limit))
+//       .skip((Number(page) - 1) * Number(limit))
+//       .lean(); 
+
+//     const total = await User.countDocuments(query);
+
+//     res.json({ 
+//       success: true, 
+//       users, 
+//       total, 
+//       totalPages: Math.ceil(total / limit) 
+//     });
+//   } catch (error) {
+//     console.error("Fetch Users Error:", error);
+//     res.status(500).json({ success: false, message: "Error fetching users" });
+//   }
+// });
+
+
+
+
+// =======================================================
+// GET ALL USERS - SEARCH + PAGINATION
+// =======================================================
+
 router.get('/all-users', verifyAdmin, async (req, res) => {
   try {
-    const { search = "", page = 1, limit = 50 } = req.query;
+    const search = String(req.query.search || '').trim();
+    const page = Math.max(1, Number(req.query.page) || 1);
+    const limit = Math.min(
+      100,
+      Math.max(1, Number(req.query.limit) || 50)
+    );
+
     let query = {};
 
-    if (search.trim()) {
-      // 🔍 Agar search kiya hai, toh sabme dhoondo (ID, Name, Email)
-      query = {
-        $or: [
-          { userId: isNaN(search) ? undefined : Number(search) },
-          { name: { $regex: search, $options: "i" } },
-          { email: { $regex: search, $options: "i" } }
-        ].filter(Boolean)
-      };
+    if (search) {
+      const conditions = [
+        { name: { $regex: search, $options: 'i' } },
+        { email: { $regex: search, $options: 'i' } },
+        { userId: { $regex: search, $options: 'i' } }
+      ];
+
+      query = { $or: conditions };
     } else {
-      // 👑 🔥 NAYA FIX: Agar search khali hai, toh "Leader" aur "Super Leader" dono dikhao
-      query = { role: { $in: ["leader", "superleader"] } };
+      // Default: show Leaders and Super Leaders
+      query = {
+        role: { $in: ['leader', 'superleader'] }
+      };
     }
 
-    // 🔥 FIX: .lean() add kiya hai! 
-    const users = await User.find(query)
-      .select('-password -transactionPassword') 
-      .sort({ createdAt: -1 })
-      .limit(Number(limit))
-      .skip((Number(page) - 1) * Number(limit))
-      .lean(); 
+    const [users, total] = await Promise.all([
+      User.find(query)
+        .select('-password -transactionPassword')
+        .sort({ createdAt: -1 })
+        .limit(limit)
+        .skip((page - 1) * limit)
+        .lean(),
 
-    const total = await User.countDocuments(query);
+      User.countDocuments(query)
+    ]);
 
-    res.json({ 
-      success: true, 
-      users, 
-      total, 
-      totalPages: Math.ceil(total / limit) 
+    return res.json({
+      success: true,
+      users,
+      total,
+      totalCount: total,
+      totalPages: Math.ceil(total / limit)
     });
+
   } catch (error) {
-    console.error("Fetch Users Error:", error);
-    res.status(500).json({ success: false, message: "Error fetching users" });
+    console.error('Fetch Users Error:', error);
+
+    return res.status(500).json({
+      success: false,
+      message: 'Error fetching users'
+    });
   }
 });
 
+
+const RoleChangeHistory = require('../models/RoleChangeHistory');
+
+
+
+
+// =======================================================
+// UPDATE USER ROLE - NO WALLET BONUS OR DEDUCTION
+// =======================================================
+
+router.put('/update-role/:userId', verifyAdmin, async (req, res) => {
+  try {
+    const { newRole, adminPassword } = req.body;
+
+    const targetUserId = String(
+      req.params.userId || ''
+    ).trim();
+
+    const allowedRoles = [
+      'user',
+      'admin',
+      'promo',
+      'leader'
+    ];
+
+    // Validate role
+    if (!allowedRoles.includes(newRole)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid role selected.'
+      });
+    }
+
+    // Admin password required
+    if (!adminPassword) {
+      return res.status(400).json({
+        success: false,
+        message: 'Admin password is required.'
+      });
+    }
+
+    // Identify logged-in admin
+    const tokenData = req.admin || req.user || {};
+
+    const adminDbId =
+      tokenData.adminId ||
+      tokenData.id ||
+      tokenData._id;
+
+    if (!adminDbId) {
+      return res.status(401).json({
+        success: false,
+        message: 'Admin identity not found.'
+      });
+    }
+
+    // Verify admin password
+    let adminRecord = null;
+    let isPasswordValid = false;
+    let adminName = 'Admin';
+
+    try {
+      adminRecord = await Admin.findById(adminDbId);
+    } catch (error) {
+      adminRecord = null;
+    }
+
+    if (adminRecord) {
+
+      isPasswordValid = await bcrypt.compare(
+        adminPassword,
+        adminRecord.password
+      );
+
+      adminName =
+        adminRecord.name ||
+        adminRecord.username ||
+        adminRecord.email ||
+        'Admin';
+
+    } else {
+
+      let adminUser = null;
+
+      try {
+        adminUser = await User.findById(adminDbId);
+      } catch (error) {
+        adminUser = null;
+      }
+
+      if (
+        adminUser &&
+        adminUser.role === 'admin' &&
+        adminUser.password
+      ) {
+        isPasswordValid = await bcrypt.compare(
+          adminPassword,
+          adminUser.password
+        );
+
+        adminName =
+          adminUser.name ||
+          adminUser.userId ||
+          'Admin';
+      }
+    }
+
+    if (!isPasswordValid) {
+      return res.status(400).json({
+        success: false,
+        message: 'Incorrect Admin Password!'
+      });
+    }
+
+    // Find target user
+    const targetUser = await User.findOne({
+      userId: targetUserId
+    });
+
+    if (!targetUser) {
+      return res.status(404).json({
+        success: false,
+        message: 'Target user not found.'
+      });
+    }
+
+    const oldRole = targetUser.role || 'user';
+
+    // Same role selected
+    if (oldRole === newRole) {
+      return res.json({
+        success: true,
+        message: 'User already has this role.',
+        user: {
+          userId: targetUser.userId,
+          role: targetUser.role,
+          walletBalance: Number(
+            targetUser.walletBalance || 0
+          )
+        }
+      });
+    }
+
+    // IMPORTANT:
+    // Only role changes.
+    // Wallet balance is NOT modified.
+
+    targetUser.role = newRole;
+
+    await targetUser.save();
+
+    // Save permanent role-change history
+    try {
+
+      await RoleChangeHistory.create({
+        targetUserId: targetUser.userId,
+        targetName: targetUser.name || '',
+        oldRole: oldRole,
+        newRole: newRole,
+        adminId: String(adminDbId),
+        adminName: adminName,
+        changedAt: new Date()
+      });
+
+    } catch (historyError) {
+
+      console.error(
+        'Role changed but history save failed:',
+        historyError
+      );
+
+      return res.status(500).json({
+        success: false,
+        roleUpdated: true,
+        message:
+          'Role was updated, but history could not be saved. Please contact support.'
+      });
+    }
+
+    return res.json({
+      success: true,
+      message:
+        `User role updated from ${oldRole} to ${newRole.toUpperCase()} successfully.`,
+
+      user: {
+        userId: targetUser.userId,
+        role: targetUser.role,
+        walletBalance: Number(
+          targetUser.walletBalance || 0
+        )
+      }
+    });
+
+  } catch (error) {
+
+    console.error('Update Role Error:', error);
+
+    return res.status(500).json({
+      success: false,
+      message: 'Server Error updating role.'
+    });
+  }
+});
+
+
+
+
+// =======================================================
+// GET ROLE CHANGE HISTORY
+// =======================================================
+
+router.get('/role-history', verifyAdmin, async (req, res) => {
+  try {
+
+    const history = await RoleChangeHistory.find({})
+      .sort({ changedAt: -1 })
+      .limit(200)
+      .lean();
+
+    return res.json({
+      success: true,
+      data: history
+    });
+
+  } catch (error) {
+
+    console.error('Role History Error:', error);
+
+    return res.status(500).json({
+      success: false,
+      message: 'Unable to fetch role change history.'
+    });
+  }
+});
 
 // =======================================================
 // 2. UPDATE ROLE & HANDLE $30 LOGIC (TRANSACTION FIX ADDED)

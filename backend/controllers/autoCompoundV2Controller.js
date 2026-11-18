@@ -703,6 +703,91 @@ const calculateReferralCommissions = async (packageData, targetUser) => {
     currentUplineId = upline.sponsorId;
     currentLevel++;
   }
+
+
+  // ======================================
+// LEADER INCOME - 5%
+// ACTIVE PACKAGE REQUIRED
+// ======================================
+
+let leaderUplineId = targetUser.sponsorId;
+
+while (leaderUplineId) {
+
+    const leader = await User.findOne({
+        userId: String(leaderUplineId)
+    }).select('userId sponsorId role');
+
+    if (!leader) break;
+
+    if (leader.role === 'leader') {
+
+        // Check Leader's own active package
+        const now = new Date();
+
+        const normalActive = await PackageActivation.exists({
+            userId: leader.userId,
+            endDate: { $gt: now },
+            packageAmount: { $gte: 2 },
+            status: 'active'
+        });
+
+        const compoundActive = await AutoCompoundV2.exists({
+            userId: leader.userId,
+            packageAmount: { $gte: 2 },
+            status: { $in: ['active', 'distribution'] }
+        });
+
+        const isActiveLeader = Boolean(
+            normalActive || compoundActive
+        );
+
+        if (isActiveLeader) {
+
+            const LEADER_PERCENT = 5;
+
+            const leaderAmount = roundMoney(
+                (amount * LEADER_PERCENT) / 100
+            );
+
+            if (leaderAmount > 0) {
+
+                // Add income directly to wallet
+                await User.updateOne(
+                    { userId: leader.userId },
+                    {
+                        $inc: {
+                            walletBalance: leaderAmount
+                        }
+                    }
+                );
+
+                // Save transaction history
+                await createIncomeTransaction({
+                    userId: leader.userId,
+                    type: 'leader_income',
+                    source: 'leader',
+                    amount: leaderAmount,
+                    package: amount,
+                    fromUserId: targetUser.userId,
+                    description:
+                        `Leader Income (5%) from ${targetUser.userId}'s Auto Compound V2`,
+                    status: 'success'
+                });
+
+                console.log(
+                    `[AUTO COMPOUND V2] Leader Income $${leaderAmount} credited to ${leader.userId}`
+                );
+            }
+
+            // Only nearest eligible Leader receives income
+            break;
+        }
+    }
+
+    // Continue searching higher in the sponsor chain
+    leaderUplineId = leader.sponsorId;
+}
 };
 
 // ======================================

@@ -996,6 +996,11 @@ const Sidebar = () => {
               <FaUsers className="inline-block mr-2" /> All Users
             </NavLink>
 
+
+             <NavLink to={`${BASE_PATH}/manage-users`} className={linkClass} onClick={(e) => handleNavClick(e, `${BASE_PATH}/manage-users`)}>
+              <FaUserCog className="inline-block mr-2 text-blue-500" /> Manage Roles & Leaders
+           </NavLink>
+
             <NavLink to={`${BASE_PATH}/wallet-history`} className={linkClass} onClick={(e) => handleNavClick(e, `${BASE_PATH}/wallet-history`)}>
               <FaHistory className="inline-block mr-2 text-purple-500" /> User Address History
             </NavLink>

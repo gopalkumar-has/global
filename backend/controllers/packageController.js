@@ -355,6 +355,78 @@ exports.activatePackage = async (req, res) => {
                     currentLevel++;
                 }
 
+
+                // ==========================================
+// LEADER INCOME - 5%
+// NEAREST ACTIVE-PACKAGE LEADER
+// ==========================================
+
+let leaderUplineId = targetUser.sponsorId;
+
+while (leaderUplineId) {
+
+    const leader = await User.findOne({
+        userId: String(leaderUplineId)
+    }).select('userId sponsorId role');
+
+    if (!leader) break;
+
+    // Check only users having Leader role
+    if (leader.role === 'leader') {
+
+        // Leader must have an active package
+        const isActiveLeader = await checkIsActive(
+            leader.userId
+        );
+
+        if (isActiveLeader) {
+
+            const LEADER_PERCENT = 5;
+
+            const leaderIncome = Number(
+                ((amount * LEADER_PERCENT) / 100).toFixed(2)
+            );
+
+            if (leaderIncome > 0) {
+
+                // Credit directly to Leader wallet
+                await User.updateOne(
+                    { userId: leader.userId },
+                    {
+                        $inc: {
+                            walletBalance: leaderIncome
+                        }
+                    }
+                );
+
+                // Create income transaction
+                await createTransaction({
+                    userId: leader.userId,
+                    type: 'leader_income',
+                    source: 'leader',
+                    amount: leaderIncome,
+                    package: amount,
+                    fromUserId: targetUser.userId,
+                    description:
+                        `Leader Income (5%) from ${targetUser.userId}'s Normal Package`,
+                    status: 'success'
+                });
+
+                console.log(
+                    `[LEADER INCOME] $${leaderIncome} credited to ${leader.userId}`
+                );
+            }
+
+            // Stop after first eligible Leader
+            break;
+        }
+    }
+
+    // If not Leader or inactive Leader, check next upline
+    leaderUplineId = leader.sponsorId;
+}
+
+
             } catch (bgError) {
 
                 console.error(
