@@ -65,7 +65,7 @@ exports.activatePackage = async (req, res) => {
         const amount = Number(packageAmount);
 
         // STRICT PACKAGE ARRAY VALIDATION
-        const VALID_PACKAGES = [2, 5, 10, 20, 50, 100, 200, 500, 1000];
+        const VALID_PACKAGES = [2, 5, 10, 20, 50, 100, 200, 500, 1000, 2000];
 
         if (!amount || isNaN(amount) || amount <= 0) {
             return res.status(400).json({

@@ -297,6 +297,8 @@ const packagesList = [
   { id: 7, price: 200 },
   { id: 8, price: 500 },
   { id: 9, price: 1000 },
+    { id: 10, price: 2000 },
+
 ];
 
 const formatUSD = (amount) =>

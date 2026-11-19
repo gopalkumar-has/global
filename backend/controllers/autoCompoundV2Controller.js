@@ -522,7 +522,7 @@ const GwTokenReward = require('../models/GwTokenReward');
 const roundMoney = (value) =>
   Math.round((Number(value) + Number.EPSILON) * 100) / 100;
 
-const VALID_PACKAGES = [2, 5, 10, 20, 50, 100, 200, 500, 1000];
+const VALID_PACKAGES = [2, 5, 10, 20, 50, 100, 200, 500, 1000, 2000];
 
 const LEVEL_PERCENTAGES = {
   2: 0.25,
