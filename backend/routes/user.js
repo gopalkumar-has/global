@@ -1840,114 +1840,201 @@ router.put('/update-profile-secure', authMiddleware, async (req, res) => {
 
 router.get('/direct-team/:userId', async (req, res) => {
   try {
-    // 🔥 FIX 1: Isko String me convert karo taaki Map mismatch na ho
     const currentUserId = String(req.params.userId);
 
-    // 1. Ek hi baar me saare users RAM mein load karenge
-    // 🔥 FIX 2: pointBV bhi select karo kyuki frontend table me chahiye
-    const allUsers = await User.find({}, 'userId sponsorId name mobile country topUpAmount createdAt role pointBV').lean();
+    const allUsers = await User.find(
+      {},
+      'userId sponsorId name mobile country topUpAmount createdAt role pointBV'
+    ).lean();
 
-    // 👑 NAYA FIX: CURRENT USER KA ROLE CHECK KARO
-    const currentUserData = allUsers.find(u => String(u.userId) === currentUserId);
-    const isSuperLeader = currentUserData && currentUserData.role === 'superleader';
+    const currentUserData = allUsers.find(
+      u => String(u.userId) === currentUserId
+    );
 
-    // 2. RAM mein Network Tree (Map) banayenge
+    const isSuperLeader =
+      currentUserData && currentUserData.role === 'superleader';
+
     const directMap = new Map();
     const userDetailsMap = new Map();
 
-    for (let u of allUsers) {
-        const uId = String(u.userId);
-        userDetailsMap.set(uId, u);
-        
-        if (u.sponsorId) {
-            const spId = String(u.sponsorId); // 🔥 FIX 3: Sponsor ID ko strictly String banao
-            if (!directMap.has(spId)) {
-                directMap.set(spId, []);
-            }
-            directMap.get(spId).push(u);
+    for (const u of allUsers) {
+      const uId = String(u.userId);
+      userDetailsMap.set(uId, u);
+
+      if (u.sponsorId) {
+        const spId = String(u.sponsorId);
+
+        if (!directMap.has(spId)) {
+          directMap.set(spId, []);
         }
+
+        directMap.get(spId).push(u);
+      }
     }
 
-    // 🔥 3. MAIN USER KI TOTAL TEAM NIKALNA
+    // ==========================================
+    // MAIN USER TOTAL TEAM
+    // ==========================================
+
     let mainUserTotalTeam = 0;
     let mainQueue = [...(directMap.get(currentUserId) || [])];
 
     while (mainQueue.length > 0) {
-        const currentNode = mainQueue.shift();
-        mainUserTotalTeam++; 
+      const currentNode = mainQueue.shift();
+      mainUserTotalTeam++;
 
-        // ABSOLUTE BREAKAWAY WALL (WITH SUPER LEADER BYPASS)
-        if (currentNode.role === 'leader' && !isSuperLeader) {
-            continue; 
-        }
+      if (currentNode.role === 'leader' && !isSuperLeader) {
+        continue;
+      }
 
-        const children = directMap.get(String(currentNode.userId)) || [];
-        for (let child of children) {
-            mainQueue.push(child);
-        }
+      const children =
+        directMap.get(String(currentNode.userId)) || [];
+
+      for (const child of children) {
+        mainQueue.push(child);
+      }
     }
 
-    // 🔥 4. TABLE KE LIYE DIRECTS KA DATA BANANA
+    // ==========================================
+    // DIRECT MEMBERS
+    // ==========================================
+
     const myDirects = directMap.get(currentUserId) || [];
-    
+
+    const directUserIds = myDirects.map(
+      member => String(member.userId)
+    );
+
+    // ==========================================
+    // AUTO COMPOUND V2 RECORDS
+    // ==========================================
+
+    const autoCompoundRecords = directUserIds.length
+      ? await AutoCompoundV2.find({
+          $or: [
+            { memberId: { $in: directUserIds } },
+            { userId: { $in: directUserIds } }
+          ]
+        })
+          .select('userId memberId packageAmount status')
+          .lean()
+      : [];
+
+    // Map auto compound package data by actual member ID
+    const autoCompoundMap = new Map();
+
+    for (const record of autoCompoundRecords) {
+      const memberId = String(
+        record.memberId || record.userId || ''
+      );
+
+      if (!memberId) continue;
+
+      const existing = autoCompoundMap.get(memberId) || {
+        amount: 0,
+        count: 0
+      };
+
+      existing.amount += Number(record.packageAmount || 0);
+      existing.count += 1;
+
+      autoCompoundMap.set(memberId, existing);
+    }
+
+    // ==========================================
+    // DIRECT TEAM TABLE DATA
+    // ==========================================
+
     const teamWithStats = myDirects.map((direct, index) => {
-        const directIdStr = String(direct.userId);
-        const membersDirects = directMap.get(directIdStr) || [];
-        const directCount = membersDirects.length;
+      const directIdStr = String(direct.userId);
 
-        let teamSize = 0;
+      const membersDirects =
+        directMap.get(directIdStr) || [];
 
-        if (direct.role === 'leader' && !isSuperLeader) {
-            teamSize = 0; 
-        } else {
-            let subQueue = [...membersDirects];
-            while (subQueue.length > 0) {
-                const subNode = subQueue.shift();
-                teamSize++;
+      const directCount = membersDirects.length;
 
-                if (subNode.role === 'leader' && !isSuperLeader) {
-                    continue; 
-                }
-                const subChildren = directMap.get(String(subNode.userId)) || [];
-                for (let child of subChildren) {
-                    subQueue.push(child);
-                }
-            }
+      let teamSize = 0;
+
+      if (direct.role === 'leader' && !isSuperLeader) {
+        teamSize = 0;
+      } else {
+        let subQueue = [...membersDirects];
+
+        while (subQueue.length > 0) {
+          const subNode = subQueue.shift();
+          teamSize++;
+
+          if (subNode.role === 'leader' && !isSuperLeader) {
+            continue;
+          }
+
+          const subChildren =
+            directMap.get(String(subNode.userId)) || [];
+
+          for (const child of subChildren) {
+            subQueue.push(child);
+          }
         }
+      }
 
-        return {
-            srNo: index + 1,
-            userId: direct.userId,
-            sponsorId: direct.sponsorId, // 🔥 Frontend ke Reference ID column ke liye
-            name: direct.name,
-            mobile: direct.mobile,
-            country: direct.country,
-            role: direct.role, 
-            topUpAmount: direct.topUpAmount,
-            pointBV: direct.pointBV || 0, // 🔥 Frontend ke BV column ke liye
-            createdAt: direct.createdAt,
-            totalDirects: directCount,
-            totalTeam: teamSize,
-            globalTeamCount: teamSize, 
-            directCount: directCount
+      const autoCompound =
+        autoCompoundMap.get(directIdStr) || {
+          amount: 0,
+          count: 0
         };
+
+      const normalAmount = Number(direct.topUpAmount || 0);
+      const autoCompoundAmount = Number(autoCompound.amount || 0);
+
+      const isActive =
+        normalAmount > 0 || autoCompound.count > 0;
+
+      return {
+        srNo: index + 1,
+        userId: direct.userId,
+        sponsorId: direct.sponsorId,
+        name: direct.name,
+        mobile: direct.mobile,
+        country: direct.country,
+        role: direct.role,
+
+        topUpAmount: normalAmount,
+        autoCompoundAmount,
+        autoCompoundCount: autoCompound.count,
+
+        activationStatus: isActive ? 'Active' : 'Inactive',
+
+        pointBV: direct.pointBV || 0,
+        createdAt: direct.createdAt,
+
+        totalDirects: directCount,
+        totalTeam: teamSize,
+        globalTeamCount: teamSize,
+        directCount
+      };
     });
 
-    // Naye directs sabse upar dikhane ke liye sort (Descending order of date)
-    teamWithStats.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    // Newest members first
+    teamWithStats.sort(
+      (a, b) =>
+        new Date(b.createdAt || 0) -
+        new Date(a.createdAt || 0)
+    );
 
-    // Response Bhejenge
     res.json({
-      team: teamWithStats,      
-      totalTeam: mainUserTotalTeam 
+      team: teamWithStats,
+      totalTeam: mainUserTotalTeam
     });
 
   } catch (err) {
     console.error("Error in direct-team API:", err);
-    res.status(500).json({ message: 'Server error' });
+
+    res.status(500).json({
+      message: 'Server error'
+    });
   }
 });
- 
+
 
 
 

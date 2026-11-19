@@ -72,11 +72,21 @@ const DirectTeamPage = () => {
   const indexOfLast = Math.min(indexOfFirst + entriesPerPage, filtered.length);
   const currentItems = filtered.slice(indexOfFirst, indexOfLast);
 
+  const isMemberActive = (member) =>
+    member.activationStatus
+      ? member.activationStatus === "Active"
+      : Number(member.topUpAmount || 0) > 0 ||
+        Number(member.autoCompoundAmount || 0) > 0;
+
+  const getMemberAmount = (member) =>
+    Number(member.topUpAmount || 0) +
+    Number(member.autoCompoundAmount || 0);
+
   const activeCount = useMemo(
-    () => team.filter((member) => Number(member.topUpAmount) > 0).length,
+    () => team.filter((member) => isMemberActive(member)).length,
     [team]
   );
-  const pendingCount = team.length - activeCount;
+  const inactiveCount = team.length - activeCount;
 
   const formatAmount = (amount) => {
     const value = Number(amount);
@@ -194,9 +204,9 @@ const DirectTeamPage = () => {
           <div className="group relative overflow-hidden rounded-2xl border border-orange-300/15 bg-orange-300/[0.035] p-5 backdrop-blur-xl transition hover:border-orange-300/30">
             <div className="relative flex items-center justify-between">
               <div>
-                <p className="text-xs font-medium uppercase tracking-[0.16em] text-white/40">Pending Members</p>
-                <p className="mt-2 text-3xl font-semibold tabular-nums text-orange-200">{pendingCount}</p>
-                <p className="mt-1 text-xs text-white/35">Awaiting activation</p>
+                <p className="text-xs font-medium uppercase tracking-[0.16em] text-white/40">Inactive Members</p>
+                <p className="mt-2 text-3xl font-semibold tabular-nums text-orange-200">{inactiveCount}</p>
+                <p className="mt-1 text-xs text-white/35">Members not yet activated</p>
               </div>
               <div className="grid h-12 w-12 place-items-center rounded-2xl border border-orange-300/15 bg-orange-300/[0.08] text-orange-200">
                 <svg className="h-6 w-6" viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -284,7 +294,7 @@ const DirectTeamPage = () => {
                   </tr>
                 ) : (
                   currentItems.map((member, index) => {
-                    const isActive = Number(member.topUpAmount) > 0;
+                    const isActive = isMemberActive(member);
                     return (
                       <tr key={member._id || member.userId || index} className="transition hover:bg-white/[0.035]">
                         <td className="px-5 py-4 text-white/35">{indexOfFirst + index + 1}</td>
@@ -307,11 +317,11 @@ const DirectTeamPage = () => {
                             </div>
                           ) : <span className="text-white/25">-</span>}
                         </td>
-                        <td className="px-5 py-4 font-semibold text-amber-200">{formatAmount(isActive ? member.topUpAmount : 0)}</td>
+                        <td className="px-5 py-4 font-semibold text-amber-200">{formatAmount(isActive ? getMemberAmount(member) : 0)}</td>
                         <td className="px-5 py-4">
                           <span className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider ${isActive ? "border-emerald-300/20 bg-emerald-300/[0.08] text-emerald-300" : "border-orange-300/20 bg-orange-300/[0.07] text-orange-200"}`}>
                             <span className={`h-1.5 w-1.5 rounded-full ${isActive ? "bg-emerald-300" : "bg-orange-200"}`} />
-                            {isActive ? "Active" : "Pending"}
+                            {isActive ? "Active" : "Inactive"}
                           </span>
                         </td>
                         <td className="px-5 py-4 text-white/50">{isActive ? formatDate(member.createdAt) : ""}</td>
@@ -334,7 +344,7 @@ const DirectTeamPage = () => {
               <div className="py-12 text-center text-sm text-white/35">No matching records found</div>
             ) : (
               currentItems.map((member, index) => {
-                const isActive = Number(member.topUpAmount) > 0;
+                const isActive = isMemberActive(member);
                 return (
                   <article key={member._id || member.userId || index} className="rounded-2xl border border-white/[0.09] bg-black/20 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.035)]">
                     <div className="flex items-start justify-between gap-3">
@@ -345,14 +355,14 @@ const DirectTeamPage = () => {
                       </div>
                       <span className={`inline-flex shrink-0 items-center gap-1.5 rounded-full border px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider ${isActive ? "border-emerald-300/20 bg-emerald-300/[0.08] text-emerald-300" : "border-orange-300/20 bg-orange-300/[0.07] text-orange-200"}`}>
                         <span className={`h-1.5 w-1.5 rounded-full ${isActive ? "bg-emerald-300" : "bg-orange-200"}`} />
-                        {isActive ? "Active" : "Pending"}
+                        {isActive ? "Active" : "Inactive"}
                       </span>
                     </div>
                     <div className="my-4 h-px bg-white/[0.07]" />
                     <div className="grid grid-cols-2 gap-4">
                       <div>
                         <p className="text-[10px] uppercase tracking-[0.14em] text-white/35">Amount</p>
-                        <p className="mt-1 text-sm font-semibold text-amber-200">{formatAmount(isActive ? member.topUpAmount : 0)}</p>
+                        <p className="mt-1 text-sm font-semibold text-amber-200">{formatAmount(isActive ? getMemberAmount(member) : 0)}</p>
                       </div>
                       <div>
                         <p className="text-[10px] uppercase tracking-[0.14em] text-white/35">Activation Date</p>

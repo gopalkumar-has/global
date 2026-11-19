@@ -639,7 +639,7 @@ const DailySalaryPlanBanner = () => {
          DAILY SALARY QUALIFICATION PERIOD
         </p>
       </div>
-
+{/* 
       <div className="shrink-0 rounded-lg border border-[#f2c65d]/80 bg-[#080909] px-3 py-2.5 text-center shadow-[0_0_20px_rgba(255,190,55,0.25)] sm:px-4">
         <p className="text-[8px] font-extrabold tracking-[0.18em] text-[#d5ad50]">
           TIME LEFT
@@ -647,7 +647,16 @@ const DailySalaryPlanBanner = () => {
         <p className="mt-1 whitespace-nowrap text-sm font-black leading-tight tabular-nums text-[#ffe08a] drop-shadow-[0_0_9px_rgba(255,205,91,0.75)] sm:text-base">
           {timerText}
         </p>
-      </div>
+      </div> */}
+
+      <div className="shrink-0 animate-pulse rounded-lg border border-[#f2c65d]/80 bg-[#080909] px-3 py-2.5 text-center shadow-[0_0_20px_rgba(255,190,55,0.25)] sm:px-4">
+  <p className="text-[8px] font-extrabold tracking-[0.18em] text-[#d5ad50]">
+    TIME LEFT
+  </p>
+  <p className="mt-1 whitespace-nowrap text-sm font-black leading-tight tabular-nums text-[#ffe08a] drop-shadow-[0_0_9px_rgba(255,205,91,0.75)] sm:text-base">
+    {timerText}
+  </p>
+</div>
     </div>
   </div>
 </div>
