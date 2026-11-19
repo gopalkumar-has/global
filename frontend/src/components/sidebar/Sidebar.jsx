@@ -30,13 +30,34 @@ const SidebarItem = ({ label, active, onClick, badge, path, number }) => {
     </>
   );
 
+  // if (path && path !== "#") {
+  //   return (
+  //     <Link to={path} onClick={onClick} className={className} aria-current={active ? "page" : undefined}>
+  //       {content}
+  //     </Link>
+  //   );
+  // }
+
+
   if (path && path !== "#") {
-    return (
-      <Link to={path} onClick={onClick} className={className} aria-current={active ? "page" : undefined}>
-        {content}
-      </Link>
-    );
-  }
+  return (
+    <Link
+      to={path}
+      onClick={(event) => {
+        onClick?.();
+
+        if (location.pathname === path) {
+          event.preventDefault();
+          window.location.reload();
+        }
+      }}
+      className={className}
+      aria-current={active ? "page" : undefined}
+    >
+      {content}
+    </Link>
+  );
+}
 
   return <button type="button" onClick={onClick} className={className}>{content}</button>;
 };

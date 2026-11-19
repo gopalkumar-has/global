@@ -1280,7 +1280,11 @@ const AutoCompoundV2Modal = ({
   onSuccess,
   packageAmount,
   packageName = "Auto Compound V2"
+  
 }) => {
+    const displayPackageName = String(packageName || "Auto Compound")
+    .replace(/\s*V2\b/i, "")
+    .trim();
   const { user, token } = useAuth();
 
   // PROMO USER CHECK
@@ -1601,7 +1605,7 @@ const AutoCompoundV2Modal = ({
           }
         }}
       >
-        <div className="flex max-h-[94vh] w-full max-w-[440px] flex-col overflow-hidden rounded-2xl border border-[#d4af37]/35 bg-[#080b10] shadow-[0_0_45px_rgba(212,175,55,0.13)]">
+        <div className="flex max-h-[94vh] w-full mt-24 max-w-[440px] flex-col overflow-hidden rounded-2xl border border-[#d4af37]/35 bg-[#080b10] shadow-[0_0_45px_rgba(212,175,55,0.13)]">
 
           {/* HEADER */}
           <div className="flex items-center justify-between border-b border-[#d4af37]/20 bg-gradient-to-r from-[#17130a] via-[#29200e] to-[#100e09] px-4 py-4">
@@ -1643,7 +1647,9 @@ const AutoCompoundV2Modal = ({
                       Selected Package
                     </p>
                     <h3 className="mt-1 text-base font-black text-white">
-                      {packageName}
+                      {/* {packageName} */}
+
+{displayPackageName}
                     </h3>
                   </div>
 
