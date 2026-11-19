@@ -2669,7 +2669,7 @@ const generateUserId = async () => {
   let exists = true;
   while (exists) {
     const random7Digit = Math.floor(1000000 + Math.random() * 9000000);
-    id = `WF${random7Digit}`; // Example: WF1234567
+    id = `GW${random7Digit}`; // Example: WF1234567
     
     // Check in both real & fake tables to ensure uniqueness
     const FakeUser = require('../models/FakeUser');

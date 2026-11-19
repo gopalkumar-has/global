@@ -41,6 +41,9 @@ router.use('/community', require('./community'));
 // Auto Compound V2
 router.use('/auto-compound-v2', require('./autoCompoundV2Routes'));
 
+router.use('/promo', require('./promoRoutes'));
+
+
 // Generic Admin Routes - LAST
 router.use('/admin', require('./admin'));
 

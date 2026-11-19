@@ -96,7 +96,7 @@ const PackageModeModal = ({
           </button>
 
           <p className="mt-4 text-center text-[9px] leading-5 text-gray-500">
-            Select the mode you want to view. Auto Compound is
+            Select the mode you want to view. 
            </p>
 
         </div>
