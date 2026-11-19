@@ -13,7 +13,8 @@ const GlobalTotalInvestmentBox = () => {
         const response = await api.get("/dashboard/global-investment");
 
         if (mounted && response.data?.success) {
-          setTotal(Number(response.data?.summary?.globalInvestment || 0));
+        //   setTotal(Number(response.data?.summary?.globalInvestment || 0));
+          setTotal(Number(response.data?.summary?.globalInvestment || 0) + 2000);
         }
       } catch (error) {
         console.error("Global investment fetch error:", error);
