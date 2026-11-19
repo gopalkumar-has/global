@@ -841,7 +841,7 @@ const TotalEarningBox = ({ user }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editType, setEditType] = useState("");
   const [editValue, setEditValue] = useState("");
-
+const [autoCompoundProfit, setAutoCompoundProfit] = useState(0);
   // Current income-wallet balances (available balances).
   const currentIncome = useMemo(
     () => ({
@@ -849,9 +849,9 @@ const TotalEarningBox = ({ user }) => {
       level: getAmount(user?.levelIncome),
       levelRoi: getAmount(user?.levelRoiIncome),
       roi: getAmount(user?.roiIncome, user?.packageRoiIncome),
-      autoCompound: getAmount(user?.autoCompoundIncome),
+autoCompound: autoCompoundProfit,
     }),
-    [user]
+[user, autoCompoundProfit]
   );
 
   // Lifetime totals. Use the explicit total field where available, otherwise
@@ -862,8 +862,8 @@ const TotalEarningBox = ({ user }) => {
       level: getAmount(user?.totalLevelIncome, user?.levelIncome),
       levelRoi: getAmount(user?.totalLevelRoiIncome, user?.levelRoiIncome),
       roi: getAmount(user?.totalRoiIncome, user?.roiIncome, user?.packageRoiIncome),
-      autoCompound: getAmount(user?.totalAutoCompoundIncome, user?.autoCompoundIncome),
-      reward: getAmount(user?.totalRewardIncome, user?.rewardIncome),
+ autoCompound: autoCompoundProfit,
+       reward: getAmount(user?.totalRewardIncome, user?.rewardIncome),
       fastTrack: getAmount(user?.totalFastTrackIncome, user?.fastTrackIncome),
       royalty: getAmount(
         user?.totalRoyaltyPoolIncome,
@@ -872,7 +872,7 @@ const TotalEarningBox = ({ user }) => {
       ),
       salary: getAmount(user?.salaryTotalIncome),
     }),
-    [user]
+[user, autoCompoundProfit]
   );
 
   const calculatedTotal = Object.values(lifetimeIncome).reduce(
@@ -939,6 +939,18 @@ const TotalEarningBox = ({ user }) => {
           (sum, item) => sum + Math.abs(getPackageInvestment(item)),
           0
         );
+
+        const autoProfit = autoCompoundPackages.reduce(
+  (sum, pkg) => {
+    const currentBalance = getAmount(pkg.currentBalance);
+    const packageAmount = getAmount(pkg.packageAmount);
+
+    return sum + Math.max(0, currentBalance - packageAmount);
+  },
+  0
+);
+
+setAutoCompoundProfit(autoProfit);
 
         setMyTopupDisplay(normalTotal + autoCompoundTotal);
       } catch (error) {
