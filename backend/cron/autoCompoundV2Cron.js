@@ -315,3 +315,4 @@ cron.schedule('30 0 * * *', processAutoCompoundV2, {
 }
 
 module.exports = { processAutoCompoundV2 };
+

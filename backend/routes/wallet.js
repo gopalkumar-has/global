@@ -1150,175 +1150,175 @@ router.post('/withdraw', authMiddleware, withdrawalController.withdrawFunds);
 router.post('/credit-to-wallet', authMiddleware, withdrawalController.creditToWallet);
 
  
-router.post("/promo-withdraw", authMiddleware, async (req, res) => {
-  try {
-    const { items, transactionPassword } = req.body;
+// router.post("/promo-withdraw", authMiddleware, async (req, res) => {
+//   try {
+//     const { items, transactionPassword } = req.body;
 
-    const currentUser = await User.findOne({ userId: req.user.userId });
-    if (!currentUser) return res.status(404).json({ message: "User not found" });
+//     const currentUser = await User.findOne({ userId: req.user.userId });
+//     if (!currentUser) return res.status(404).json({ message: "User not found" });
 
-    // 🛡️ Role Security Check
-    if (currentUser.role !== "promo") {
-      return res.status(403).json({ message: "Unauthorized: For promo users only." });
-    }
+//     // 🛡️ Role Security Check
+//     if (currentUser.role !== "promo") {
+//       return res.status(403).json({ message: "Unauthorized: For promo users only." });
+//     }
 
-    // 1. Password Check
-    const isPasswordValid = (transactionPassword.toLowerCase() === currentUser.transactionPassword.toLowerCase());
-    if (!isPasswordValid) return res.status(403).json({ message: "Invalid Transaction Password." });
+//     // 1. Password Check
+//     const isPasswordValid = (transactionPassword.toLowerCase() === currentUser.transactionPassword.toLowerCase());
+//     if (!isPasswordValid) return res.status(403).json({ message: "Invalid Transaction Password." });
 
-    // 💰 Calculation
-    let totalAmt = 0;
-    if (items && Array.isArray(items)) {
-      items.forEach(item => {
-        totalAmt += Math.floor(parseFloat(item.amount) || 0);
-      });
-    }
+//     // 💰 Calculation
+//     let totalAmt = 0;
+//     if (items && Array.isArray(items)) {
+//       items.forEach(item => {
+//         totalAmt += Math.floor(parseFloat(item.amount) || 0);
+//       });
+//     }
 
-    // 🔥 Minimum 10 and Multiples of 10 Check
-    if (totalAmt < 10) {
-      return res.status(400).json({ message: "Minimum withdrawal amount is $10." });
-    }
+//     // 🔥 Minimum 10 and Multiples of 10 Check
+//     if (totalAmt < 10) {
+//       return res.status(400).json({ message: "Minimum withdrawal amount is $10." });
+//     }
     
-    if (totalAmt % 10 !== 0) {
-      return res.status(400).json({ message: "Withdrawal amount must be in multiples of $10 (e.g., 10, 20, 30...)." });
-    }
+//     if (totalAmt % 10 !== 0) {
+//       return res.status(400).json({ message: "Withdrawal amount must be in multiples of $10 (e.g., 10, 20, 30...)." });
+//     }
 
-    // ==========================================
-    // 2. 🔥 90% ARRAY / 10% DATABASE LOGIC
-    // ==========================================
-    const indianNames = [
-      "Aarav Patil", "Rohan Sharma", "Aditya Singh", "Rahul Verma", "Vikas Yadav", "Amit Kumar", "Ankit Gupta",
-      "Sandeep Mishra", "Vivek Tiwari", "Rajesh Patel", "Mohit Sharma", "Ravi Yadav", "Akash Singh", "Deepak Verma",
-      "Pankaj Kumar", "Nitin Sharma", "Karan Malhotra", "Saurabh Gupta", "Abhishek Jain", "Manish Patel", "Harsh Mehta",
-      "Yash Shah", "Dhruv Patel", "Jay Mehta", "Meet Shah", "Kunal Joshi", "Rakesh Solanki", "Pravin Chauhan",
-      "Vimal Desai", "Chirag Modi", "Hardik Patel", "Nilesh Gandhi", "Vijay Parmar", "Sanjay Bhatt", "Rohit Trivedi",
-      "Gautam Shah", "Aman Joshi", "Vikas Mehra", "Anurag Singh", "Shubham Yadav", "Ayush Pandey", "Kartik Sharma",
-      "Prashant Tiwari", "Ritesh Verma", "Sachin Mishra", "Vinay Kumar", "Akhil Gupta", "Rajat Singh", "Harshit Jain",
-      "Sumit Patel", "Arjun Kapoor", "Kabir Khanna", "Vivaan Arora", "Ishaan Malhotra", "Reyansh Sethi", "Ayaan Batra",
-      "Dev Sharma", "Aryan Gupta", "Krish Verma", "Laksh Yadav", "Priya Sharma", "Pooja Patel", "Sneha Verma",
-      "Neha Gupta", "Riya Singh", "Anjali Yadav", "Kavita Mishra", "Simran Kaur", "Komal Sharma", "Aarti Patel",
-      "Megha Verma", "Swati Gupta", "Ritu Singh", "Nisha Sharma", "Divya Patel", "Pallavi Verma", "Shreya Gupta",
-      "Anita Singh", "Monika Yadav", "Jyoti Mishra", "Sonia Sharma", "Rashmi Patel", "Preeti Verma", "Sakshi Gupta",
-      "Tanya Singh", "Payal Sharma", "Madhuri Patel", "Nandini Verma", "Khushi Gupta", "Isha Singh", "Radhika Sharma",
-      "Muskan Patel", "Ananya Verma", "Kiara Gupta", "Myra Singh", "Meher Sharma", "Siya Patel", "Aarohi Verma",
-      "Aakash Rao", "Ramesh Gowda", "Suresh Naidu", "Vinod Reddy", "Prakash Rao", "Mahesh Gowda", "Harsha Naik",
-      "Lokesh Shetty", "Ganesh Hegde", "Kiran Acharya", "Darshan Rao", "Naveen Gowda", "Tejas Shetty", "Raghav Rao",
-      "Anand Murthy", "Pradeep Hegde", "Manjunath Naik", "Srinivas Rao", "Venkatesh Gowda", "Ashwin Shetty",
-      "Arvind Menon", "Rahul Nair", "Joseph Mathew", "Bibin George", "Vishnu Pillai", "Akhil Kurup", "Nikhil Menon",
-      "Sandeep Nair", "Manu Varghese", "Rakesh Panicker", "Karthik Iyer", "Arjun Subramanian", "Hari Krishnan",
-      "Pravin Natarajan", "Ashwin Balaji", "Raghav Raman", "Vivek Chandran", "Naveen Iyer", "Gokul Swamy",
-      "Dinesh Pillai", "Sai Reddy", "Praneeth Goud", "Venkatesh Naidu", "Harsha Varma", "Ajay Chowdary", "Ram Charan",
-      "Surya Teja", "Nani Krishna", "Bharat Rao", "Kiran Reddy", "Gurpreet Singh", "Harpreet Kaur", "Jaspreet Singh",
-      "Maninder Gill", "Hardeep Sandhu", "Kuldeep Brar", "Navjot Sidhu", "Paramveer Singh", "Rupinder Dhillon",
-      "Amritpal Grewal", "Rajveer Rathore", "Vikram Sisodia", "Pratap Chauhan", "Gajendra Shekhawat", "Ajit Rajawat",
-      "Lokesh Bhati", "Sohan Parihar", "Mahendra Solanki", "Bhawani Jhala", "Dinesh Tanwar", "Amit Dahiya",
-      "Rohit Hooda", "Vikas Malik", "Naveen Jakhar", "Deepak Sangwan", "Ajay Kadian", "Karan Punia", "Mukesh Deswal",
-      "Yogesh Phogat", "Parveen Mor", "Ankit Yadav", "Shivam Mishra", "Ayush Pandey", "Vivek Dubey", "Rahul Tripathi",
-      "Mohit Srivastava", "Abhishek Shukla", "Aman Bajpai", "Kunal Pathak", "Deepak Awasthi", "Nitish Kumar",
-      "Chandan Jha", "Pankaj Thakur", "Mukesh Sinha", "Saurabh Rai", "Gautam Anand", "Manish Ojha", "Rahul Narayan",
-      "Sunil Paswan", "Abhay Mandal", "Soumik Banerjee", "Arijit Chatterjee", "Sayan Ghosh", "Debashish Bose",
-      "Subrata Das", "Prasenjit Roy", "Tapas Sen", "Kaushik Mitra", "Anirban Dutta", "Souvik Pal", "Satyajit Nayak",
-      "Debasis Sahoo", "Prakash Mohanty", "Manas Panda", "Santosh Rout", "Rajesh Pati", "Bikash Swain", "Chandan Jena",
-      "Rakesh Behera", "Dillip Samal", "Ritam Bora", "Anup Deka", "Pranab Saikia", "Nayan Gogoi", "Dipak Kalita",
-      "Rahul Baruah", "Kaushik Talukdar", "Manas Bhuyan", "Bikram Phukan", "Ajit Bordoloi", "Ravi Soren", "Ajay Murmu",
-      "Deepak Hembrom", "Vikash Tudu", "Rajesh Kisku", "Pankaj Marandi", "Nitesh Minz", "Santosh Besra", "Akash Purty",
-      "Rohit Mahli", "Mohit Rawat", "Rahul Negi", "Deepak Bisht", "Ankit Nautiyal", "Saurabh Gusain", "Lokesh Kunwar",
-      "Pankaj Bhandari", "Ashish Uniyal", "Akash Dhami", "Nitin Bartwal", "Aamir Khan", "Bilal Mir", "Tariq Lone",
-      "Adil Bhat", "Sameer Zargar", "Junaid Sofi", "Imran Parray", "Faisal Butt", "Arif Andrabi", "Yasin Malik",
-      "Kevin Dsouza", "Ryan Fernandes", "Jason Pinto", "Allan Mascarenhas", "Trevor Almeida", "Aaron Menezes",
-      "Joel Sequeira", "Edwin Rebello", "Rohan Correia", "Clive Noronha", "Aryan Malhotra", "Kabir Khanna",
-      "Vivaan Arora", "Ishaan Kapoor", "Reyansh Mehra", "Ayaan Sethi", "Dev Batra", "Aryan Oberoi", "Krish Talwar",
-      "Laksh Juneja", "Priya Malhotra", "Simran Arora", "Riya Kapoor", "Ananya Khanna", "Kiara Batra", "Myra Talwar",
-      "Siya Oberoi", "Meher Juneja", "Aarohi Sethi", "Shanaya Mehra", "Aarav Deshmukh"
-    ];
+//     // ==========================================
+//     // 2. 🔥 90% ARRAY / 10% DATABASE LOGIC
+//     // ==========================================
+//     const indianNames = [
+//       "Aarav Patil", "Rohan Sharma", "Aditya Singh", "Rahul Verma", "Vikas Yadav", "Amit Kumar", "Ankit Gupta",
+//       "Sandeep Mishra", "Vivek Tiwari", "Rajesh Patel", "Mohit Sharma", "Ravi Yadav", "Akash Singh", "Deepak Verma",
+//       "Pankaj Kumar", "Nitin Sharma", "Karan Malhotra", "Saurabh Gupta", "Abhishek Jain", "Manish Patel", "Harsh Mehta",
+//       "Yash Shah", "Dhruv Patel", "Jay Mehta", "Meet Shah", "Kunal Joshi", "Rakesh Solanki", "Pravin Chauhan",
+//       "Vimal Desai", "Chirag Modi", "Hardik Patel", "Nilesh Gandhi", "Vijay Parmar", "Sanjay Bhatt", "Rohit Trivedi",
+//       "Gautam Shah", "Aman Joshi", "Vikas Mehra", "Anurag Singh", "Shubham Yadav", "Ayush Pandey", "Kartik Sharma",
+//       "Prashant Tiwari", "Ritesh Verma", "Sachin Mishra", "Vinay Kumar", "Akhil Gupta", "Rajat Singh", "Harshit Jain",
+//       "Sumit Patel", "Arjun Kapoor", "Kabir Khanna", "Vivaan Arora", "Ishaan Malhotra", "Reyansh Sethi", "Ayaan Batra",
+//       "Dev Sharma", "Aryan Gupta", "Krish Verma", "Laksh Yadav", "Priya Sharma", "Pooja Patel", "Sneha Verma",
+//       "Neha Gupta", "Riya Singh", "Anjali Yadav", "Kavita Mishra", "Simran Kaur", "Komal Sharma", "Aarti Patel",
+//       "Megha Verma", "Swati Gupta", "Ritu Singh", "Nisha Sharma", "Divya Patel", "Pallavi Verma", "Shreya Gupta",
+//       "Anita Singh", "Monika Yadav", "Jyoti Mishra", "Sonia Sharma", "Rashmi Patel", "Preeti Verma", "Sakshi Gupta",
+//       "Tanya Singh", "Payal Sharma", "Madhuri Patel", "Nandini Verma", "Khushi Gupta", "Isha Singh", "Radhika Sharma",
+//       "Muskan Patel", "Ananya Verma", "Kiara Gupta", "Myra Singh", "Meher Sharma", "Siya Patel", "Aarohi Verma",
+//       "Aakash Rao", "Ramesh Gowda", "Suresh Naidu", "Vinod Reddy", "Prakash Rao", "Mahesh Gowda", "Harsha Naik",
+//       "Lokesh Shetty", "Ganesh Hegde", "Kiran Acharya", "Darshan Rao", "Naveen Gowda", "Tejas Shetty", "Raghav Rao",
+//       "Anand Murthy", "Pradeep Hegde", "Manjunath Naik", "Srinivas Rao", "Venkatesh Gowda", "Ashwin Shetty",
+//       "Arvind Menon", "Rahul Nair", "Joseph Mathew", "Bibin George", "Vishnu Pillai", "Akhil Kurup", "Nikhil Menon",
+//       "Sandeep Nair", "Manu Varghese", "Rakesh Panicker", "Karthik Iyer", "Arjun Subramanian", "Hari Krishnan",
+//       "Pravin Natarajan", "Ashwin Balaji", "Raghav Raman", "Vivek Chandran", "Naveen Iyer", "Gokul Swamy",
+//       "Dinesh Pillai", "Sai Reddy", "Praneeth Goud", "Venkatesh Naidu", "Harsha Varma", "Ajay Chowdary", "Ram Charan",
+//       "Surya Teja", "Nani Krishna", "Bharat Rao", "Kiran Reddy", "Gurpreet Singh", "Harpreet Kaur", "Jaspreet Singh",
+//       "Maninder Gill", "Hardeep Sandhu", "Kuldeep Brar", "Navjot Sidhu", "Paramveer Singh", "Rupinder Dhillon",
+//       "Amritpal Grewal", "Rajveer Rathore", "Vikram Sisodia", "Pratap Chauhan", "Gajendra Shekhawat", "Ajit Rajawat",
+//       "Lokesh Bhati", "Sohan Parihar", "Mahendra Solanki", "Bhawani Jhala", "Dinesh Tanwar", "Amit Dahiya",
+//       "Rohit Hooda", "Vikas Malik", "Naveen Jakhar", "Deepak Sangwan", "Ajay Kadian", "Karan Punia", "Mukesh Deswal",
+//       "Yogesh Phogat", "Parveen Mor", "Ankit Yadav", "Shivam Mishra", "Ayush Pandey", "Vivek Dubey", "Rahul Tripathi",
+//       "Mohit Srivastava", "Abhishek Shukla", "Aman Bajpai", "Kunal Pathak", "Deepak Awasthi", "Nitish Kumar",
+//       "Chandan Jha", "Pankaj Thakur", "Mukesh Sinha", "Saurabh Rai", "Gautam Anand", "Manish Ojha", "Rahul Narayan",
+//       "Sunil Paswan", "Abhay Mandal", "Soumik Banerjee", "Arijit Chatterjee", "Sayan Ghosh", "Debashish Bose",
+//       "Subrata Das", "Prasenjit Roy", "Tapas Sen", "Kaushik Mitra", "Anirban Dutta", "Souvik Pal", "Satyajit Nayak",
+//       "Debasis Sahoo", "Prakash Mohanty", "Manas Panda", "Santosh Rout", "Rajesh Pati", "Bikash Swain", "Chandan Jena",
+//       "Rakesh Behera", "Dillip Samal", "Ritam Bora", "Anup Deka", "Pranab Saikia", "Nayan Gogoi", "Dipak Kalita",
+//       "Rahul Baruah", "Kaushik Talukdar", "Manas Bhuyan", "Bikram Phukan", "Ajit Bordoloi", "Ravi Soren", "Ajay Murmu",
+//       "Deepak Hembrom", "Vikash Tudu", "Rajesh Kisku", "Pankaj Marandi", "Nitesh Minz", "Santosh Besra", "Akash Purty",
+//       "Rohit Mahli", "Mohit Rawat", "Rahul Negi", "Deepak Bisht", "Ankit Nautiyal", "Saurabh Gusain", "Lokesh Kunwar",
+//       "Pankaj Bhandari", "Ashish Uniyal", "Akash Dhami", "Nitin Bartwal", "Aamir Khan", "Bilal Mir", "Tariq Lone",
+//       "Adil Bhat", "Sameer Zargar", "Junaid Sofi", "Imran Parray", "Faisal Butt", "Arif Andrabi", "Yasin Malik",
+//       "Kevin Dsouza", "Ryan Fernandes", "Jason Pinto", "Allan Mascarenhas", "Trevor Almeida", "Aaron Menezes",
+//       "Joel Sequeira", "Edwin Rebello", "Rohan Correia", "Clive Noronha", "Aryan Malhotra", "Kabir Khanna",
+//       "Vivaan Arora", "Ishaan Kapoor", "Reyansh Mehra", "Ayaan Sethi", "Dev Batra", "Aryan Oberoi", "Krish Talwar",
+//       "Laksh Juneja", "Priya Malhotra", "Simran Arora", "Riya Kapoor", "Ananya Khanna", "Kiara Batra", "Myra Talwar",
+//       "Siya Oberoi", "Meher Juneja", "Aarohi Sethi", "Shanaya Mehra", "Aarav Deshmukh"
+//     ];
 
-let randomName = "";
-    let randomFakeId = "";
+// let randomName = "";
+//     let randomFakeId = "";
 
-    // 🎲 0 se 100 ke beech ek random number
-    const chance = Math.random() * 100;
+//     // 🎲 0 se 100 ke beech ek random number
+//     const chance = Math.random() * 100;
 
-    if (chance <= 90) {
-      // 90% CHANCE: List se uthao aur naya ID banao
-      // Make sure 'indianNames' array is defined above this route in your file!
-      randomName = indianNames[Math.floor(Math.random() * indianNames.length)];
-      randomFakeId = Math.floor(1000000 + Math.random() * 9000000);
-    } else {
-      // 10% CHANCE: 3-din purana FakeUser Database se uthao
-      const FakeUser = require('../models/FakeUser');
-      const threeDaysAgo = new Date();
-      threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
+//     if (chance <= 90) {
+//       // 90% CHANCE: List se uthao aur naya ID banao
+//       // Make sure 'indianNames' array is defined above this route in your file!
+//       randomName = indianNames[Math.floor(Math.random() * indianNames.length)];
+//       randomFakeId = Math.floor(1000000 + Math.random() * 9000000);
+//     } else {
+//       // 10% CHANCE: 3-din purana FakeUser Database se uthao
+//       const FakeUser = require('../models/FakeUser');
+//       const threeDaysAgo = new Date();
+//       threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
 
-      const fakeUsers = await FakeUser.aggregate([
-        { $match: { date: { $lte: threeDaysAgo } } },
-        { $sample: { size: 1 } }
-      ]);
+//       const fakeUsers = await FakeUser.aggregate([
+//         { $match: { date: { $lte: threeDaysAgo } } },
+//         { $sample: { size: 1 } }
+//       ]);
 
-      if (fakeUsers && fakeUsers.length > 0) {
-        randomName = fakeUsers[0].name;
-        randomFakeId = fakeUsers[0].userId;
-      } else {
-        // Fallback
-        randomName = indianNames[Math.floor(Math.random() * indianNames.length)];
-        randomFakeId = Math.floor(1000000 + Math.random() * 9000000);
-      }
-    }
+//       if (fakeUsers && fakeUsers.length > 0) {
+//         randomName = fakeUsers[0].name;
+//         randomFakeId = fakeUsers[0].userId;
+//       } else {
+//         // Fallback
+//         randomName = indianNames[Math.floor(Math.random() * indianNames.length)];
+//         randomFakeId = Math.floor(1000000 + Math.random() * 9000000);
+//       }
+//     }
 
-    // ==========================================
-    // 3. RECORD IN DUMMY TRANSACTION
-    // ==========================================
-    const DummyTransaction = require('../models/DummyTransaction'); 
+//     // ==========================================
+//     // 3. RECORD IN DUMMY TRANSACTION
+//     // ==========================================
+//     const DummyTransaction = require('../models/DummyTransaction'); 
 
-    const fakeJoinDate = new Date();
-    fakeJoinDate.setDate(fakeJoinDate.getDate() - Math.floor(Math.random() * 5 + 1));
+//     const fakeJoinDate = new Date();
+//     fakeJoinDate.setDate(fakeJoinDate.getDate() - Math.floor(Math.random() * 5 + 1));
 
-    // A. Pehle Fake Topup ki entry
-    await DummyTransaction.create({
-      userId: currentUser.userId,
-      generatedId: randomFakeId, 
-      amount: 30, 
-      type: "topup", 
-      description: `Node Activated with $30`,
-      date: fakeJoinDate
-    });
+//     // A. Pehle Fake Topup ki entry
+//     await DummyTransaction.create({
+//       userId: currentUser.userId,
+//       generatedId: randomFakeId, 
+//       amount: 30, 
+//       type: "topup", 
+//       description: `Node Activated with $30`,
+//       date: fakeJoinDate
+//     });
 
-    // B. Ab Fake Withdrawal ki entry
-    await DummyTransaction.create({
-      userId: currentUser.userId,
-      generatedId: randomFakeId, 
-      amount: totalAmt, 
-      type: "Withdrawal", 
-      description: `Demo withdrawal of $${totalAmt} generated for promo ID ${randomFakeId}`,
-      date: new Date()
-    });
+//     // B. Ab Fake Withdrawal ki entry
+//     await DummyTransaction.create({
+//       userId: currentUser.userId,
+//       generatedId: randomFakeId, 
+//       amount: totalAmt, 
+//       type: "Withdrawal", 
+//       description: `Demo withdrawal of $${totalAmt} generated for promo ID ${randomFakeId}`,
+//       date: new Date()
+//     });
 
-    // 🔥 NAYA: Fake Report Generate karna Frontend ke Modal ke liye
-    const totalFee = totalAmt * 0.10; // 10% fee
-    const netAmountAfterFee = totalAmt - totalFee;
+//     // 🔥 NAYA: Fake Report Generate karna Frontend ke Modal ke liye
+//     const totalFee = totalAmt * 0.10; // 10% fee
+//     const netAmountAfterFee = totalAmt - totalFee;
     
-    // Promo ke liye hum 100% net withdraw dikha rahe hain
-    let finalReport = {
-        totalRequested: totalAmt,
-        totalFeeDeducted: totalFee,
-        totalNetUSDT: netAmountAfterFee, 
-        totalToTopupWallet: 0,
-        teamSizeTracked: 1000, 
-        communityPercentage: 100
-    };
+//     // Promo ke liye hum 100% net withdraw dikha rahe hain
+//     let finalReport = {
+//         totalRequested: totalAmt,
+//         totalFeeDeducted: totalFee,
+//         totalNetUSDT: netAmountAfterFee, 
+//         totalToTopupWallet: 0,
+//         teamSizeTracked: 1000, 
+//         communityPercentage: 100
+//     };
 
-    return res.json({ 
-      success: true, 
-      generatedId: randomFakeId, 
-      name: randomName,
-      message: `Promo withdrawal of $${totalAmt} processed. (Hidden $30 Topup also generated!)`,
-      report: finalReport // 🔥 Yahan Frontend ko Report mil jayegi!
-    });
+//     return res.json({ 
+//       success: true, 
+//       generatedId: randomFakeId, 
+//       name: randomName,
+//       message: `Promo withdrawal of $${totalAmt} processed. (Hidden $30 Topup also generated!)`,
+//       report: finalReport // 🔥 Yahan Frontend ko Report mil jayegi!
+//     });
 
-  } catch (err) {
-    console.error("Promo Withdraw Simulation Error:", err);
-    res.status(500).json({ message: "Server processing error: " + err.message });
-  }
-});
+//   } catch (err) {
+//     console.error("Promo Withdraw Simulation Error:", err);
+//     res.status(500).json({ message: "Server processing error: " + err.message });
+//   }
+// });
  
 // ---------------------------
 // =========================================================
@@ -1332,6 +1332,274 @@ let randomName = "";
 
 
 // 🔹 GET specific withdrawal history for a user
+
+
+
+
+router.post("/promo-withdraw", authMiddleware, async (req, res) => {
+  try {
+    const { items, transactionPassword } = req.body;
+
+    // 1. Find current user
+    const currentUser = await User.findOne({
+      userId: req.user.userId
+    });
+
+    if (!currentUser) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found"
+      });
+    }
+
+    // 2. Promo role security check
+    if (String(currentUser.role || "").toLowerCase() !== "promo") {
+      return res.status(403).json({
+        success: false,
+        message: "Unauthorized: For promo users only."
+      });
+    }
+
+    // 3. Transaction password validation
+    if (
+      !transactionPassword ||
+      !currentUser.transactionPassword ||
+      String(transactionPassword) !== String(currentUser.transactionPassword)
+    ) {
+      return res.status(403).json({
+        success: false,
+        message: "Invalid Transaction Password."
+      });
+    }
+
+    // 4. Validate withdrawal items
+    if (!Array.isArray(items) || items.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Withdrawal items are required."
+      });
+    }
+
+    let totalAmt = 0;
+
+    for (const item of items) {
+      const rawAmount = String(item?.amount ?? "").trim();
+
+      if (!/^\d+(?:\.\d{1,4})?$/.test(rawAmount)) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid amount. Maximum 4 decimal places allowed."
+        });
+      }
+
+      const amount = Number(rawAmount);
+
+      if (!Number.isFinite(amount) || amount < 0) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid withdrawal amount."
+        });
+      }
+
+      totalAmt += amount;
+    }
+
+    totalAmt = Number(totalAmt.toFixed(4));
+
+    // 5. Minimum withdrawal $2
+    if (totalAmt < 2) {
+      return res.status(400).json({
+        success: false,
+        message: "Minimum withdrawal amount is $2."
+      });
+    }
+
+    // 6. Indian names list
+    const indianNames = [
+      "Aarav Patil", "Rohan Sharma", "Aditya Singh", "Rahul Verma",
+      "Vikas Yadav", "Amit Kumar", "Ankit Gupta", "Sandeep Mishra",
+      "Vivek Tiwari", "Rajesh Patel", "Mohit Sharma", "Ravi Yadav",
+      "Akash Singh", "Deepak Verma", "Pankaj Kumar", "Nitin Sharma",
+      "Karan Malhotra", "Saurabh Gupta", "Abhishek Jain", "Manish Patel",
+      "Harsh Mehta", "Yash Shah", "Dhruv Patel", "Jay Mehta",
+      "Meet Shah", "Kunal Joshi", "Rakesh Solanki", "Pravin Chauhan",
+      "Vimal Desai", "Chirag Modi", "Hardik Patel", "Nilesh Gandhi",
+      "Vijay Parmar", "Sanjay Bhatt", "Rohit Trivedi", "Gautam Shah",
+      "Aman Joshi", "Vikas Mehra", "Anurag Singh", "Shubham Yadav",
+      "Ayush Pandey", "Kartik Sharma", "Prashant Tiwari", "Ritesh Verma",
+      "Sachin Mishra", "Vinay Kumar", "Akhil Gupta", "Rajat Singh",
+      "Harshit Jain", "Sumit Patel", "Arjun Kapoor", "Kabir Khanna",
+      "Vivaan Arora", "Ishaan Malhotra", "Reyansh Sethi", "Ayaan Batra",
+      "Dev Sharma", "Aryan Gupta", "Krish Verma", "Laksh Yadav",
+      "Priya Sharma", "Pooja Patel", "Sneha Verma", "Neha Gupta",
+      "Riya Singh", "Anjali Yadav", "Kavita Mishra", "Simran Kaur",
+      "Komal Sharma", "Aarti Patel", "Megha Verma", "Swati Gupta",
+      "Ritu Singh", "Nisha Sharma", "Divya Patel", "Pallavi Verma",
+      "Shreya Gupta", "Anita Singh", "Monika Yadav", "Jyoti Mishra",
+      "Sonia Sharma", "Rashmi Patel", "Preeti Verma", "Sakshi Gupta",
+      "Tanya Singh", "Payal Sharma", "Madhuri Patel", "Nandini Verma",
+      "Khushi Gupta", "Isha Singh", "Radhika Sharma", "Muskan Patel",
+      "Ananya Verma", "Kiara Gupta", "Myra Singh", "Meher Sharma",
+      "Siya Patel", "Aarohi Verma", "Aakash Rao", "Ramesh Gowda",
+      "Suresh Naidu", "Vinod Reddy", "Prakash Rao", "Mahesh Gowda",
+      "Harsha Naik", "Lokesh Shetty", "Ganesh Hegde", "Kiran Acharya",
+      "Darshan Rao", "Naveen Gowda", "Tejas Shetty", "Raghav Rao",
+      "Anand Murthy", "Pradeep Hegde", "Manjunath Naik", "Srinivas Rao",
+      "Venkatesh Gowda", "Ashwin Shetty", "Arvind Menon", "Rahul Nair",
+      "Joseph Mathew", "Bibin George", "Vishnu Pillai", "Akhil Kurup",
+      "Nikhil Menon", "Sandeep Nair", "Manu Varghese", "Rakesh Panicker",
+      "Karthik Iyer", "Arjun Subramanian", "Hari Krishnan",
+      "Pravin Natarajan", "Ashwin Balaji", "Raghav Raman",
+      "Vivek Chandran", "Naveen Iyer", "Gokul Swamy", "Dinesh Pillai",
+      "Sai Reddy", "Praneeth Goud", "Venkatesh Naidu", "Harsha Varma",
+      "Ajay Chowdary", "Ram Charan", "Surya Teja", "Nani Krishna",
+      "Bharat Rao", "Kiran Reddy", "Gurpreet Singh", "Harpreet Kaur",
+      "Jaspreet Singh", "Maninder Gill", "Hardeep Sandhu", "Kuldeep Brar",
+      "Navjot Sidhu", "Paramveer Singh", "Rupinder Dhillon",
+      "Amritpal Grewal", "Rajveer Rathore", "Vikram Sisodia",
+      "Pratap Chauhan", "Gajendra Shekhawat", "Ajit Rajawat",
+      "Lokesh Bhati", "Sohan Parihar", "Mahendra Solanki",
+      "Bhawani Jhala", "Dinesh Tanwar", "Amit Dahiya", "Rohit Hooda",
+      "Vikas Malik", "Naveen Jakhar", "Deepak Sangwan", "Ajay Kadian",
+      "Karan Punia", "Mukesh Deswal", "Yogesh Phogat", "Parveen Mor",
+      "Ankit Yadav", "Shivam Mishra", "Ayush Pandey", "Vivek Dubey",
+      "Rahul Tripathi", "Mohit Srivastava", "Abhishek Shukla",
+      "Aman Bajpai", "Kunal Pathak", "Deepak Awasthi", "Nitish Kumar",
+      "Chandan Jha", "Pankaj Thakur", "Mukesh Sinha", "Saurabh Rai",
+      "Gautam Anand", "Manish Ojha", "Rahul Narayan", "Sunil Paswan",
+      "Abhay Mandal", "Soumik Banerjee", "Arijit Chatterjee",
+      "Sayan Ghosh", "Debashish Bose", "Subrata Das", "Prasenjit Roy",
+      "Tapas Sen", "Kaushik Mitra", "Anirban Dutta", "Souvik Pal",
+      "Satyajit Nayak", "Debasis Sahoo", "Prakash Mohanty",
+      "Manas Panda", "Santosh Rout", "Rajesh Pati", "Bikash Swain",
+      "Chandan Jena", "Rakesh Behera", "Dillip Samal", "Ritam Bora",
+      "Anup Deka", "Pranab Saikia", "Nayan Gogoi", "Dipak Kalita",
+      "Rahul Baruah", "Kaushik Talukdar", "Manas Bhuyan",
+      "Bikram Phukan", "Ajit Bordoloi", "Ravi Soren", "Ajay Murmu",
+      "Deepak Hembrom", "Vikash Tudu", "Rajesh Kisku", "Pankaj Marandi",
+      "Nitesh Minz", "Santosh Besra", "Akash Purty", "Rohit Mahli",
+      "Mohit Rawat", "Rahul Negi", "Deepak Bisht", "Ankit Nautiyal",
+      "Saurabh Gusain", "Lokesh Kunwar", "Pankaj Bhandari",
+      "Ashish Uniyal", "Akash Dhami", "Nitin Bartwal", "Aamir Khan",
+      "Bilal Mir", "Tariq Lone", "Adil Bhat", "Sameer Zargar",
+      "Junaid Sofi", "Imran Parray", "Faisal Butt", "Arif Andrabi",
+      "Yasin Malik", "Kevin Dsouza", "Ryan Fernandes",
+      "Jason Pinto", "Allan Mascarenhas", "Trevor Almeida",
+      "Aaron Menezes", "Joel Sequeira", "Edwin Rebello",
+      "Rohan Correia", "Clive Noronha", "Aryan Malhotra",
+      "Kabir Khanna", "Vivaan Arora", "Ishaan Kapoor",
+      "Reyansh Mehra", "Ayaan Sethi", "Dev Batra", "Aryan Oberoi",
+      "Krish Talwar", "Laksh Juneja", "Priya Malhotra",
+      "Simran Arora", "Riya Kapoor", "Ananya Khanna",
+      "Kiara Batra", "Myra Talwar", "Siya Oberoi", "Meher Juneja",
+      "Aarohi Sethi", "Shanaya Mehra", "Aarav Deshmukh"
+    ];
+
+    // 7. Generate random display name
+    const randomName =
+      indianNames[Math.floor(Math.random() * indianNames.length)];
+
+    // 8. Load DummyTransaction model
+    const DummyTransaction = require("../models/DummyTransaction");
+
+    // 9. Generate unique ID: GW + 7 digits
+    let randomFakeId = null;
+
+    for (let attempt = 0; attempt < 30; attempt++) {
+      const candidateId =
+        "GW" + Math.floor(1000000 + Math.random() * 9000000);
+
+      const [existingUser, existingTransaction] = await Promise.all([
+        User.exists({ userId: candidateId }),
+        DummyTransaction.exists({ generatedId: candidateId })
+      ]);
+
+      if (!existingUser && !existingTransaction) {
+        randomFakeId = candidateId;
+        break;
+      }
+    }
+
+    if (!randomFakeId) {
+      return res.status(500).json({
+        success: false,
+        message: "Unable to generate a unique demo ID. Please try again."
+      });
+    }
+
+    // 10. Generate demo date
+    const fakeJoinDate = new Date();
+    fakeJoinDate.setDate(
+      fakeJoinDate.getDate() - Math.floor(Math.random() * 5 + 1)
+    );
+
+    // 11. Create demo top-up entry
+    await DummyTransaction.create({
+      userId: randomFakeId,
+      generatedId: randomFakeId,
+      name: randomName,
+      amount: 30,
+      type: "demo_topup",
+      promoUserId: String(currentUser.userId),
+      isPromo: true,
+      isDemo: true,
+      country: "India",
+      countryCode: "IN",
+      status: "DEMO",
+      description: "Demo node activation with $30",
+      createdAt: fakeJoinDate
+    });
+
+    // 12. Create demo withdrawal entry
+    await DummyTransaction.create({
+      userId: randomFakeId,
+      generatedId: randomFakeId,
+      name: randomName,
+      amount: totalAmt,
+      type: "promo_withdraw",
+      promoUserId: String(currentUser.userId),
+      isPromo: true,
+      isDemo: true,
+      country: "India",
+      countryCode: "IN",
+      status: "DEMO",
+      description: `Demo withdrawal of $${totalAmt.toFixed(4)} generated for promo ID ${randomFakeId}`,
+      createdAt: new Date()
+    });
+
+    // 13. Demo report calculation
+    const totalFee = Number((totalAmt * 0.10).toFixed(4));
+    const netAmountAfterFee = Number((totalAmt - totalFee).toFixed(4));
+
+    const finalReport = {
+      totalRequested: totalAmt,
+      totalFeeDeducted: totalFee,
+      totalNetUSDT: netAmountAfterFee,
+      totalToTopupWallet: 0,
+      teamSizeTracked: 1000,
+      communityPercentage: 100
+    };
+
+    // 14. Success response
+    return res.status(200).json({
+      success: true,
+      generatedId: randomFakeId,
+      name: randomName,
+      message: "Promo withdrawal simulation created successfully.",
+      report: finalReport
+    });
+
+  } catch (err) {
+    console.error("Promo Withdraw Simulation Error:", err);
+
+    return res.status(500).json({
+      success: false,
+      message: "Server processing error."
+    });
+  }
+});
+
+
 router.get('/withdrawals/:userId', async (req, res) => {
   try {
     const rawUserId = req.params.userId;
